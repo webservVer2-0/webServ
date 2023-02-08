@@ -8,7 +8,7 @@ CXX = c++
 # Compiler flags
 CXXFLAGS = -g3 -std=c++98 -Wall -Wextra -Werror -pedantic 
 # CXXFLAGS = -g3 -std=c++98 -Wall -Wextra -Werror -pedantic -D SERVER=1 -D REQ_HANDLER=1 -D RES_HANDLER=1 -D CONFIG=1
-#  CXXFLAGS = -g3 -fsanitize=address -D DG=1
+DECXXFLAGS = -g3 -fsanitize=address -std=c++98 -Wall -Wextra -Werror -pedantic 
 
 
 
@@ -55,10 +55,16 @@ fclean:
 	make clean
 	@rm -f $(NAME)
 	@rm -f $(RH_NAME)
+	@rm -f $(NAME).dSYM
 
 re:
 	make fclean
 	make all
 
+debug: $(SERVER_OBJ)
+	@echo "$(YELLOW)Building $@...$(RESET)"
+	@$(CXX) $(DECXXFLAGS) $(SERVER_OBJ) -o $(NAME)
+	@echo "$(GREEN)Done.$(RESET)"
+
 # Phony targets
-.PHONY: all clean fclean re 
+.PHONY: all clean fclean re debug

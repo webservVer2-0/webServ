@@ -6,7 +6,7 @@
 /*   By: haryu <haryu@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/08 21:11:00 by haryu             #+#    #+#             */
-/*   Updated: 2023/02/08 21:31:42 by haryu            ###   ########.fr       */
+/*   Updated: 2023/02/08 21:53:03 by haryu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,10 @@ int main(int ac, char **av, char **en) {
     return (-1);
   }
   SOUT << "webserv initializing" << SEND;
-  (void)av;
+
+  ServerConfig webserv(av[1]);
+  //   webserv.PrintServerConfig();
+
   (void)en;
   return (0);
 }
