@@ -19,7 +19,8 @@ bool IsWhiteSpace(char ptr);
  * @param pos
  * @return int
  */
-pos_t StrLenNewLine(std::string& str, pos_t& pos);
+pos_t FindKeyLength(std::string& str, pos_t& pos);
+pos_t FindValueLength(std::string& str, pos_t& pos);
 
 /* debug tools */
 

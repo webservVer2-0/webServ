@@ -10,7 +10,16 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
 
   printf("File Size : %lu\n", strlen(config_data));
   ParssingServer(config_data);
-  (void)server_number_;
+  PrintServerConfig();
+  // TODO : 가변인자 방식으로 유효성 검사 진행하기
+  // 1. server 전체 필수 인자 존재 여부
+  // 2. 각 키별 값 상태 확인
+  // 2.1 정수 키 -> 그 외의 값 들어가면 안됨
+  // 2.2 특수 키 -> 특정 키워드, 크기 동일해야함
+  // 2.3 html -> default_file 의 경우 html 만 지원 하므로, 그 외에는 아웃.
+  // 2.4 cgi의 경우 cgi 이름이 곧 확장자 명 -> 즉 cgi 키 값과 이에 준하는 .py
+  // 값의 파일 명이 지정되어 있어야함.
+  // '/' (root) 로케이션은 반드시 존재해야함
 }
 
 // ServerConfig::~ServerConfig() {}
@@ -21,40 +30,29 @@ void ServerConfig::ParssingServer(const char* config_data) {
   config_string.assign(config_data);
 
   while ((i = config_string.find(SER, i)) != std::string::npos) {
-    keywords_type server_keywords;
-    keywords_type location_keywords;
-
-    InitKeywords(server_keywords, 0);
-    InitKeywords(location_keywords, 1);
-
     if (CheckKeyWord(config_string, i, SER)) {
-      t_ser_conf* temp = new t_ser_conf();
+      t_server* temp = new t_server();
       this->server_number_++;
       this->server_list_.push_back(temp);
-      // TODO : 서버 별 config 읽기
-      i = ParssingServerLine(server_keywords, location_keywords, config_string,
-                             i + 6);
-      // TODO : location 발견 시 location 읽기 진행
-
-      SOUT << "position data : " << i << SEND;
+      i = ParssingServerLine(config_string, i + 6);
     }
     i++;
   }
-  SOUT << server_number_ << SEND;
+  if (server_number_ > 9) {
+    PrintError(2, WEBSERV,
+               "Multi-servers can be configured with less than 10 servers");
+  }
 }
 
-pos_t ServerConfig::ParssingServerLine(keywords_type server_list,
-                                       keywords_type location_list,
-                                       std::string& config_string,
+pos_t ServerConfig::ParssingServerLine(std::string& config_string,
                                        pos_t init_pos) {
-  PrintLine(config_string, init_pos);
-
   pos_t i = init_pos;
   pos_t key_length = 0;
+  pos_t value_length = 0;
   std::string temp_key;
   std::string temp_value;
 
-  while (!CheckKeyWord(config_string, init_pos, SER)) {
+  while (i < config_string.size()) {
     if (IsWhiteSpace(config_string.at(i))) {
       i++;
     } else if (config_string.at(i) == '{') {
@@ -62,111 +60,154 @@ pos_t ServerConfig::ParssingServerLine(keywords_type server_list,
       while (IsWhiteSpace(config_string.at(i)) || config_string.at(i) == '\n') {
         i++;
       }
-    } else if (isalpha(config_string.at(i))) {
-      // TODO : line 처리
-      while (config_string.at(i) != '\n') {
+    } else if (isalnum(config_string.at(i))) {
+      if (!CheckKeyWord(config_string, i, SER)) {
         pos_t value_loc = i;
-        key_length = StrLenNewLine(config_string, value_loc);
-        // i = 현재 key의 첫글자 위치
-        // value_loc = 현재 key의 마지막 글자 위치
+        key_length = FindKeyLength(config_string, value_loc);
         temp_key = config_string.substr(i, key_length);
-        string_list* temp = &server_list.at(key_length);
-        string_list::iterator it = temp->begin();
-        while (it != (*temp).end()) {
-          if (it.base() == temp_key) }
-        // 1. key value 찾기(몇글자?) -> server_list 중 같은 key 인 곳에서
-        // 찾아옴
-        // 2. 해당 server key list 중 해당하는에를 찾음, e_server 번호로 값을
-        // 읽어 하부 스트링을 전달한다.
+        if (temp_key == LOC) {
+          i += key_length;
+          while (IsWhiteSpace(config_string.at(i))) {
+            i++;
+          }
+          value_loc = i;
+          key_length = FindKeyLength(config_string, value_loc);
+          temp_key = config_string.substr(i, key_length);
+
+          t_loc* temp_loc = new t_loc();
+          server_list_.at(server_number_ - 1)
+              ->location_configs_.insert(
+                  std::pair<std::string, t_loc*>(temp_key, temp_loc));
+          while (config_string[i] != '{') {
+            i++;
+          }
+          i++;
+          while (config_string[i] != '}') {
+            while (IsWhiteSpace(config_string.at(i))) {
+              i++;
+              if (config_string.at(i) == '#') {
+                while (config_string.at(i) != '\n') {
+                  i++;
+                }
+              } else if (isalnum(config_string.at(i))) {
+                break;
+              }
+            }
+            if (config_string[i] == '}') {
+              PrintError(2, WEBSERV, "Config is empty");
+            }
+            value_loc = i;
+            key_length = FindKeyLength(config_string, value_loc);
+            temp_key = config_string.substr(i, key_length);
+            value_length = FindValueLength(config_string, value_loc);
+            temp_value = config_string.substr(value_loc, value_length);
+            temp_loc->main_config_.insert(
+                std::pair<std::string, std::string>(temp_key, temp_value));
+            i = value_loc + value_length + 1;
+            while (IsWhiteSpace(config_string.at(i))) {
+              i++;
+              if (config_string.at(i) == '#') {
+                while (config_string.at(i) != '\n') {
+                  i++;
+                }
+              } else if (isalnum(config_string.at(i))) {
+                break;
+              }
+            }
+          }
+        } else {
+          value_length = FindValueLength(config_string, value_loc);
+          temp_value = config_string.substr(value_loc, value_length);
+          server_list_.at(server_number_ - 1)
+              ->main_config_.insert(
+                  std::pair<std::string, std::string>(temp_key, temp_value));
+          i = value_loc + value_length + 1;
+        }
+
+        while (IsWhiteSpace(config_string.at(i))) {
+          i++;
+        }
+
+      } else {
+        return (i - 1);
       }
-      // TODO : Location 나왔을시 특수 처리
-      // TODO : # 이 나오면 해당 라인 무시 처리 해야함
     } else if (config_string.at(i) == '#') {
-      // TODO : 주석 처리
+      while (config_string.at(i) != '\n') {
+        i++;
+      }
+      i++;
     } else if (config_string.at(i) == '}') {
+      i++;
     }
+    init_pos = i;
   }
-
+  i = init_pos;
   return (i);
-}
-
-void ServerConfig::InitKeywords(keywords_type& list, int code) {
-  pos_t i = 0;
-  char** keywords;
-
-  if (code == 0) {
-    keywords = new char*[14];
-    keywords[13] = NULL;
-    keywords[0] = strdup(LISTEN);
-    keywords[1] = strdup(BODY);
-    keywords[2] = strdup(MAXCON);
-    keywords[3] = strdup(ROOT);
-    keywords[4] = strdup(DEFFILE);
-    keywords[5] = strdup(UPLOAD);
-    keywords[6] = strdup(ACCLOG);
-    keywords[7] = strdup(ERRLOG);
-    keywords[8] = strdup(SERNAME);
-    keywords[9] = strdup(TIMEOUT);
-    keywords[10] = strdup(AUTOINDEX);
-    keywords[11] = strdup(METHOD);
-    keywords[12] = strdup(ERR);
-  } else {
-    keywords = new char*[9];
-    keywords[8] = NULL;
-    keywords[0] = strdup(LOCNAME);
-    keywords[1] = strdup(CGIFILE);
-    keywords[2] = strdup(ERR);
-    keywords[3] = strdup(METHOD);
-    keywords[4] = strdup(AUTOINDEX);
-    keywords[5] = strdup(DEFFILE);
-    keywords[6] = strdup(MAXCON);
-    keywords[7] = strdup(REDIR);
-  }
-
-  while (keywords[i]) {
-    if (list.find(strlen(keywords[i])) != list.end()) {
-      keywords_type::iterator target_list = list.find(strlen(keywords[i]));
-      target_list.operator->()->second.push_back(std::string(keywords[i]));
-    } else {
-      string_list temp_array;
-      std::string temp_string(keywords[i]);
-      temp_array.push_back(temp_string);
-      list.insert(std::pair<int, string_list>(temp_string.size(), temp_array));
-    }
-    i++;
-  }
-
-  i = 0;
-  while (keywords[i]) {
-    delete[] keywords[i];
-    i++;
-  }
-  delete[] keywords;
 }
 
 bool ServerConfig::CheckKeyWord(const std::string& target, pos_t pos,
                                 const char* keyword) {
   int limit = strlen(keyword);
   int i = 0;
-  while (pos != target.size()) {
-    if (target.at(pos) == keyword[i]) {
+  if (pos != target.size()) {
+    while (target[pos] == keyword[i] && i < limit) {
+      //   SOUT << target[pos] << " :  " << keyword[i] << SEND;
       i++;
+      pos++;
       if (i == limit) {
-        if (IsWhiteSpace(target.at(pos + 1))) {
+        if (IsWhiteSpace(target.at(pos))) {
           return (true);
-        } else
+        } else {
           return (false);
+        }
       }
     }
-    pos++;
   }
 
   return (false);
 }
 
-// ssize_t ServerConfig::PrintServerConfig() {}
-// t_ser_conf* ServerConfig::GetServer(int64_t server_number) {}
-// t_ser_conf* ServerConfig::GetServer(const char* server_name) {}
+ssize_t ServerConfig::PrintServerConfig() {
+  int64_t i = 0;
+
+  while (i < server_number_) {
+    config_map::iterator it = server_list_[i]->main_config_.begin();
+    SOUT << "[ " << BOLDBLUE << std::setw(16) << ""
+         << "Server Number : " << i + 1 << RESET << std::setw(17) << " ]"
+         << SEND;
+    while (it != server_list_[i]->main_config_.end()) {
+      SOUT << "[ " << GREEN << std::setw(15) << std::left
+           << it.operator->()->first << RESET << " : ";
+      SOUT << std::setw(30) << std::right << it.operator->()->second << " ]"
+           << SEND;
+      it++;
+    }
+    SOUT << SEND;
+    std::map<std::string, t_loc*>::iterator lit =
+        server_list_[i]->location_configs_.begin();
+    while (lit != server_list_[i]->location_configs_.end()) {
+      SOUT << "[ " << YELLOW << std::setw(15) << std::left << "● Location"
+           << "   : " << std::setw(30) << std::right << lit.operator->()->first
+           << RESET << " ]" << SEND;
+      config_map::iterator temp =
+          lit.operator->()->second->main_config_.begin();
+      while (temp != lit.operator->()->second->main_config_.end()) {
+        SOUT << "[ " << GREEN << std::setw(15) << std::left
+             << temp.operator->()->first << RESET << " : ";
+        SOUT << std::setw(30) << std::right << temp.operator->()->second << " ]"
+             << SEND;
+        temp++;
+      }
+      SOUT << SEND;
+      lit++;
+    }
+    SOUT << SEND;
+    i++;
+  }
+  return (0);
+}
+// t_server* ServerConfig::GetServer(int64_t server_number) {}
+// t_server* ServerConfig::GetServer(const char* server_name) {}
 // loc_list::iterator ServerConfig::GetServerLocation(int64_t server_number)
 // {} loc_list::iterator ServerConfig::GetServerLocation(const char*
 // server_name)

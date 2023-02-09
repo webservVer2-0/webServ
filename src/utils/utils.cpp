@@ -86,13 +86,27 @@ void PrintLine(std::string& target, pos_t pos) {
   SOUT << SEND;
 }
 
-pos_t StrLenNewLine(std::string& str, pos_t& pos) {
-  int ret = 0;
+pos_t FindKeyLength(std::string& str, pos_t& pos) {
+  pos_t ret = 0;
   while (str[pos] != ' ') {
     pos++;
     ret++;
   }
-  ret--;
-  pos--;
+  return (ret);
+}
+
+pos_t FindValueLength(std::string& str, pos_t& pos) {
+  pos_t ret = 0;
+  while (IsWhiteSpace(str[pos])) {
+    pos++;
+  }
+  pos_t i = pos;
+  while (str[i] != ';') {
+    if (str[i] == '\n') {
+      PrintError(2, WEBSERV, "Line shoud be end with ';'");
+    }
+    i++;
+    ret++;
+  }
   return (ret);
 }

@@ -6,9 +6,10 @@ NAME = webserv
 CXX = c++
 
 # Compiler flags
-CXXFLAGS = -g3 -std=c++98 -Wall -Wextra -Werror -pedantic 
+
+# CXXFLAGS = -g3 -std=c++98 -Wall -Wextra -Werror -pedantic 
 # CXXFLAGS = -g3 -std=c++98 -Wall -Wextra -Werror -pedantic -D SERVER=1 -D REQ_HANDLER=1 -D RES_HANDLER=1 -D CONFIG=1
-DECXXFLAGS = -g3 -fsanitize=address -std=c++98 -Wall -Wextra -Werror -pedantic 
+CXXFLAGS = -g3 -fsanitize=address -std=c++98 -Wall -Wextra -Werror -pedantic -D DG=1 
 
 
 
@@ -63,7 +64,7 @@ re:
 
 debug: $(SERVER_OBJ)
 	@echo "$(YELLOW)Building $@...$(RESET)"
-	@$(CXX) $(DECXXFLAGS) $(SERVER_OBJ) -o $(NAME)
+	@$(CXX) $(CXXFLAGS) $(SERVER_OBJ) -o $(NAME)
 	@echo "$(GREEN)Done.$(RESET)"
 
 # Phony targets

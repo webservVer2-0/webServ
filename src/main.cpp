@@ -6,7 +6,7 @@
 /*   By: haryu <haryu@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/08 21:11:00 by haryu             #+#    #+#             */
-/*   Updated: 2023/02/08 21:53:03 by haryu            ###   ########.fr       */
+/*   Updated: 2023/02/10 04:07:35 by haryu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,5 +23,11 @@ int main(int ac, char **av, char **en) {
   //   webserv.PrintServerConfig();
 
   (void)en;
+#if DG
+  SOUT << "debug mode" << SEND;
+  system("leaks webserv");
+#else
+  SOUT << "Not debug mode" << SEND;
+#endif
   return (0);
 }
