@@ -75,3 +75,24 @@ char* ReadASCI(const char* file_path, int fd) {
 bool IsWhiteSpace(char ptr) {
   return ptr == ' ' || ptr == '\t' || ptr == '\n' || ptr == '\r';
 }
+
+void PrintLine(std::string& target, pos_t pos) {
+  SOUT << "Target Size : " << target.size() << SEND;
+  SOUT << "Target Starting Point : " << pos << SEND;
+  while (target.at(pos) != '\n') {
+    SOUT << target.at(pos);
+    pos++;
+  }
+  SOUT << SEND;
+}
+
+pos_t StrLenNewLine(std::string& str, pos_t& pos) {
+  int ret = 0;
+  while (str[pos] != ' ') {
+    pos++;
+    ret++;
+  }
+  ret--;
+  pos--;
+  return (ret);
+}

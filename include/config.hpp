@@ -4,21 +4,24 @@
 #include "webserv.hpp"
 
 #define SER "server"
-#define LISTEN "listen"
-#define BODY "body_size"
-#define MAXCON "max_connect"
-#define ROOT "root"
-#define DEFFILE "default_file"
-#define UPLOAD "upload_path"
-#define ACCLOG "access_log"
-#define ERRLOG "error_log"
-#define SERNAME "server_name"
-#define TIMEOUT "timeout"
-#define AUTOINDEX "auto_index"
-#define METHOD "method"
-#define ERR "error"
-#define CGIFILE "cgi"
-#define LOCNAME "location"
+#define LOC "location"
+
+#define LISTEN "listen"         // s
+#define BODY "body_size"        // s
+#define MAXCON "max_connect"    // s
+#define ROOT "root"             // s l
+#define DEFFILE "default_file"  // s l
+#define UPLOAD "upload_path"    // s
+#define ACCLOG "access_log"     // s
+#define ERRLOG "error_log"      // s
+#define SERNAME "server_name"   // s
+#define TIMEOUT "timeout"       // s
+#define AUTOINDEX "auto_index"  // s l
+#define METHOD "method"         // s l
+#define ERR "error"             // s l
+#define CGIFILE "cgi"           //   l
+#define LOCNAME "location"      //   l
+#define REDIR "redirection"     //   l
 
 enum e_server {
   Listen,
@@ -51,7 +54,7 @@ enum e_type { T_ROOT, T_LOCATION, T_CGI };
 enum e_autoindex { on, off };
 
 typedef struct s_loc_conf {
-  std::map<e_location, std::string> configs_;
+  std::map<std::string, std::string> configs_;
   e_type loc_type_;
   e_autoindex mode_;
 } t_loc_conf;
@@ -59,19 +62,28 @@ typedef struct s_loc_conf {
 typedef std::map<std::string, t_loc_conf*> loc_list;
 
 typedef struct s_ser_conf {
-  std::map<e_server, std::string> main_config_;
+  std::map<std::string, std::string> main_config_;
   loc_list location_;
 } t_ser_conf;
 
+typedef unsigned long pos_t;
+
 class ServerConfig {
+ public:
+  typedef std::vector<std::string> string_list;
+  typedef std::map<int, string_list> keywords_type;
+
  private:
   std::vector<t_ser_conf*> server_list_;
   int64_t server_number_;
 
  private:
   void ParssingServer(const char* config_data);
-  bool CheckKeyWord(const std::string& target, unsigned long pos,
-                    const char* keyword);
+  bool CheckKeyWord(const std::string& target, pos_t pos, const char* keyword);
+  pos_t ParssingServerLine(keywords_type server_list,
+                           keywords_type location_list,
+                           std::string& config_string, pos_t init_pos);
+  void InitKeywords(keywords_type& list, int code);
 
  public:
   ServerConfig(const char* confpath);
