@@ -23,8 +23,8 @@
 #define LOCNAME "location"      //   l
 #define REDIR "redirection"     //   l
 
-enum e_type { T_NULL, T_ROOT, T_LOCATION, T_CGI };
-enum e_autoindex { on, off };
+enum e_type { T_NULL, T_ROOT, T_REDIR, T_CGI };
+enum e_autoindex { autodef, on, off };
 
 typedef std::map<std::string, std::string> config_map;
 
@@ -32,7 +32,7 @@ typedef struct s_loc {
   std::string location_;
   config_map main_config_;
   e_type loc_type_[3];
-  e_autoindex status_;
+  e_autoindex index_mode_;
 } t_loc;
 
 typedef std::map<std::string, t_loc*> location_list;
@@ -41,7 +41,7 @@ typedef struct s_server {
   std::string port_;
   config_map main_config_;
   std::map<std::string, t_loc*> location_configs_;
-  e_autoindex status_;
+  e_autoindex index_mode_;
 } t_server;
 
 typedef unsigned long pos_t;
@@ -61,6 +61,23 @@ class ServerConfig {
   pos_t ParssingServerLine(std::string& config_string, pos_t init_pos);
   config_map* GetServerConfigByPort(int Port);
   config_map& GetLocationConfigByPort(int Port, const std::string& uri);
+  void ValidCheckMain(void);
+  bool ValidCheckServer(int server_number, conf_iterator& error_log);
+  bool ValidCheckLocation(int server_number, std::string location_name,
+                          conf_iterator& error_log);
+  bool ValidConfigNumber(conf_iterator& target, char* standard,
+                         conf_iterator& error_log);
+  bool ValidConfigFilePath(conf_iterator& target, conf_iterator& error_log);
+  bool ValidConfigFile(conf_iterator& target, conf_iterator& error_log);
+  bool ValidConfigCGIFile(conf_iterator& target, conf_iterator& error_log,
+                          t_loc& location);
+  bool ValidConfigStr(conf_iterator& target, conf_iterator& error_log);
+  bool ValidConfigHTML(conf_iterator& target, conf_iterator& error_log);
+  bool ValidConfigAutoindex(conf_iterator& target, conf_iterator& error_log,
+                            int server_number);
+  bool ValidConfigError(conf_iterator& target, conf_iterator& error_log);
+  bool ValidConfigAutoindexLocation(conf_iterator& target,
+                                    conf_iterator& error_log, t_loc& location);
 
  public:
   ServerConfig(const char* confpath);
