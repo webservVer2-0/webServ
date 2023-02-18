@@ -10,16 +10,8 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
 
   printf("File Size : %lu\n", strlen(config_data));
   ParssingServer(config_data);
-  PrintServerConfig();
+  //   PrintServerConfig();
   ValidCheckMain();
-  // 1. server 전체 필수 인자 존재 여부
-  // 2. 각 키별 값 상태 확인
-  // 2.1 정수 키 -> 그 외의 값 들어가면 안됨
-  // 2.2 특수 키 -> 특정 키워드, 크기 동일해야함
-  // 2.3 html -> default_file 의 경우 html 만 지원 하므로, 그 외에는 아웃.
-  // 2.4 cgi의 경우 cgi 이름이 곧 확장자 명 -> 즉 cgi 키 값과 이에 준하는 .py
-  // 값의 파일 명이 지정되어 있어야함.
-  // '/' (root) 로케이션은 반드시 존재해야함
 }
 
 // ServerConfig::~ServerConfig() {}
