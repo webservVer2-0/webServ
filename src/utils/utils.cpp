@@ -42,15 +42,6 @@ int GetFileSize(const char* file_path) {
   return (file_info.st_size);
 }
 
-/**
- * @brief 다목적 Read Wrapping Function
- *
- *
- * @param file_path
- * @param storage
- * @param fd 1 이 들어오는 경우 fd를 스스로 open 하고 close 해준다.
- * @return
- */
 char* ReadASCI(const char* file_path, int fd) {
   int size = GetFileSize(file_path);
   char* storage;

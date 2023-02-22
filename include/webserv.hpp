@@ -6,7 +6,7 @@
 /*   By: haryu <haryu@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/08 20:50:04 by haryu             #+#    #+#             */
-/*   Updated: 2023/02/09 22:48:02 by haryu            ###   ########.fr       */
+/*   Updated: 2023/02/22 14:04:44 by haryu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,7 @@
 
 /**
  * @file webserv.hpp
- * @author haryu
- * @brief
+ * @brief Web server with compatiblity with HTTP/1.1.
  * @version 0.1
  * @date 2023-02-08
  *

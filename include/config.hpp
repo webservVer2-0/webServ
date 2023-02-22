@@ -23,11 +23,26 @@
 #define LOCNAME "location"      //   l
 #define REDIR "redirection"     //   l
 
+/**
+ * @brief 해당 로케이션이 어떤 타입의 로케이션인지를 구분짓는 역할을 함.
+ */
 enum e_type { T_NULL, T_ROOT, T_REDIR, T_CGI };
+
+/**
+ * @brief auto index 모드를 구현하기 위한 플래그.
+ */
 enum e_autoindex { autodef, on, off };
 
+/**
+ * @brief key, value 구분을 위한 기초 자료 구조
+ *
+ */
 typedef std::map<std::string, std::string> config_map;
 
+/**
+ * @brief location 별 데이터구조를 담당한다.
+ *
+ */
 typedef struct s_loc {
   std::string location_;
   config_map main_config_;
@@ -37,6 +52,9 @@ typedef struct s_loc {
 
 typedef std::map<std::string, t_loc*> location_list;
 
+/**
+ * @brief server 를 위한 핵심 데이터 구조체, 서버 컨피그의 핵심을 담당한다.
+ */
 typedef struct s_server {
   std::string port_;
   config_map main_config_;
@@ -46,6 +64,10 @@ typedef struct s_server {
 
 typedef unsigned long pos_t;
 
+/**
+ * @brief server class, config reading, validation checking, server config
+ * getter 역할을 담당한다.
+ */
 class ServerConfig {
  public:
   typedef config_map::iterator conf_iterator;
@@ -94,11 +116,9 @@ class ServerConfig {
   conf_value* GetLocationConfValueByPort(int port, const std::string& uri,
                                          const std::string& key);
 
-  // TODO : port 기준으로 서버 구조체 포인터 게터
-  // TODO : port, uri 넣어주면 로케이션 구조체 포인터 반환 게터
-  // TODO : 포트 + 키 를 넣으면 서버의 키 value 를 반환하는 게터
-  // TODO  : port, uri, key 넣어주면 로케이션의 키 value 를 반환하는 게터(없으면
-  // 서버 디폴트값을 찾아줌)
+  // TODO : 핵심 정보를 가져올 수 있는 getter
+  // TODO : 메인 로직에서 필요시 되는 getter
+  // TODO : request, response handling 을 위한 각 설정과 uri 별 getter
 };
 
 #endif
