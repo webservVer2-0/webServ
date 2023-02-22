@@ -12,9 +12,9 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   ValidCheckMain();
 }
 
-ServerConfig::~ServerConfig() {
-  // TODO: server config 구조 free 함수 작성하기
-}
+// ServerConfig::~ServerConfig() {
+//   // TODO: server config 구조 free 함수 작성하기
+// }
 
 void ServerConfig::ParssingServer(const char* config_data) {
   pos_t i = 0;
@@ -174,7 +174,7 @@ ssize_t ServerConfig::PrintServerConfig() {
       if (it.operator->()->second.size() < 30) {
         SOUT << "[ " << GREEN << std::setw(15) << std::left
              << it.operator->()->first << RESET << " : ";
-        perator->()->second << " ]" << SEND;
+        SOUT << it.operator->()->second << " ]" << SEND;
       } else {
         pos_t limit = it.operator->()->second.size();
         pos_t cnt = 0;
@@ -635,7 +635,6 @@ bool ServerConfig::ValidCheckServer(int server_number,
     temp.clear();
     target++;
   }
-  //   SOUT << "Server Valid Check Successed!" << SEND;
   return (true);
 }
 
