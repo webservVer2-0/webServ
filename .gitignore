@@ -34,4 +34,4 @@
 # etc
 .DS_Store
 .vscode
-*.dSYM\
+*.dSYM\\
