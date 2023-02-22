@@ -60,6 +60,7 @@ typedef struct s_server {
   config_map main_config_;                          // main config value map
   std::map<std::string, t_loc*> location_configs_;  // location structure
   e_autoindex index_mode_;                          // index mode 여부 확인
+  // std::map<std::string, char*> cache_html_;         // html cache
 } t_server;
 
 typedef unsigned long pos_t;
@@ -75,7 +76,10 @@ class ServerConfig {
 
  private:
   std::vector<t_server*> server_list_;
+  int* server_socket_;
+  struct sockaddr_in* server_addr_;
   int64_t server_number_;
+  int kq_;
 
  private:
   void ParssingServer(const char* config_data);
@@ -100,25 +104,34 @@ class ServerConfig {
   bool ValidConfigError(conf_iterator& target, conf_iterator& error_log);
   bool ValidConfigAutoindexLocation(conf_iterator& target,
                                     conf_iterator& error_log, t_loc& location);
+  void ServerAddressInit();
+  void ServerSocketInit();
 
  public:
   ServerConfig(const char* confpath);
-  //   ~ServerConfig();
+  ~ServerConfig();
   ssize_t PrintServerConfig();
 
-  t_server* GetServerByPort(int Port);
-  conf_value* GetServerConfValueByPort(int Port, const char* key);
-  conf_value* GetServerConfValueByPort(int Port, const std::string& key);
+  t_server& GetServerByPort(int Port);
+  conf_value& GetServerConfValueByPort(int Port, const char* key);
+  conf_value& GetServerConfValueByPort(int Port, const std::string& key);
 
-  t_loc* GetLocationByPort(int Port, const char* uri);
-  conf_value* GetLocationConfValueByPort(int port, const char* uri,
+  t_loc& GetLocationByPort(int Port, const char* uri);
+  conf_value& GetLocationConfValueByPort(int port, const char* uri,
                                          const char* key);
-  conf_value* GetLocationConfValueByPort(int port, const std::string& uri,
+  conf_value& GetLocationConfValueByPort(int port, const std::string& uri,
                                          const std::string& key);
+  int* GetServerSocket();
+  int GetServerNumber();
+  int GetServerPort(int server_number);
+  struct sockaddr_in* GetServerAddress();
+  void SetServerKque(int que);
+  int GetServerKque();
 
   // TODO : 핵심 정보를 가져올 수 있는 getter
   // TODO : 메인 로직에서 필요시 되는 getter
   // TODO : request, response handling 을 위한 각 설정과 uri 별 getter
+  // index.html 문서 캐시 클래스 만들기
 };
 
 #endif

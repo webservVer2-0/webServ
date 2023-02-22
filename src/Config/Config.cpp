@@ -1,4 +1,5 @@
 #include "../../include/config.hpp"
+
 #include "../../include/utils.hpp"
 
 ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
@@ -9,26 +10,37 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   config_data = ReadASCI(confpath, -1);
 
   ParssingServer(config_data);
+  delete[] config_data;
   ValidCheckMain();
+  ServerAddressInit();
+  ServerSocketInit();
 }
 
-// ServerConfig::~ServerConfig() {
-//   // TODO: server config 구조 free 함수 작성하기
-//   int64_t i = 0;
-//   for (i; i < this->server_number_; i++) {
-//     config_map::iterator it = server_list_.at(i)->main_config_.begin();
-//     while (it != server_list_.at(i)->main_config_.end()) {
-//       it.operator->()->second.clear();
-//       it++;
-//     }
-//     server_list_.at(i)->main_config_.clear();
-//     std::map<std::string, t_loc*>::iterator lit =
-//         server_list_.at(i)->location_configs_.begin();
-//     std::map<std::string, t_loc*>::iterator lend =
-//         server_list_.at(i)->location_configs_.end();
-// 	while ()
-//   }
-// }
+ServerConfig::~ServerConfig() {
+  delete[] this->server_socket_;
+  delete[] this->server_addr_;
+  for (int64_t i = 0; i < this->server_number_; i++) {
+    config_map::iterator it = server_list_.at(i)->main_config_.begin();
+    while (it != server_list_.at(i)->main_config_.end()) {
+      it.operator->()->second.clear();
+      it++;
+    }
+    server_list_.at(i)->main_config_.clear();
+    std::map<std::string, t_loc*>::iterator lit =
+        server_list_.at(i)->location_configs_.begin();
+    std::map<std::string, t_loc*>::iterator lend =
+        server_list_.at(i)->location_configs_.end();
+    while (lit != lend) {
+      config_map::iterator lmit = lit.operator*().second->main_config_.begin();
+      config_map::iterator lmend = lit.operator*().second->main_config_.end();
+      while (lmit != lmend) {
+        lmit.operator->()->second.clear();
+        lmit++;
+      }
+      lit++;
+    }
+  }
+}
 
 void ServerConfig::ParssingServer(const char* config_data) {
   pos_t i = 0;
@@ -721,10 +733,47 @@ bool ServerConfig::ValidCheckLocation(int server_number,
   }
   return (true);
 }
-
 // t_server* ServerConfig::GetServer(int64_t server_number) {}
 // t_server* ServerConfig::GetServer(const char* server_name) {}
 // loc_list::iterator ServerConfig::GetServerLocation(int64_t server_number)
 // {} loc_list::iterator ServerConfig::GetServerLocation(const char*
 // server_name)
 // {}
+
+int ServerConfig::GetServerNumber() { return this->server_number_; }
+
+int* ServerConfig::GetServerSocket() { return this->server_socket_; }
+
+int ServerConfig::GetServerPort(int server_number) {
+  char* number = strdup(
+      this->server_list_.at(server_number)->main_config_.at("listen").c_str());
+  if (!number) {
+    // TODO: 에러 핸들링
+  }
+  int ret = atoi(number);
+  free(number);
+  return (ret);
+}
+
+struct sockaddr_in* ServerConfig::GetServerAddress() {
+  return (this->server_addr_);
+}
+
+void ServerConfig::ServerAddressInit() {
+  int port_number = this->GetServerNumber();
+  this->server_addr_ = new sockaddr_in[port_number];
+  if (!this->server_addr_) {
+    // TODO: error handling
+  }
+}
+
+void ServerConfig::ServerSocketInit() {
+  this->server_socket_ = new int[server_number_];
+  if (!this->server_socket_) {
+    // TODO: 에러 핸들링
+  }
+}
+
+void ServerConfig::SetServerKque(int que) { this->kq_ = que; }
+
+int ServerConfig::GetServerKque() { return this->kq_; }
