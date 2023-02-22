@@ -8,7 +8,7 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   char* config_data = NULL;
   config_data = ReadASCI(confpath, -1);
 
-  printf("File Size : %lu\n", strlen(config_data));
+  //   printf("File Size : %lu\n", strlen(config_data));
   ParssingServer(config_data);
   //   PrintServerConfig();
   ValidCheckMain();
@@ -636,7 +636,7 @@ bool ServerConfig::ValidCheckServer(int server_number,
     temp.clear();
     target++;
   }
-  SOUT << "Server Valid Check Successed!" << SEND;
+  //   SOUT << "Server Valid Check Successed!" << SEND;
   return (true);
 }
 
@@ -706,8 +706,8 @@ bool ServerConfig::ValidCheckLocation(int server_number,
     temp.clear();
     target++;
   }
-  SOUT << "location Validation check is Finished : "
-       << target_location->location_ << SEND;
+  //   SOUT << "location Validation check is Finished : "
+  //        << target_location->location_ << SEND;
   return (true);
 }
 
