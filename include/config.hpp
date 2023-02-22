@@ -44,10 +44,10 @@ typedef std::map<std::string, std::string> config_map;
  *
  */
 typedef struct s_loc {
-  std::string location_;
-  config_map main_config_;
-  e_type loc_type_[3];
-  e_autoindex index_mode_;
+  std::string location_;    // location name
+  config_map main_config_;  // location config value map
+  e_type loc_type_[3];      //
+  e_autoindex index_mode_;  //
 } t_loc;
 
 typedef std::map<std::string, t_loc*> location_list;
@@ -56,10 +56,10 @@ typedef std::map<std::string, t_loc*> location_list;
  * @brief server 를 위한 핵심 데이터 구조체, 서버 컨피그의 핵심을 담당한다.
  */
 typedef struct s_server {
-  std::string port_;
-  config_map main_config_;
-  std::map<std::string, t_loc*> location_configs_;
-  e_autoindex index_mode_;
+  std::string port_;                                // port number
+  config_map main_config_;                          // main config value map
+  std::map<std::string, t_loc*> location_configs_;  // location structure
+  e_autoindex index_mode_;                          // index mode 여부 확인
 } t_server;
 
 typedef unsigned long pos_t;

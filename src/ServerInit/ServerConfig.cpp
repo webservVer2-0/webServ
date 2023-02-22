@@ -14,6 +14,20 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
 
 // ServerConfig::~ServerConfig() {
 //   // TODO: server config 구조 free 함수 작성하기
+//   int64_t i = 0;
+//   for (i; i < this->server_number_; i++) {
+//     config_map::iterator it = server_list_.at(i)->main_config_.begin();
+//     while (it != server_list_.at(i)->main_config_.end()) {
+//       it.operator->()->second.clear();
+//       it++;
+//     }
+//     server_list_.at(i)->main_config_.clear();
+//     std::map<std::string, t_loc*>::iterator lit =
+//         server_list_.at(i)->location_configs_.begin();
+//     std::map<std::string, t_loc*>::iterator lend =
+//         server_list_.at(i)->location_configs_.end();
+// 	while ()
+//   }
 // }
 
 void ServerConfig::ParssingServer(const char* config_data) {
@@ -174,7 +188,8 @@ ssize_t ServerConfig::PrintServerConfig() {
       if (it.operator->()->second.size() < 30) {
         SOUT << "[ " << GREEN << std::setw(15) << std::left
              << it.operator->()->first << RESET << " : ";
-        SOUT << it.operator->()->second << " ]" << SEND;
+        SOUT << std::setw(30) << std::right << it.operator->()->second << " ]"
+             << SEND;
       } else {
         pos_t limit = it.operator->()->second.size();
         pos_t cnt = 0;
