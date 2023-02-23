@@ -58,7 +58,6 @@ void ServerKinit(ServerConfig& config) {
     PrintError(2, WEBSERV, "Server kque is malfunctioned");
   }
   for (int i = 0; i < server_number; i++) {
-    // std::cout << "Socket : " << server_socket[i] << std::endl;
     ChangeEvents(config.change_list_, server_socket[i], EVFILT_READ,
                  EV_ADD | EV_ENABLE, 0, 0, NULL);
     std::cout << "[ ● Server " << GREEN << std::setw(8) << std::right
@@ -77,7 +76,7 @@ void ServerRun(ServerConfig& config) {
   std::cout << "[ "
             << "WebServ Is Activated"
             << " ]" << std::endl;
-  //   std::cout << config.GetServerKque() << std::endl;
+
   while (true) {
     new_event_number =
         kevent(kque, &(config.change_list_[0]), config.change_list_.size(),
@@ -85,7 +84,6 @@ void ServerRun(ServerConfig& config) {
     if (new_event_number == -1) {
       PrintError(2, WEBSERV, "kevent has error");
     }
-    std::cout << "Event 갯수 : " << new_event_number << std::endl;
 
     config.change_list_.clear();
 

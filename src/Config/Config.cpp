@@ -14,6 +14,7 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   ValidCheckMain();
   ServerAddressInit();
   ServerSocketInit();
+  ServerEventInit();
 }
 
 ServerConfig::~ServerConfig() {
@@ -792,5 +793,6 @@ void ServerConfig::ServerEventInit() {
     PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(kevent)");
   }
   this->max_connection = connect_value;
+
   return;
 }
