@@ -106,8 +106,13 @@ class ServerConfig {
                                     conf_iterator& error_log, t_loc& location);
   void ServerAddressInit();
   void ServerSocketInit();
+  void ServerEventInit();
 
  public:
+  std::vector<struct kevent> change_list_;
+  struct kevent* event_list_;
+  int max_connection;
+
   ServerConfig(const char* confpath);
   ~ServerConfig();
   ssize_t PrintServerConfig();

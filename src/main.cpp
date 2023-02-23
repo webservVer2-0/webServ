@@ -6,7 +6,7 @@
 /*   By: haryu <haryu@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/08 21:11:00 by haryu             #+#    #+#             */
-/*   Updated: 2023/02/22 20:15:48 by haryu            ###   ########.fr       */
+/*   Updated: 2023/02/23 12:59:05 by haryu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ int main(int ac, char **av, char **en) {
   ServerBind(webserv);
   ServerListen(webserv);
   ServerKinit(webserv);
-  //   ServerRun(webserv);
+  ServerRun(webserv);
 
   // TODO: server init(portnumber, )
   // TODO: bind

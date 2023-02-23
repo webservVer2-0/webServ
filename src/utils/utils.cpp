@@ -101,3 +101,13 @@ pos_t FindValueLength(std::string& str, pos_t& pos) {
   }
   return (ret);
 }
+
+void ChangeEvents(std::vector<struct kevent>& change_list, uintptr_t ident,
+                  int16_t filter, uint16_t flags, uint16_t fflags,
+                  intptr_t data, void* udata) {
+  struct kevent temp_event;
+
+  EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
+  change_list.push_back(temp_event);
+  return;
+}

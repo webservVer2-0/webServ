@@ -19,6 +19,7 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
 ServerConfig::~ServerConfig() {
   delete[] this->server_socket_;
   delete[] this->server_addr_;
+  delete[] this->event_list_;
   for (int64_t i = 0; i < this->server_number_; i++) {
     config_map::iterator it = server_list_.at(i)->main_config_.begin();
     while (it != server_list_.at(i)->main_config_.end()) {
@@ -748,7 +749,7 @@ int ServerConfig::GetServerPort(int server_number) {
   char* number = strdup(
       this->server_list_.at(server_number)->main_config_.at("listen").c_str());
   if (!number) {
-    // TODO: 에러 핸들링
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(get port)");
   }
   int ret = atoi(number);
   free(number);
@@ -763,17 +764,33 @@ void ServerConfig::ServerAddressInit() {
   int port_number = this->GetServerNumber();
   this->server_addr_ = new sockaddr_in[port_number];
   if (!this->server_addr_) {
-    // TODO: error handling
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(sockaddr_in init)");
   }
 }
 
 void ServerConfig::ServerSocketInit() {
   this->server_socket_ = new int[server_number_];
   if (!this->server_socket_) {
-    // TODO: 에러 핸들링
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(socket array init)");
   }
 }
 
 void ServerConfig::SetServerKque(int que) { this->kq_ = que; }
 
 int ServerConfig::GetServerKque() { return this->kq_; }
+
+void ServerConfig::ServerEventInit() {
+  int limit = this->server_number_;
+  int connect_value = 0;
+
+  for (int i = 0; i < limit; i++) {
+    connect_value +=
+        atoi(server_list_.at(i)->main_config_.at("max_connect").c_str());
+  }
+  this->event_list_ = new struct kevent[connect_value];
+  if (!this->event_list_) {
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(kevent)");
+  }
+  this->max_connection = connect_value;
+  return;
+}
