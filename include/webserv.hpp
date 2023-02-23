@@ -6,7 +6,7 @@
 /*   By: haryu <haryu@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/08 20:50:04 by haryu             #+#    #+#             */
-/*   Updated: 2023/02/22 18:34:42 by haryu            ###   ########.fr       */
+/*   Updated: 2023/02/24 02:23:48 by haryu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@
 // serf headers
 #include "color.hpp"
 #include "config.hpp"
+#include "datas.hpp"
 #include "server.hpp"
 #include "utils.hpp"
 
