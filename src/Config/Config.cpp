@@ -143,7 +143,7 @@ pos_t ServerConfig::ParssingServerLine(std::string& config_string,
               ->main_config_.insert(
                   std::pair<std::string, std::string>(temp_key, temp_value));
           if (temp_key == LISTEN) {
-            server_list_.at(server_number_ - 1)->port_ = temp_key;
+            server_list_.at(server_number_ - 1)->port_ = temp_value;
           }
           i = value_loc + value_length + 1;
         }
@@ -595,63 +595,63 @@ bool ServerConfig::ValidCheckServer(int server_number,
   std::string temp;
   while (target != end) {
     temp.assign(target.operator->()->first);
-    if (0 == temp.compare(LISTEN)) {
+    if (temp.compare(LISTEN) == 0) {
       char* listen = strdup(LISTEN);
       if (!ValidConfigNumber(target, listen, error_log)) {
         return (false);
       }
       delete[] listen;
-    } else if (0 == temp.compare(BODY)) {
+    } else if (temp.compare(BODY) == 0) {
       char* body = strdup(BODY);
       if (!ValidConfigNumber(target, body, error_log)) {
         return (false);
       }
       delete[] body;
-    } else if (0 == temp.compare(MAXCON)) {
+    } else if (temp.compare(MAXCON) == 0) {
       char* maxcon = strdup(MAXCON);
       if (!ValidConfigNumber(target, maxcon, error_log)) {
         return (false);
       }
       delete[] maxcon;
-    } else if (0 == temp.compare(ROOT)) {
+    } else if (temp.compare(ROOT) == 0) {
       if (!ValidConfigFilePath(target, error_log)) {
         return (false);
       }
-    } else if (0 == temp.compare(DEFFILE)) {
+    } else if (temp.compare(DEFFILE) == 0) {
       if (!ValidConfigHTML(target, error_log)) {
         return (false);
       }
-    } else if (0 == temp.compare(UPLOAD)) {
+    } else if (temp.compare(UPLOAD) == 0) {
       if (!ValidConfigFilePath(target, error_log)) {
         return (false);
       }
-    } else if (0 == temp.compare(ACCLOG)) {
+    } else if (temp.compare(ACCLOG) == 0) {
       if (!ValidConfigFile(target, error_log)) {
         return (false);
       }
-    } else if (0 == temp.compare(ERRLOG)) {
+    } else if (temp.compare(ERRLOG) == 0) {
       if (!ValidConfigFile(target, error_log)) {
         return (false);
       }
-    } else if (0 == temp.compare(SERNAME)) {
+    } else if (temp.compare(SERNAME) == 0) {
       if (!ValidConfigStr(target, error_log)) {
         return (false);
       }
-    } else if (0 == temp.compare(TIMEOUT)) {
+    } else if (temp.compare(TIMEOUT) == 0) {
       char* timeout = strdup(TIMEOUT);
       if (!ValidConfigNumber(target, timeout, error_log)) {
         return (false);
       }
       delete[] timeout;
-    } else if (0 == temp.compare(AUTOINDEX)) {
+    } else if (temp.compare(AUTOINDEX) == 0) {
       if (!ValidConfigAutoindex(target, error_log, server_number)) {
         return (false);
       }
-    } else if (0 == temp.compare(METHOD)) {
+    } else if (temp.compare(METHOD) == 0) {
       if (!ValidConfigStr(target, error_log)) {
         return (false);
       }
-    } else if (0 == temp.compare(ERR)) {
+    } else if (temp.compare(ERR) == 0) {
       if (!ValidConfigError(target, error_log)) {
         return (false);
       }
@@ -735,26 +735,13 @@ bool ServerConfig::ValidCheckLocation(int server_number,
   }
   return (true);
 }
-// t_server* ServerConfig::GetServer(int64_t server_number) {}
-// t_server* ServerConfig::GetServer(const char* server_name) {}
-// loc_list::iterator ServerConfig::GetServerLocation(int64_t server_number)
-// {} loc_list::iterator ServerConfig::GetServerLocation(const char*
-// server_name)
-// {}
 
 int ServerConfig::GetServerNumber() { return this->server_number_; }
 
 int* ServerConfig::GetServerSocket() { return this->server_socket_; }
 
-int ServerConfig::GetServerPort(int server_number) {
-  char* number = strdup(
-      this->server_list_.at(server_number)->main_config_.at("listen").c_str());
-  if (!number) {
-    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(get port)");
-  }
-  int ret = atoi(number);
-  free(number);
-  return (ret);
+int ServerConfig::GetServerPort(int number) {
+  return (atoi(server_list_.at(number)->port_.c_str()));
 }
 
 struct sockaddr_in* ServerConfig::GetServerAddress() {
@@ -795,6 +782,40 @@ void ServerConfig::ServerEventInit() {
   this->max_connection = connect_value;
 
   return;
+}
+
+void ServerConfig::PrintTServer(int num) {
+  t_server* target = this->server_list_.at(num);
+  std::cout << std::setw(10) << std::left << "Port : " << target->port_
+            << std::endl;
+  std::cout << std::setw(10) << std::left
+            << "Server Name : " << target->main_config_.at("server_name")
+            << std::endl;
+
+  std::map<std::string, t_loc*>::iterator it =
+      target->location_configs_.begin();
+  while (it != target->location_configs_.end()) {
+    std::cout << std::setw(10) << std::left
+              << "Location Name : " << it->second->location_ << std::endl;
+    it++;
+  }
+}
+
+const t_server* ServerConfig::GetServerConfigByNumber(int number) {
+  if (number >= server_number_) {
+    return (NULL);
+  }
+  return (server_list_[number]);
+}
+
+const t_server* ServerConfig::GetServerConfigByPort(const std::string& port) {
+  int limit = this->server_number_;
+  for (int i = 0; i < limit; i++) {
+    if (server_list_.at(i)->port_ == port) {
+      return (server_list_[i]);
+    }
+  }
+  return (NULL);
 }
 
 const t_server& ServerConfig::GetServerList(int number) {

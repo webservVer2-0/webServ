@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: haryu <haryu@student.42seoul.kr>           +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/02/08 21:11:00 by haryu             #+#    #+#             */
-/*   Updated: 2023/02/24 02:28:56 by haryu            ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "../include/webserv.hpp"
 
 int main(int ac, char **av, char **en) {
@@ -17,7 +5,6 @@ int main(int ac, char **av, char **en) {
     SOUT << "Usage : ./webserv {config path}" << SEND;
     return (-1);
   }
-  //   SOUT << "webserv initializing" << SEND;
 
   ServerConfig webserv(av[1]);
 
@@ -27,15 +14,13 @@ int main(int ac, char **av, char **en) {
   ServerBind(webserv);
   ServerListen(webserv);
   ServerKinit(webserv);
-  ServerRun(webserv);
 
-  // TODO: server init(portnumber, )
-  // TODO: bind
-  // TODO: listen
-  // TODO: kque init
-  // TODO: kevent 등록
-  // TODO: 조건 1) client 연결, 2) client READ 활성화-WRITE 비활성화 3) file
-  // fd READ활성화 4) client fd-WRITE 활성화
+  for (int i = 0; i < webserv.GetServerNumber(); i++) {
+    webserv.PrintTServer(i);
+    std::cout << std::endl;
+  }
+
+  ServerRun(webserv);
 
   (void)en;
 #if DG
