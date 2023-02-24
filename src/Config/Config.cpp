@@ -1,4 +1,5 @@
 #include "../../include/config.hpp"
+
 #include "../../include/utils.hpp"
 
 ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
@@ -9,11 +10,38 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   config_data = ReadASCI(confpath, -1);
 
   ParssingServer(config_data);
+  delete[] config_data;
   ValidCheckMain();
+  ServerAddressInit();
+  ServerSocketInit();
+  ServerEventInit();
 }
 
 ServerConfig::~ServerConfig() {
-  // TODO: server config 구조 free 함수 작성하기
+  delete[] this->server_socket_;
+  delete[] this->server_addr_;
+  delete[] this->event_list_;
+  for (int64_t i = 0; i < this->server_number_; i++) {
+    config_map::iterator it = server_list_.at(i)->main_config_.begin();
+    while (it != server_list_.at(i)->main_config_.end()) {
+      it.operator->()->second.clear();
+      it++;
+    }
+    server_list_.at(i)->main_config_.clear();
+    std::map<std::string, t_loc*>::iterator lit =
+        server_list_.at(i)->location_configs_.begin();
+    std::map<std::string, t_loc*>::iterator lend =
+        server_list_.at(i)->location_configs_.end();
+    while (lit != lend) {
+      config_map::iterator lmit = lit.operator*().second->main_config_.begin();
+      config_map::iterator lmend = lit.operator*().second->main_config_.end();
+      while (lmit != lmend) {
+        lmit.operator->()->second.clear();
+        lmit++;
+      }
+      lit++;
+    }
+  }
 }
 
 void ServerConfig::ParssingServer(const char* config_data) {
@@ -174,7 +202,8 @@ ssize_t ServerConfig::PrintServerConfig() {
       if (it.operator->()->second.size() < 30) {
         SOUT << "[ " << GREEN << std::setw(15) << std::left
              << it.operator->()->first << RESET << " : ";
-        perator->()->second << " ]" << SEND;
+        SOUT << std::setw(30) << std::right << it.operator->()->second << " ]"
+             << SEND;
       } else {
         pos_t limit = it.operator->()->second.size();
         pos_t cnt = 0;
@@ -635,7 +664,6 @@ bool ServerConfig::ValidCheckServer(int server_number,
     temp.clear();
     target++;
   }
-  //   SOUT << "Server Valid Check Successed!" << SEND;
   return (true);
 }
 
@@ -707,10 +735,68 @@ bool ServerConfig::ValidCheckLocation(int server_number,
   }
   return (true);
 }
-
 // t_server* ServerConfig::GetServer(int64_t server_number) {}
 // t_server* ServerConfig::GetServer(const char* server_name) {}
 // loc_list::iterator ServerConfig::GetServerLocation(int64_t server_number)
 // {} loc_list::iterator ServerConfig::GetServerLocation(const char*
 // server_name)
 // {}
+
+int ServerConfig::GetServerNumber() { return this->server_number_; }
+
+int* ServerConfig::GetServerSocket() { return this->server_socket_; }
+
+int ServerConfig::GetServerPort(int server_number) {
+  char* number = strdup(
+      this->server_list_.at(server_number)->main_config_.at("listen").c_str());
+  if (!number) {
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(get port)");
+  }
+  int ret = atoi(number);
+  free(number);
+  return (ret);
+}
+
+struct sockaddr_in* ServerConfig::GetServerAddress() {
+  return (this->server_addr_);
+}
+
+void ServerConfig::ServerAddressInit() {
+  int port_number = this->GetServerNumber();
+  this->server_addr_ = new sockaddr_in[port_number];
+  if (!this->server_addr_) {
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(sockaddr_in init)");
+  }
+}
+
+void ServerConfig::ServerSocketInit() {
+  this->server_socket_ = new int[server_number_];
+  if (!this->server_socket_) {
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(socket array init)");
+  }
+}
+
+void ServerConfig::SetServerKque(int que) { this->kq_ = que; }
+
+int ServerConfig::GetServerKque() { return this->kq_; }
+
+void ServerConfig::ServerEventInit() {
+  int limit = this->server_number_;
+  int connect_value = 0;
+
+  for (int i = 0; i < limit; i++) {
+    connect_value +=
+        atoi(server_list_.at(i)->main_config_.at("max_connect").c_str());
+  }
+  this->event_list_ = new struct kevent[connect_value];
+  if (!this->event_list_) {
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(kevent)");
+  }
+  this->max_connection = connect_value;
+
+  return;
+}
+
+const t_server& ServerConfig::GetServerList(int number) {
+  return *this->server_list_.at(number);
+}

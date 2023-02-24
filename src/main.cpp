@@ -6,7 +6,7 @@
 /*   By: haryu <haryu@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/08 21:11:00 by haryu             #+#    #+#             */
-/*   Updated: 2023/02/21 19:01:37 by haryu            ###   ########.fr       */
+/*   Updated: 2023/02/24 02:28:56 by haryu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,21 @@ int main(int ac, char **av, char **en) {
   ServerConfig webserv(av[1]);
 
   webserv.PrintServerConfig();
+
+  ServerInit(webserv);
+  ServerBind(webserv);
+  ServerListen(webserv);
+  ServerKinit(webserv);
+  ServerRun(webserv);
+
+  // TODO: server init(portnumber, )
+  // TODO: bind
+  // TODO: listen
+  // TODO: kque init
+  // TODO: kevent 등록
+  // TODO: 조건 1) client 연결, 2) client READ 활성화-WRITE 비활성화 3) file
+  // fd READ활성화 4) client fd-WRITE 활성화
+
   (void)en;
 #if DG
   SOUT << "debug mode" << SEND;

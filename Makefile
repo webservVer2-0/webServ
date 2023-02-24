@@ -7,9 +7,9 @@ CXX = c++
 
 # Compiler flags
 
-# CXXFLAGS = -g3 -std=c++98 -Wall -Wextra -Werror -pedantic 
+CXXFLAGS = -O3 -g3 -std=c++98 -Wall -Wextra -Werror -pedantic -D DG=1 
 # CXXFLAGS = -g3 -std=c++98 -Wall -Wextra -Werror -pedantic -D SERVER=1 -D REQ_HANDLER=1 -D RES_HANDLER=1 -D CONFIG=1
-CXXFLAGS = -g3 -fsanitize=address -std=c++98 -Wall -Wextra -Werror -pedantic -D DG=1 
+# CXXFLAGS = -g3 -fsanitize=address -std=c++98 -Wall -Wextra -Werror -pedantic -D DG=1 
 
 
 

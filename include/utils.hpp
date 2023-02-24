@@ -72,6 +72,23 @@ pos_t FindKeyLength(std::string& str, pos_t& pos);
  */
 pos_t FindValueLength(std::string& str, pos_t& pos);
 
+/**
+ * @brief EV_SET을 위한 wrapping 함수. 등록시 동일한 패러미터를 그대로 활용하며,
+ * change_list를 통해 등록 후 해당 리스트를 사용합니다.
+ *
+ *
+ * @param change_list
+ * @param ident
+ * @param filter
+ * @param flags
+ * @param fflags
+ * @param data
+ * @param udata
+ */
+void ChangeEvents(std::vector<struct kevent>& change_list, uintptr_t ident,
+                  int16_t filter, uint16_t flags, uint16_t fflags,
+                  intptr_t data, void* udata);
+
 /* debug tools */
 
 void PrintLine(std::string& target, pos_t pos);

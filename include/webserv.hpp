@@ -6,7 +6,7 @@
 /*   By: haryu <haryu@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/08 20:50:04 by haryu             #+#    #+#             */
-/*   Updated: 2023/02/22 14:04:44 by haryu            ###   ########.fr       */
+/*   Updated: 2023/02/24 02:23:48 by haryu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,9 @@
 /********************************************/
 // C headers
 #include <fcntl.h>
+#include <netinet/in.h>
 #include <sys/event.h>
+// #include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -49,6 +51,8 @@
 // serf headers
 #include "color.hpp"
 #include "config.hpp"
+#include "datas.hpp"
+#include "server.hpp"
 #include "utils.hpp"
 
 #define SOUT std::cout
