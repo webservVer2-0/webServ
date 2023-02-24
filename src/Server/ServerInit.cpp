@@ -60,9 +60,10 @@ void ServerKinit(ServerConfig& config) {
   for (int i = 0; i < server_number; i++) {
     ChangeEvents(config.change_list_, server_socket[i], EVFILT_READ,
                  EV_ADD | EV_ENABLE, 0, 0, NULL);
-    std::cout << "[ ● Server " << GREEN << std::setw(8) << std::right
-              << config.GetServerPort(i) << RESET << " : " << std::setw(30)
-              << std::right << "Port is activated ]" << std::endl;
+    std::cout << "[ Server(" << GREEN << std::setw(10) << std::right
+              << config.GetServerList(i).main_config_.at("server_name") << RESET
+              << ") : " << std::setw(30) << std::right << "Port is activated ]"
+              << std::endl;
   }
   return;
 }

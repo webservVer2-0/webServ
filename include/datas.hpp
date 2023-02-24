@@ -1,7 +1,11 @@
 #ifndef datas_hpp
 #define datas_hpp
 
+#include "config.hpp"
 #include "webserv.hpp"
+
+typedef struct s_server t_server;
+
 /**
  * @brief 이벤트 type을 정의하기 위한 enum
  *
@@ -56,17 +60,17 @@ typedef struct s_html {
  * 고려했습니다.
  *
  */
-class s_base {
+class s_base_type {
  private:
   t_s_type type_;
   int fd_;
 
-  s_base(const s_base& target);
-  s_base& operator=(const s_base& target);
+  s_base_type(const s_base_type& target);
+  s_base_type& operator=(const s_base_type& target);
 
  public:
-  s_base() { type_ = SERVER; };
-  virtual ~s_base();
+  s_base_type() { type_ = SERVER; };
+  virtual ~s_base_type();
 
   void SetType(t_s_type val) { type_ = val; };
   void SetFD(int val);
@@ -83,18 +87,18 @@ class s_base {
  *
  *
  */
-class s_server : public s_base {
+class s_server_type : public s_base_type {
  private:
   // TODO: data structure setting
   t_server* self_config_;
 
-  s_server(const s_server& target);
-  s_server& operator=(const s_server& target);
+  s_server_type(const s_server_type& target);
+  s_server_type& operator=(const s_server_type& target);
 
  public:
-  s_server();
-  ~s_server();
-  s_base* CreateClient(int client_fd);
+  s_server_type();
+  ~s_server_type();
+  s_base_type* CreateClient(int client_fd);
 };
 
 /**
@@ -104,7 +108,7 @@ class s_server : public s_base {
  * 활영한다.
  *
  */
-class s_client : public s_base {
+class s_client_type : public s_base_type {
  private:
   // TODO: data structure setting
 
@@ -112,19 +116,19 @@ class s_client : public s_base {
   t_html request_msg_;
   t_html response_msg_;
 
-  s_base* parent_ptr_;
-  s_base* data_ptr_;
+  s_base_type* parent_ptr_;
+  s_base_type* data_ptr_;
 
   t_stage stage_;
   t_error http_status_code_;
 
-  s_client(const s_client& target, const t_server& master_config);
-  s_client& operator=(const s_client& target);
+  s_client_type(const s_client_type& target, const t_server& master_config);
+  s_client_type& operator=(const s_client_type& target);
 
  public:
-  s_client();
-  ~s_client();
-  s_base* CreateWork(int file_fd);
+  s_client_type();
+  ~s_client_type();
+  s_base_type* CreateWork(int file_fd);
 };
 
 /**
@@ -132,20 +136,20 @@ class s_client : public s_base {
  * 때 생성되는 클래스로, 그 이벤트를 위한 udata 용으로 활용한다.
  *
  */
-class s_work : public s_base {
+class s_work_type : public s_base_type {
  private:
   // TODO: data structure setting
   const std::string uri_;
-  s_base* client_ptr_;
+  s_base_type* client_ptr_;
 
-  s_work(const s_work& target);
-  s_work& operator=(const s_work& target);
+  s_work_type(const s_work_type& target);
+  s_work_type& operator=(const s_work_type& target);
 
  public:
-  s_work(std::string& path);
-  ~s_work();
-  void SetClientPtr(s_base* ptr);
-  s_base* GetClientPtr();
+  s_work_type(std::string& path);
+  ~s_work_type();
+  void SetClientPtr(s_base_type* ptr);
+  s_base_type* GetClientPtr();
   const std::string& GetUri();
 };
 

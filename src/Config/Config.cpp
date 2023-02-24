@@ -796,3 +796,7 @@ void ServerConfig::ServerEventInit() {
 
   return;
 }
+
+const t_server& ServerConfig::GetServerList(int number) {
+  return *this->server_list_.at(number);
+}

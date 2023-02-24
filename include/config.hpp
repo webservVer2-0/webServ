@@ -117,21 +117,23 @@ class ServerConfig {
   ~ServerConfig();
   ssize_t PrintServerConfig();
 
-  t_server& GetServerByPort(int Port);
-  conf_value& GetServerConfValueByPort(int Port, const char* key);
-  conf_value& GetServerConfValueByPort(int Port, const std::string& key);
+  //   t_server& GetServerByPort(int Port);
+  //   conf_value& GetServerConfValueByPort(int Port, const char* key);
+  //   conf_value& GetServerConfValueByPort(int Port, const std::string& key);
 
-  t_loc& GetLocationByPort(int Port, const char* uri);
-  conf_value& GetLocationConfValueByPort(int port, const char* uri,
-                                         const char* key);
-  conf_value& GetLocationConfValueByPort(int port, const std::string& uri,
-                                         const std::string& key);
+  //   t_loc& GetLocationByPort(int Port, const char* uri);
+  //   conf_value& GetLocationConfValueByPort(int port, const char* uri,
+  //  const char* key);
+  //   conf_value& GetLocationConfValueByPort(int port, const std::string& uri,
+  //  const std::string& key);
   int* GetServerSocket();
   int GetServerNumber();
   int GetServerPort(int server_number);
   struct sockaddr_in* GetServerAddress();
   void SetServerKque(int que);
   int GetServerKque();
+
+  const t_server& GetServerList(int number);
 
   // TODO : 핵심 정보를 가져올 수 있는 getter
   // TODO : 메인 로직에서 필요시 되는 getter
