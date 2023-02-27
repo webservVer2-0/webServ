@@ -7,7 +7,7 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
     PrintError(2, WEBSERV, CANNOTFOUND);
   }
   char* config_data = NULL;
-  config_data = ReadASCI(confpath, -1);
+  config_data = GetFile(confpath);
 
   ParssingServer(config_data);
   delete[] config_data;
@@ -293,7 +293,7 @@ void ServerConfig::ServerConfig::ValidCheckMain(void) {
   conf_iterator* error_value;
 
   while (i < server_number_) {
-    if (!ValidCheckServer(i, *error_value)) {
+    if (!ValidCheckServer(i)) {
       ;
     }
     std::map<std::string, t_loc*> temp_loc =
@@ -310,8 +310,8 @@ void ServerConfig::ServerConfig::ValidCheckMain(void) {
   }
 }
 
-bool ServerConfig::ValidConfigNumber(conf_iterator& target, char* standard,
-                                     conf_iterator& error_log) {
+bool ServerConfig::ValidConfigNumber(conf_iterator& target,
+                                     const char* standard) {
   std::string temp = target.operator->()->second;
   int i = 0;
   int size = temp.size();
@@ -329,12 +329,10 @@ bool ServerConfig::ValidConfigNumber(conf_iterator& target, char* standard,
     PrintError(5, WEBSERV, "Server", standard,
                "value has a problem : ", temp.c_str());
   }
-  (void)error_log;
   return (true);
 }
 
-bool ServerConfig::ValidConfigFilePath(conf_iterator& target,
-                                       conf_iterator& error_log) {
+bool ServerConfig::ValidConfigFilePath(conf_iterator& target) {
   struct stat s;
   std::string temp_path;
   temp_path.append("./");
@@ -352,12 +350,10 @@ bool ServerConfig::ValidConfigFilePath(conf_iterator& target,
                target.operator->()->second.c_str());
     return (false);
   }
-  (void)error_log;
   return (true);
 }
 
-bool ServerConfig::ValidConfigFile(conf_iterator& target,
-                                   conf_iterator& error_log) {
+bool ServerConfig::ValidConfigFile(conf_iterator& target) {
   struct stat s;
   std::string temp_path;
   temp_path.append("./");
@@ -375,7 +371,6 @@ bool ServerConfig::ValidConfigFile(conf_iterator& target,
                target.operator->()->second.c_str());
     return (false);
   }
-  (void)error_log;
   return (true);
 }
 
@@ -405,8 +400,7 @@ bool ServerConfig::ValidConfigCGIFile(conf_iterator& target,
   return (true);
 }
 
-bool ServerConfig::ValidConfigStr(conf_iterator& target,
-                                  conf_iterator& error_log) {
+bool ServerConfig::ValidConfigStr(conf_iterator& target) {
   std::string temp = target.operator->()->second;
   int i = 0;
   int size = temp.size();
@@ -425,12 +419,10 @@ bool ServerConfig::ValidConfigStr(conf_iterator& target,
     }
     i++;
   }
-  (void)error_log;
   return (true);
 }
 
-bool ServerConfig::ValidConfigHTML(conf_iterator& target,
-                                   conf_iterator& error_log) {
+bool ServerConfig::ValidConfigHTML(conf_iterator& target) {
   std::string temp = target.operator->()->second;
   int i = 0;
   int limit = temp.size();
@@ -455,12 +447,10 @@ bool ServerConfig::ValidConfigHTML(conf_iterator& target,
       return (false);
     }
   }
-  (void)error_log;
   return (true);
 }
 
 bool ServerConfig::ValidConfigAutoindex(conf_iterator& target,
-                                        conf_iterator& error_log,
                                         int server_number) {
   std::string temp = target.operator->()->second;
   server_list_.at(server_number)->index_mode_ = autodef;
@@ -484,7 +474,6 @@ bool ServerConfig::ValidConfigAutoindex(conf_iterator& target,
                target.operator->()->second.c_str());
     return (false);
   }
-  (void)error_log;
   return (true);
 }
 
@@ -516,8 +505,7 @@ bool ServerConfig::ValidConfigAutoindexLocation(conf_iterator& target,
   return (true);
 }
 
-bool ServerConfig::ValidConfigError(conf_iterator& target,
-                                    conf_iterator& error_log) {
+bool ServerConfig::ValidConfigError(conf_iterator& target) {
   std::string temp = target.operator->()->second;
   int i = 0;
   int limit = temp.size();
@@ -584,75 +572,65 @@ bool ServerConfig::ValidConfigError(conf_iterator& target,
       return (false);
     }
   }
-  (void)error_log;
   return (true);
 }
 
-bool ServerConfig::ValidCheckServer(int server_number,
-                                    conf_iterator& error_log) {
+bool ServerConfig::ValidCheckServer(int server_number) {
   conf_iterator target = server_list_.at(server_number)->main_config_.begin();
   conf_iterator end = server_list_.at(server_number)->main_config_.end();
   std::string temp;
   while (target != end) {
     temp.assign(target.operator->()->first);
     if (temp.compare(LISTEN) == 0) {
-      char* listen = strdup(LISTEN);
-      if (!ValidConfigNumber(target, listen, error_log)) {
+      if (!ValidConfigNumber(target, LISTEN)) {
         return (false);
       }
-      delete[] listen;
     } else if (temp.compare(BODY) == 0) {
-      char* body = strdup(BODY);
-      if (!ValidConfigNumber(target, body, error_log)) {
+      if (!ValidConfigNumber(target, BODY)) {
         return (false);
       }
-      delete[] body;
     } else if (temp.compare(MAXCON) == 0) {
-      char* maxcon = strdup(MAXCON);
-      if (!ValidConfigNumber(target, maxcon, error_log)) {
+      if (!ValidConfigNumber(target, MAXCON)) {
         return (false);
       }
-      delete[] maxcon;
     } else if (temp.compare(ROOT) == 0) {
-      if (!ValidConfigFilePath(target, error_log)) {
+      if (!ValidConfigFilePath(target)) {
         return (false);
       }
     } else if (temp.compare(DEFFILE) == 0) {
-      if (!ValidConfigHTML(target, error_log)) {
+      if (!ValidConfigHTML(target)) {
         return (false);
       }
     } else if (temp.compare(UPLOAD) == 0) {
-      if (!ValidConfigFilePath(target, error_log)) {
+      if (!ValidConfigFilePath(target)) {
         return (false);
       }
     } else if (temp.compare(ACCLOG) == 0) {
-      if (!ValidConfigFile(target, error_log)) {
+      if (!ValidConfigFile(target)) {
         return (false);
       }
     } else if (temp.compare(ERRLOG) == 0) {
-      if (!ValidConfigFile(target, error_log)) {
+      if (!ValidConfigFile(target)) {
         return (false);
       }
     } else if (temp.compare(SERNAME) == 0) {
-      if (!ValidConfigStr(target, error_log)) {
+      if (!ValidConfigStr(target)) {
         return (false);
       }
     } else if (temp.compare(TIMEOUT) == 0) {
-      char* timeout = strdup(TIMEOUT);
-      if (!ValidConfigNumber(target, timeout, error_log)) {
+      if (!ValidConfigNumber(target, TIMEOUT)) {
         return (false);
       }
-      delete[] timeout;
     } else if (temp.compare(AUTOINDEX) == 0) {
-      if (!ValidConfigAutoindex(target, error_log, server_number)) {
+      if (!ValidConfigAutoindex(target, server_number)) {
         return (false);
       }
     } else if (temp.compare(METHOD) == 0) {
-      if (!ValidConfigStr(target, error_log)) {
+      if (!ValidConfigStr(target)) {
         return (false);
       }
     } else if (temp.compare(ERR) == 0) {
-      if (!ValidConfigError(target, error_log)) {
+      if (!ValidConfigError(target)) {
         return (false);
       }
     } else {
@@ -686,16 +664,16 @@ bool ServerConfig::ValidCheckLocation(int server_number,
   while (target != end) {
     temp.assign(target.operator->()->first);
     if (temp.compare(ROOT) == 0) {
-      if (!ValidConfigFilePath(target, error_log)) {
+      if (!ValidConfigFilePath(target)) {
         return (false);
       }
       target_location->loc_type_[0] = T_ROOT;
     } else if (temp.compare(METHOD) == 0) {
-      if (!ValidConfigStr(target, error_log)) {
+      if (!ValidConfigStr(target)) {
         return (false);
       }
     } else if (temp.compare(DEFFILE) == 0) {
-      if (!ValidConfigHTML(target, error_log)) {
+      if (!ValidConfigHTML(target)) {
         return (false);
       }
     } else if (temp.compare(AUTOINDEX) == 0) {
@@ -703,7 +681,7 @@ bool ServerConfig::ValidCheckLocation(int server_number,
         return (false);
       }
     } else if (temp.compare(REDIR) == 0) {
-      if (!ValidConfigFilePath(target, error_log)) {
+      if (!ValidConfigFilePath(target)) {
         return (false);
       }
       target_location->loc_type_[1] = T_REDIR;
@@ -713,15 +691,15 @@ bool ServerConfig::ValidCheckLocation(int server_number,
       }
       target_location->loc_type_[2] = T_CGI;
     } else if (temp.compare(LOC) == 0) {
-      if (!ValidConfigStr(target, error_log)) {
+      if (!ValidConfigStr(target)) {
         return (false);
       }
     } else if (temp.compare(ERR) == 0) {
-      if (!ValidConfigError(target, error_log)) {
+      if (!ValidConfigError(target)) {
         return (false);
       }
     } else if (0 == temp.compare(UPLOAD)) {
-      if (!ValidConfigFilePath(target, error_log)) {
+      if (!ValidConfigFilePath(target)) {
         return (false);
       }
     } else {

@@ -36,15 +36,12 @@ bool IsExistFile(const char* file_path);
 int GetFileSize(const char* file_path);
 
 /**
- * @brief 다목적 Read Wrapping Function
- *
+ * @brief Get the File object
  *
  * @param file_path
- * @param storage
- * @param fd 1 이 들어오는 경우 파일을 스스로 open 하고 close 해준다.
- * @return 읽어서 얻어낸 char 문자열
+ * @return char*
  */
-char* ReadASCI(const char* file_path, int fd);
+char* GetFile(const char* file_path);
 
 /**
  * @brief chekc white spaces
@@ -54,7 +51,7 @@ char* ReadASCI(const char* file_path, int fd);
 bool IsWhiteSpace(char ptr);
 
 /**
- * @brief 개행 전까지, key 값까지의 길이, value 의 pos 를 반환해준다.
+ * @brief whitespace 전까지, key 값까지의 길이, value 의 pos 를 반환해준다.
  *
  * @param str
  * @param pos
