@@ -19,7 +19,6 @@ int main(int ac, char **av, char **en) {
     webserv.PrintTServer(i);
     std::cout << std::endl;
   }
-
   ServerRun(webserv);
 
   (void)en;

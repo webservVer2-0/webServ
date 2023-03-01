@@ -22,7 +22,7 @@ ServerConfig::~ServerConfig() {
   delete[] this->server_addr_;
   delete[] this->event_list_;
   for (int64_t i = 0; i < this->server_number_; i++) {
-    config_map::iterator it = server_list_.at(i)->main_config_.begin();
+    conf_iterator it = server_list_.at(i)->main_config_.begin();
     while (it != server_list_.at(i)->main_config_.end()) {
       it.operator->()->second.clear();
       it++;
@@ -33,8 +33,8 @@ ServerConfig::~ServerConfig() {
     std::map<std::string, t_loc*>::iterator lend =
         server_list_.at(i)->location_configs_.end();
     while (lit != lend) {
-      config_map::iterator lmit = lit.operator*().second->main_config_.begin();
-      config_map::iterator lmend = lit.operator*().second->main_config_.end();
+      conf_iterator lmit = lit.operator*().second->main_config_.begin();
+      conf_iterator lmend = lit.operator*().second->main_config_.end();
       while (lmit != lmend) {
         lmit.operator->()->second.clear();
         lmit++;
@@ -194,7 +194,7 @@ ssize_t ServerConfig::PrintServerConfig() {
   int64_t i = 0;
 
   while (i < server_number_) {
-    config_map::iterator it = server_list_[i]->main_config_.begin();
+    conf_iterator it = server_list_[i]->main_config_.begin();
     SOUT << "[ " << BOLDBLUE << std::setw(16) << ""
          << "Server Number : " << i + 1 << RESET << std::setw(17) << " ]"
          << SEND;
@@ -241,8 +241,7 @@ ssize_t ServerConfig::PrintServerConfig() {
       SOUT << "[ " << YELLOW << std::setw(15) << std::left << "● Location"
            << "   : " << std::setw(30) << std::right
            << lit.operator->()->second->location_ << RESET << " ]" << SEND;
-      config_map::iterator temp =
-          lit.operator->()->second->main_config_.begin();
+      conf_iterator temp = lit.operator->()->second->main_config_.begin();
       while (temp != lit.operator->()->second->main_config_.end()) {
         if (temp.operator->()->second.size() <= 30) {
           SOUT << "[ " << GREEN << std::setw(15) << std::left
