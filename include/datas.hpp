@@ -107,6 +107,13 @@ class s_server_type : public s_base_type {
  public:
   s_server_type(ServerConfig& config_list, int server_number, int server_fd);
   ~s_server_type();
+
+  /**
+   * @brief s_base_type 을 기반으로 client udata를 위한 포인터를 생성해낸다.
+   *
+   * @param client_fd 해당 내용을 위한 fd 값
+   * @return s_base_type*
+   */
   s_base_type* CreateClient(int client_fd);
 };
 
@@ -119,6 +126,7 @@ class s_server_type : public s_base_type {
  */
 class s_client_type : public s_base_type {
  private:
+  int cookie_id_;
   t_server* config_ptr_;
   t_html request_msg_;
   t_html response_msg_;
@@ -135,8 +143,19 @@ class s_client_type : public s_base_type {
  public:
   s_client_type(t_server* config, int client_fd, s_server_type* mother_ptr);
   ~s_client_type();
+
+  /**
+   * @brief 파생되는 파일을 열고 작업을 진행하기 위해 만들어진 객체. file, pipe
+   * fd 를 위한 클래스
+   *
+   * @param path
+   * @param file_fd
+   * @param work_type
+   * @return s_base_type*
+   */
   s_base_type* CreateWork(std::string* path, int file_fd, s_chore work_type);
 
+  int GetCookieId(void);
   t_html& GetRequest(void);
   t_html& GetResponse(void);
 

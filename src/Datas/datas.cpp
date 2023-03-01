@@ -32,6 +32,7 @@ s_base_type* s_server_type::CreateClient(int client_fd) {
 s_client_type::s_client_type(t_server* config, int client_fd,
                              s_server_type* mother)
     : s_base_type(client_fd) {
+  cookie_id_ = rand();
   this->SetType(CLIENT);
   this->config_ptr_ = config;
   parent_ptr_ = mother;
@@ -52,6 +53,8 @@ s_base_type* s_client_type::CreateWork(std::string* path, int file_fd,
   this->data_ptr_ = work;
   return (work);
 }
+
+int s_client_type::GetCookieId(void) { return this->cookie_id_; }
 
 t_html& s_client_type::GetRequest(void) { return this->request_msg_; }
 t_html& s_client_type::GetResponse(void) { return this->response_msg_; }

@@ -112,13 +112,22 @@ void ServerRun(ServerConfig& config) {
             break;
           case CLIENT:
             std::cout << "client type" << std::endl;
+            std::cout << "Client Id : "
+                      << static_cast<s_client_type*>(ft_filter)->GetCookieId()
+                      << std::endl;
             {
               if (curr_event->filter == EVFILT_READ)
                 std::cout << "client Read step" << std::endl;
               else if (curr_event->filter == EVFILT_WRITE)
                 std::cout << " client Write step" << std::endl;
-              else if (curr_event->flags == EV_EOF)
-                std::cout << "EOF Error" << std::endl;
+              // eof 로 확인하기는 불확실한 방법으로 판단됨
+              //   else if (curr_event->flags == EV_EOF) {
+              //     // 임시 삭제
+              //     std::cout << "EOF Error, ID 삭제" << std::endl;
+              //     delete ft_filter;
+              //     ChangeEvents(config.change_list_, curr_event->ident,
+              //                  EVFILT_READ, EV_DELETE, 0, 0, NULL);
+              //   }
             }
             break;
           default:
