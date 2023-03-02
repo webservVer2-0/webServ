@@ -167,7 +167,7 @@ class s_client_type : public s_base_type {
 
   const t_server& GetConfig(void);
   const s_server_type& GetParentServer(void);
-  const s_work_type& GetChildWork(void);
+  s_work_type* GetChildWork(void);
 };
 
 /**

@@ -69,8 +69,8 @@ const t_server& s_client_type::GetConfig(void) { return *this->config_ptr_; }
 const s_server_type& s_client_type::GetParentServer(void) {
   return *(dynamic_cast<s_server_type*>(parent_ptr_));
 }
-const s_work_type& s_client_type::GetChildWork(void) {
-  return *(dynamic_cast<s_work_type*>(data_ptr_));
+s_work_type* s_client_type::GetChildWork(void) {
+  return (dynamic_cast<s_work_type*>(data_ptr_));
 }
 
 /****************** Work Type ********************/

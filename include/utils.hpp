@@ -6,6 +6,7 @@
 #include "webserv.hpp"
 
 typedef unsigned long pos_t;
+class s_base_type;
 
 /**
  * @brief Error handling function with variable parameters.
@@ -85,6 +86,13 @@ pos_t FindValueLength(std::string& str, pos_t& pos);
 void ChangeEvents(std::vector<struct kevent>& change_list, uintptr_t ident,
                   int16_t filter, uint16_t flags, uint16_t fflags,
                   intptr_t data, void* udata);
+
+/**
+ * @brief kevent udata delete 를 위한 통합 툴
+ *
+ * @param data server, client, work data 모두 적절하게 처리 가능하도록 설계함
+ */
+void DeleteUdata(s_base_type* data);
 
 /* debug tools */
 

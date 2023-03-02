@@ -115,3 +115,27 @@ void ChangeEvents(std::vector<struct kevent>& change_list, uintptr_t ident,
   change_list.push_back(temp_event);
   return;
 }
+
+void DeleteUdata(s_base_type* data) {
+  switch (data->GetType()) {
+    case SERVER: {
+      s_server_type* temp = static_cast<s_server_type*>(data);
+      delete temp;
+      break;
+    }
+    case CLIENT: {
+      s_client_type* temp = static_cast<s_client_type*>(data);
+      s_work_type* file = temp->GetChildWork();
+      if (file != NULL) {
+        delete file;
+      }
+      delete temp;
+      break;
+    }
+    case WORK: {
+      s_work_type* file = static_cast<s_work_type*>(data);
+      delete file;
+      break;
+    }
+  }
+}
