@@ -94,6 +94,15 @@ void ChangeEvents(std::vector<struct kevent>& change_list, uintptr_t ident,
  */
 void DeleteUdata(s_base_type* data);
 
+/**
+ * @brief socket fd 를 위한 SO_REUSEADDR 설정을 하기 위한 util
+ *
+ *
+ * @param socket_fd
+ * @param socket_length
+ */
+void SetSockoptReuseaddr(int* socket_fd, int socket_length);
+
 /* debug tools */
 
 void PrintLine(std::string& target, pos_t pos);

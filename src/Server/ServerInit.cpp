@@ -61,6 +61,8 @@ void ServerKinit(ServerConfig& config) {
     PrintError(2, WEBSERV, "Server kque is malfunctioned");
   }
 
+  SetSockoptReuseaddr(server_socket, server_number);
+
   for (int i = 0; i < server_number; i++) {
     s_server_type* udata = new s_server_type(config, i, server_socket[i]);
     ChangeEvents(config.change_list_, server_socket[i], EVFILT_READ,
@@ -151,7 +153,7 @@ void ServerRun(ServerConfig& config) {
               //   }
             }
             break;
-          default:
+          default:  // Server case
             std::cout << "server type" << std::endl;
             {
               int client_fd(accept(curr_event->ident, NULL, NULL));
