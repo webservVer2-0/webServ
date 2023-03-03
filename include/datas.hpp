@@ -4,19 +4,25 @@
 #include "config.hpp"
 #include "webserv.hpp"
 
+class ServerConfig;
+class s_server_type;
+class s_client_type;
+class s_work_type;
+
 typedef struct s_server t_server;
 
 /**
  * @brief 이벤트 type을 정의하기 위한 enum
  *
  */
-typedef enum s_s_type { SERVER, CLIENT, WORK } t_s_type;
+typedef enum s_event_type { SERVER, CLIENT, WORK } t_event;
 
 /**
  * @brief client 이벤트의 진행상황을 확인하기 위한(kevent 분기를 고려하여) enum
  *
  */
 typedef enum s_stage {
+  DEF,
   REQ_READY,
   REQ_FIN,
   GET_READY,
@@ -38,6 +44,7 @@ typedef enum s_stage {
  *
  */
 typedef enum s_error {
+  NO_ERROR = 0,
   OK = 200,
   BAD_REQ = 400,
   FORBID = 403,
@@ -47,9 +54,13 @@ typedef enum s_error {
   SYS_ERR = 999
 } t_error;
 
+typedef enum s_chore { file, cgi } t_chore;
+
 typedef struct s_html {
-  std::map<std::string, std::string> init_line_;
-  std::map<std::string, std::string> header_;
+  typedef std::map<std::string, std::string> html_line;
+  html_line init_line_;
+  html_line header_;
+  size_t entity_length_;
   char* entity;
 } t_html;
 
@@ -62,20 +73,18 @@ typedef struct s_html {
  */
 class s_base_type {
  private:
-  t_s_type type_;
+  t_event type_;
   int fd_;
 
   s_base_type(const s_base_type& target);
   s_base_type& operator=(const s_base_type& target);
 
  public:
-  s_base_type() { type_ = SERVER; };
-  virtual ~s_base_type();
+  s_base_type(int fd);
+  virtual ~s_base_type() {}
 
-  void SetType(t_s_type val) { type_ = val; };
-  void SetFD(int val);
-
-  t_s_type GetType() const { return this->type_; };
+  void SetType(t_event val);
+  t_event GetType() const;
   int GetFD();
 };
 
@@ -87,17 +96,24 @@ class s_base_type {
  *
  *
  */
+
 class s_server_type : public s_base_type {
  private:
-  // TODO: data structure setting
   t_server* self_config_;
 
   s_server_type(const s_server_type& target);
   s_server_type& operator=(const s_server_type& target);
 
  public:
-  s_server_type();
+  s_server_type(ServerConfig& config_list, int server_number, int server_fd);
   ~s_server_type();
+
+  /**
+   * @brief s_base_type 을 기반으로 client udata를 위한 포인터를 생성해낸다.
+   *
+   * @param client_fd 해당 내용을 위한 fd 값
+   * @return s_base_type*
+   */
   s_base_type* CreateClient(int client_fd);
 };
 
@@ -110,8 +126,7 @@ class s_server_type : public s_base_type {
  */
 class s_client_type : public s_base_type {
  private:
-  // TODO: data structure setting
-
+  int cookie_id_;
   t_server* config_ptr_;
   t_html request_msg_;
   t_html response_msg_;
@@ -120,15 +135,39 @@ class s_client_type : public s_base_type {
   s_base_type* data_ptr_;
 
   t_stage stage_;
-  t_error http_status_code_;
+  t_error status_code_;
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);
 
  public:
-  s_client_type();
+  s_client_type(t_server* config, int client_fd, s_server_type* mother_ptr);
   ~s_client_type();
-  s_base_type* CreateWork(int file_fd);
+
+  /**
+   * @brief 파생되는 파일을 열고 작업을 진행하기 위해 만들어진 객체. file, pipe
+   * fd 를 위한 클래스
+   *
+   * @param path
+   * @param file_fd
+   * @param work_type
+   * @return s_base_type*
+   */
+  s_base_type* CreateWork(std::string* path, int file_fd, s_chore work_type);
+
+  int GetCookieId(void);
+  t_html& GetRequest(void);
+  t_html& GetResponse(void);
+
+  const t_stage& GetStage(void);
+  void SetStage(t_stage val);
+
+  const t_error& GetErrorCode(void);
+  void SetErrorCode(t_error val);
+
+  const t_server& GetConfig(void);
+  const s_server_type& GetParentServer(void);
+  s_work_type* GetChildWork(void);
 };
 
 /**
@@ -138,19 +177,20 @@ class s_client_type : public s_base_type {
  */
 class s_work_type : public s_base_type {
  private:
-  // TODO: data structure setting
   const std::string uri_;
   s_base_type* client_ptr_;
+  s_chore work_type_;
 
   s_work_type(const s_work_type& target);
   s_work_type& operator=(const s_work_type& target);
 
  public:
-  s_work_type(std::string& path);
+  s_work_type(std::string& path, int fd, s_chore work_type);
   ~s_work_type();
   void SetClientPtr(s_base_type* ptr);
-  s_base_type* GetClientPtr();
-  const std::string& GetUri();
+  s_base_type* GetClientPtr(void);
+  const std::string& GetUri(void);
+  s_chore GetWorkType(void);
 };
 
 #endif

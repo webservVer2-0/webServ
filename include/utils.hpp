@@ -6,6 +6,7 @@
 #include "webserv.hpp"
 
 typedef unsigned long pos_t;
+class s_base_type;
 
 /**
  * @brief Error handling function with variable parameters.
@@ -36,15 +37,12 @@ bool IsExistFile(const char* file_path);
 int GetFileSize(const char* file_path);
 
 /**
- * @brief 다목적 Read Wrapping Function
- *
+ * @brief Get the File object
  *
  * @param file_path
- * @param storage
- * @param fd 1 이 들어오는 경우 파일을 스스로 open 하고 close 해준다.
- * @return 읽어서 얻어낸 char 문자열
+ * @return char*
  */
-char* ReadASCI(const char* file_path, int fd);
+char* GetFile(const char* file_path);
 
 /**
  * @brief chekc white spaces
@@ -54,7 +52,7 @@ char* ReadASCI(const char* file_path, int fd);
 bool IsWhiteSpace(char ptr);
 
 /**
- * @brief 개행 전까지, key 값까지의 길이, value 의 pos 를 반환해준다.
+ * @brief whitespace 전까지, key 값까지의 길이, value 의 pos 를 반환해준다.
  *
  * @param str
  * @param pos
@@ -88,6 +86,22 @@ pos_t FindValueLength(std::string& str, pos_t& pos);
 void ChangeEvents(std::vector<struct kevent>& change_list, uintptr_t ident,
                   int16_t filter, uint16_t flags, uint16_t fflags,
                   intptr_t data, void* udata);
+
+/**
+ * @brief kevent udata delete 를 위한 통합 툴
+ *
+ * @param data server, client, work data 모두 적절하게 처리 가능하도록 설계함
+ */
+void DeleteUdata(s_base_type* data);
+
+/**
+ * @brief socket fd 를 위한 SO_REUSEADDR 설정을 하기 위한 util
+ *
+ *
+ * @param socket_fd
+ * @param socket_length
+ */
+void SetSockoptReuseaddr(int* socket_fd, int socket_length);
 
 /* debug tools */
 

@@ -35,13 +35,16 @@ enum e_autoindex { autodef, on, off };
 
 /**
  * @brief key, value 구분을 위한 기초 자료 구조
- *
  */
 typedef std::map<std::string, std::string> config_map;
 
 /**
+ * @brief 위치 정보용 데이터 alias
+ */
+typedef unsigned long pos_t;
+
+/**
  * @brief location 별 데이터구조를 담당한다.
- *
  */
 typedef struct s_loc {
   std::string location_;    // location name
@@ -56,14 +59,12 @@ typedef std::map<std::string, t_loc*> location_list;
  * @brief server 를 위한 핵심 데이터 구조체, 서버 컨피그의 핵심을 담당한다.
  */
 typedef struct s_server {
-  std::string port_;                                // port number
-  config_map main_config_;                          // main config value map
-  std::map<std::string, t_loc*> location_configs_;  // location structure
-  e_autoindex index_mode_;                          // index mode 여부 확인
-  // std::map<std::string, char*> cache_html_;         // html cache
+  std::string port_;                // port number
+  config_map main_config_;          // main config value map
+  location_list location_configs_;  // location structure
+  int server_fd_;                   // server fd
+  e_autoindex index_mode_;          // index mode 여부 확인
 } t_server;
-
-typedef unsigned long pos_t;
 
 /**
  * @brief server class, config reading, validation checking, server config
@@ -71,8 +72,8 @@ typedef unsigned long pos_t;
  */
 class ServerConfig {
  public:
+  typedef std::vector<t_server*>::iterator serv_iterator;
   typedef config_map::iterator conf_iterator;
-  typedef std::string conf_value;
 
  private:
   std::vector<t_server*> server_list_;
@@ -88,25 +89,23 @@ class ServerConfig {
   config_map* GetServerConfigByPort(int Port);
   config_map& GetLocationConfigByPort(int Port, const std::string& uri);
   void ValidCheckMain(void);
-  bool ValidCheckServer(int server_number, conf_iterator& error_log);
+  bool ValidCheckServer(int server_number);
   bool ValidCheckLocation(int server_number, std::string location_name,
                           conf_iterator& error_log);
-  bool ValidConfigNumber(conf_iterator& target, char* standard,
-                         conf_iterator& error_log);
-  bool ValidConfigFilePath(conf_iterator& target, conf_iterator& error_log);
-  bool ValidConfigFile(conf_iterator& target, conf_iterator& error_log);
+  bool ValidConfigNumber(conf_iterator& target, const char* standard);
+  bool ValidConfigFilePath(conf_iterator& target);
+  bool ValidConfigFile(conf_iterator& target);
   bool ValidConfigCGIFile(conf_iterator& target, conf_iterator& error_log,
                           t_loc& location);
-  bool ValidConfigStr(conf_iterator& target, conf_iterator& error_log);
-  bool ValidConfigHTML(conf_iterator& target, conf_iterator& error_log);
-  bool ValidConfigAutoindex(conf_iterator& target, conf_iterator& error_log,
-                            int server_number);
-  bool ValidConfigError(conf_iterator& target, conf_iterator& error_log);
+  bool ValidConfigStr(conf_iterator& target);
+  bool ValidConfigHTML(conf_iterator& target);
+  bool ValidConfigAutoindex(conf_iterator& target, int server_number);
+  bool ValidConfigError(conf_iterator& target);
   bool ValidConfigAutoindexLocation(conf_iterator& target,
                                     conf_iterator& error_log, t_loc& location);
-  void ServerAddressInit();
-  void ServerSocketInit();
-  void ServerEventInit();
+  void ServerAddressInit(void);
+  void ServerSocketInit(void);
+  void ServerEventInit(void);
 
  public:
   std::vector<struct kevent> change_list_;
@@ -114,26 +113,37 @@ class ServerConfig {
   int max_connection;
 
   ServerConfig(const char* confpath);
-  ~ServerConfig();
-  ssize_t PrintServerConfig();
+  ~ServerConfig(void);
+  ssize_t PrintServerConfig(void);
+  /**
+   * @brief 서버 별 정보를 호출한다.
+   *
+   * @param num
+   */
+  void PrintTServer(int num);
 
-  //   t_server& GetServerByPort(int Port);
-  //   conf_value& GetServerConfValueByPort(int Port, const char* key);
-  //   conf_value& GetServerConfValueByPort(int Port, const std::string& key);
-
-  //   t_loc& GetLocationByPort(int Port, const char* uri);
-  //   conf_value& GetLocationConfValueByPort(int port, const char* uri,
-  //  const char* key);
-  //   conf_value& GetLocationConfValueByPort(int port, const std::string& uri,
-  //  const std::string& key);
-  int* GetServerSocket();
-  int GetServerNumber();
-  int GetServerPort(int server_number);
-  struct sockaddr_in* GetServerAddress();
+  int* GetServerSocket(void);
+  int GetServerNumber(void);
+  int GetServerPort(int number);
+  struct sockaddr_in* GetServerAddress(void);
   void SetServerKque(int que);
-  int GetServerKque();
+  int GetServerKque(void);
 
   const t_server& GetServerList(int number);
+  /**
+   * @brief Get the Server Config By Number object
+   *
+   * @param number
+   * @return const t_server* , error = NULL
+   */
+  const t_server* GetServerConfigByNumber(int number);
+  /**
+   * @brief Get the Server Config By Port object
+   *
+   * @param port
+   * @return const t_server* , error = NULL
+   */
+  const t_server* GetServerConfigByPort(const std::string& port);
 
   // TODO : 핵심 정보를 가져올 수 있는 getter
   // TODO : 메인 로직에서 필요시 되는 getter
