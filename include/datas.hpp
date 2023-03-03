@@ -32,6 +32,7 @@ typedef enum s_stage {
   POST_FIN,
   DELETE_READY,
   DELETE_FIN,
+  ERR_FIN,  // error case로 page를 전달해야 할 때 체크해야할 enum
   RES_READY,
   RES_FIN,
   END
@@ -61,7 +62,7 @@ typedef struct s_html {
   html_line init_line_;
   html_line header_;
   size_t entity_length_;
-  char* entity;
+  char* entity_;
 } t_html;
 
 /**
@@ -136,6 +137,8 @@ class s_client_type : public s_base_type {
 
   t_stage stage_;
   t_error status_code_;
+  std::string err_custom_;  // custom msg 보관용
+  int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다.
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);

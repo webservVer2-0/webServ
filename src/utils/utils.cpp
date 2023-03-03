@@ -83,7 +83,7 @@ pos_t FindKeyLength(std::string& str, pos_t& pos) {
       pos++;
       ret++;
     } else {
-      PrintError(4, WEBSERV, CRITICAL, "NOT SUPPORT CONFIG KEY",
+      PrintError(4, WEBSERV, CRITICAL, "Code Error \"utils.cpp\" - 86 line",
                  str.substr(pos, 1).c_str());
     }
   }

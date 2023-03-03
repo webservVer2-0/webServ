@@ -43,7 +43,7 @@ server  {
 	location /temp {
 		root storage/temp/var1;
 		method GET POST;
-		default_file index.html;
+		# default_file index.html;
 		auto_index off;
 		#redirection storage/static2; # redirection이 존재 시 다른 config 
 	}
@@ -51,7 +51,7 @@ server  {
 	# cgi 용 
 	location .py {
 		root storage/cgi;
-		default_file index.html;
+		#default_file index.html;
 		method GET POST;
 		cgi cgi.py; # 해당 내용이 켜져 있을 경우 default_file 은 없어도 됨. 
 		method GET;
