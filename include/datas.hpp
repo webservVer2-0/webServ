@@ -51,7 +51,7 @@ typedef enum s_error {
   NOT_FOUND = 404,
   NOT_IMPLE = 501,
   OLD_HTTP = 505,
-  SYS_ERR = 999
+  SYS_ERR = 500
 } t_error;
 
 typedef enum s_chore { file, cgi } t_chore;

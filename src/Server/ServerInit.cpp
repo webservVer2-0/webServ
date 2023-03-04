@@ -140,6 +140,9 @@ void ServerRun(ServerConfig& config) {
                 // 진행하면 될듯
               } else if (curr_event->filter == EVFILT_WRITE) {
                 std::cout << " client Write step" << std::endl;
+
+                MakeResponseMessages(static_cast<s_client_type*>(ft_filter));
+
               } else if (curr_event->filter == EVFILT_TIMER) {
                 // TODO: time out 상태, 적절한 closing 필요
               }

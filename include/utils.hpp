@@ -103,6 +103,21 @@ void DeleteUdata(s_base_type* data);
  */
 void SetSockoptReuseaddr(int* socket_fd, int socket_length);
 
+/**
+ * @brief enum to string
+ *
+ * @param code
+ * @return std::string
+ */
+std::string enumToString(int code);
+
+/**
+ * @brief t_html형 responsemessages 만들기 위한 util
+ *
+ * @param msg
+ */
+void MakeResponseMessages(s_client_type* client);
+
 /* debug tools */
 
 void PrintLine(std::string& target, pos_t pos);

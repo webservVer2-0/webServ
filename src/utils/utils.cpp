@@ -1,5 +1,8 @@
 #include "../../include/utils.hpp"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 void PrintError(int size, const char* first, ...) {
   char* val = NULL;
   va_list list;
@@ -150,4 +153,100 @@ void SetSockoptReuseaddr(int* socket_fd, int socket_length) {
       PrintError(2, WEBSERV, "Server socket option setting is failed");
     }
   }
+}
+
+std::string enumToString(t_error code) {
+  switch (code) {
+    case NO_ERROR:
+      return "0 NO_ERROR";
+    case OK:
+      return "200 OK";
+    case BAD_REQ:
+      return "400 BAD_REQ";
+    case FORBID:
+      return "403 FORBID";
+    case NOT_FOUND:
+      return "404 NOT_FOUND";
+    case NOT_IMPLE:
+      return "501 NOT_IMPLE";
+    case OLD_HTTP:
+      return "505 OLD_HTTP";
+    case SYS_ERR:
+      return "500 SYS_ERR";
+    default:
+      return "UNKNOWN_ERROR";
+  }
+}
+
+std::string HeaderChecker(s_client_type* client, std::string string) {
+  t_html responsemsg = client->GetRequest();
+  if (responsemsg.header_.find(string) != responsemsg.header_.end()) {
+    std::string content_type = responsemsg.header_.find(string)->second;
+    return (content_type);
+  } else
+    return ("");
+}
+
+std::string stToString(size_t size) {
+  size_t num = size;
+  char buf[1024];
+  std::sprintf(buf, "%lu", num);
+  std::string str_num = std::string(buf);
+}
+
+void MakeResponseMessages(s_client_type* client) {
+  t_error code = client->GetErrorCode();
+  t_html msg = client->GetResponse();
+  std::string str_code = enumToString(code);
+  std::time_t now = std::time(NULL);
+  std::string date_str = std::asctime(std::gmtime(&now));
+  date_str.erase(date_str.length() - 1);
+
+  msg.init_line_.insert({"version", "HTTP/1.1"});
+  msg.init_line_.insert({"code", str_code});
+  msg.header_.insert({"Date :", date_str});
+  msg.header_.insert({"Server :", "webserv/0.1"});
+  std::string size = stToString(client->GetResponse().entity_length_);
+  msg.header_.insert({"Content-Length :", size});
+  std::string header_str = HeaderChecker(client, "Accept");
+  msg.header_.insert({"Content-Type :", header_str});
+  msg.header_.insert({"Connection :", "keep-alive"});
+
+  // TODO: Expire
+  // TODO: Cache-Control
+
+  /*  switch (code) {
+      case OK:
+        std::cout << "OK_stage" << std::endl;
+        {
+          // msg.header_.insert({"Last-Modified :", date_str});
+          // 본문 마지막 수정 시간 정보 필요
+          msg.header_.insert({"Connection :", "close"});
+        }
+        break;
+      case BAD_REQ:
+        std::cout << "BAD_REQ_stage" << std::endl;
+        {}
+        break;
+      case FORBID:
+        std::cout << "FORBID_stage" << std::endl;
+        {}
+        break;
+      case NOT_FOUND:
+        std::cout << "NOT_FOUND_stage" << std::endl;
+        {}
+        break;
+      case NOT_IMPLE:
+        std::cout << "NOT_IMPLE_stage" << std::endl;
+        {}
+        break;
+      case OLD_HTTP:
+        std::cout << "OLD_HTTP_stage" << std::endl;
+        {}
+        break;
+      default:  // SYS_ERR
+        std::cout << "SYS_ERR_stage" << std::endl;
+        {}
+        break;
+    }*/
 }
