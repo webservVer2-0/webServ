@@ -75,6 +75,79 @@ void ServerKinit(ServerConfig& config) {
   return;
 }
 
+inline bool valid_method_check(const std::string& line) {
+  std::string method_three[2] = {"GET", "PUT"};
+  std::string method_four[2] = {"POST", "HEAD"};
+  std::string method_five = "TRACE";
+  std::string method_six[3] = {"DELETE", "OPTIONS", "CONNECT"};
+
+  for (int i = 0; i < 2; ++i) {
+    if (line.substr(0, 3) == method_three[i]) {
+      return (false);
+    }
+  }
+  for (int i = 0; i < 2; ++i) {
+    if (line.substr(0, 4) == method_four[i]) {
+      return (false);
+    }
+  }
+  if (line.substr(0, 5) == method_five) {
+    return (false);
+  }
+  for (int i = 0; i < 3; ++i) {
+    if (line.substr(0, 6) == method_six[i]) {
+      return (false);
+    }
+  }
+  return (true);
+}
+
+inline bool host_check(std::vector<std::string>& lines) {
+  std::vector<std::string>::iterator it = lines.begin();
+  for (; it != lines.end(); ++it) {
+    if (it->find("Host:") != std::string::npos) {
+      return (false);
+    }
+  }
+  return (true);
+}
+
+inline t_error valid_check(std::vector<std::string>& lines) {
+  if (lines.empty()) {
+    return (BAD_REQ);
+  }
+  if (valid_method_check(lines[0])) {
+    return (BAD_REQ);
+  }
+  if (lines[0].find("HTTP/1.1") == std::string::npos) {
+    return (OLD_HTTP);
+  }
+  if (host_check(lines)) {
+    return (BAD_REQ);
+  }
+  return (NO_ERROR);
+}
+
+int request_msg(s_client_type* client_type, char* client_msg) {
+  client_type->SetStage(REQ_READY);
+  std::stringstream request(client_msg);
+  std::vector<std::string> lines;
+  std::string line;
+  t_error error_code;
+
+  while (std::getline(request, line)) {
+    lines.push_back(line);
+  }
+  error_code = valid_check(lines);
+  if (error_code == NO_ERROR) {
+    return (0);
+  } else {
+    client_type->SetErrorCode(error_code);
+    client_type->SetStage(REQ_FIN);
+    return (1);
+  }
+}
+
 void ServerRun(ServerConfig& config) {
   struct kevent* curr_event;
   int max_event = config.max_connection;
@@ -118,6 +191,8 @@ void ServerRun(ServerConfig& config) {
                       << static_cast<s_client_type*>(ft_filter)->GetCookieId()
                       << std::endl;
             {
+              s_client_type* client_type =
+                  static_cast<s_client_type*>(ft_filter);
               if (curr_event->filter == EVFILT_READ) {
                 std::cout << "client Read step" << std::endl;
                 char* client_msg = new char[curr_event->data];
@@ -126,11 +201,13 @@ void ServerRun(ServerConfig& config) {
                 if (ret == -1) {
                   // TODO : error handling
                 }
-                std::cout << "[ client (" << curr_event->ident << ") ]"
-                          << std::endl;
-                write(1, client_msg, curr_event->data);
-                ChangeEvents(config.change_list_, curr_event->ident,
-                             EVFILT_READ, EV_DELETE, 0, 0, NULL);
+                // TODO : http message valid check
+                if (request_msg(client_type, client_msg)) {
+                  // TODO : error();
+                } else {
+                  ChangeEvents(config.change_list_, curr_event->ident,
+                               EVFILT_READ, EV_DELETE, 0, 0, NULL);
+                }
                 DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
                 close(curr_event->ident);
                 config.change_list_.clear();

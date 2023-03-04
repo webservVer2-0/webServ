@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: haryu <haryu@student.42seoul.kr>           +#+  +:+       +#+        */
+/*   By: kalabi <kalabi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/08 20:50:04 by haryu             #+#    #+#             */
-/*   Updated: 2023/02/24 02:23:48 by haryu            ###   ########.fr       */
+/*   Updated: 2023/03/04 16:01:58 by kalabi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <vector>
 
