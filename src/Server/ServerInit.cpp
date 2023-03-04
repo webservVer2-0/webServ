@@ -140,9 +140,19 @@ void ServerRun(ServerConfig& config) {
                 // 진행하면 될듯
               } else if (curr_event->filter == EVFILT_WRITE) {
                 std::cout << " client Write step" << std::endl;
-
-                MakeResponseMessages(static_cast<s_client_type*>(ft_filter));
-
+                static_cast<s_client_type*>(ft_filter)->SetResponse();
+                char* send_msg =
+                    MakeSendMessage(static_cast<s_client_type*>(ft_filter));
+                size_t send_msg_len =
+                    static_cast<s_client_type*>(ft_filter)->GetMessageLength();
+                char* entity = static_cast<s_client_type*>(ft_filter)
+                                   ->GetResponse()
+                                   .entity;
+                size_t entity_len = static_cast<s_client_type*>(ft_filter)
+                                        ->GetResponse()
+                                        .entity_length_;
+                send(curr_event->ident, send_msg, send_msg_len, 0);
+                send(curr_event->ident, entity, entity_len, 0);
               } else if (curr_event->filter == EVFILT_TIMER) {
                 // TODO: time out 상태, 적절한 closing 필요
               }

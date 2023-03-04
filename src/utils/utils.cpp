@@ -194,7 +194,7 @@ std::string stToString(size_t size) {
   std::string str_num = std::string(buf);
 }
 
-void MakeResponseMessages(s_client_type* client) {
+t_html MakeResponseMessages(s_client_type* client) {
   t_error code = client->GetErrorCode();
   t_html msg = client->GetResponse();
   std::string str_code = enumToString(code);
@@ -207,11 +207,12 @@ void MakeResponseMessages(s_client_type* client) {
   msg.header_.insert({"Date :", date_str});
   msg.header_.insert({"Server :", "webserv/0.1"});
   std::string size = stToString(client->GetResponse().entity_length_);
+  // TODO:entity length 필요
   msg.header_.insert({"Content-Length :", size});
   std::string header_str = HeaderChecker(client, "Accept");
   msg.header_.insert({"Content-Type :", header_str});
   msg.header_.insert({"Connection :", "keep-alive"});
-
+  return (msg);
   // TODO: Expire
   // TODO: Cache-Control
 
@@ -249,4 +250,27 @@ void MakeResponseMessages(s_client_type* client) {
         {}
         break;
     }*/
+}
+
+char* MakeSendMessage(s_client_type client) {
+  t_html msg = client.GetResponse();
+  std::string joined_str = "";
+  std::string entity = msg.entity;
+  for (std::map<std::string, std::string>::const_iterator iter =
+           msg.init_line_.begin();
+       iter != msg.init_line_.end(); ++iter) {
+    joined_str += iter->second + " ";
+  }
+  joined_str += "\r\n";
+  for (std::map<std::string, std::string>::const_iterator iter =
+           msg.header_.begin();
+       iter != msg.header_.end(); ++iter) {
+    joined_str += iter->first + iter->second + "\r\n";
+  }
+  joined_str += "\r\n\r\n";
+
+  client.SetMessageLength(joined_str.length());
+  char* result = new char[joined_str.length() + 1];
+  std::strcpy(result, joined_str.c_str());
+  return result;
 }

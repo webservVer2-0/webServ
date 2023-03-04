@@ -136,6 +136,7 @@ class s_client_type : public s_base_type {
 
   t_stage stage_;
   t_error status_code_;
+  size_t msg_length;
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);
@@ -158,6 +159,10 @@ class s_client_type : public s_base_type {
   int GetCookieId(void);
   t_html& GetRequest(void);
   t_html& GetResponse(void);
+  void SetResponse(void);
+
+  size_t& GetMessageLength(void);
+  void SetMessageLength(size_t);
 
   const t_stage& GetStage(void);
   void SetStage(t_stage val);

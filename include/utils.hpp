@@ -112,11 +112,12 @@ void SetSockoptReuseaddr(int* socket_fd, int socket_length);
 std::string enumToString(int code);
 
 /**
- * @brief t_html형 responsemessages 만들기 위한 util
+ * @brief send 할 messages maker
  *
- * @param msg
+ * @param client
+ * @return char*
  */
-void MakeResponseMessages(s_client_type* client);
+char* MakeSendMessage(s_client_type* client);
 
 /* debug tools */
 
