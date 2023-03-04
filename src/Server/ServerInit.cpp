@@ -153,6 +153,13 @@ void ServerRun(ServerConfig& config) {
                                         .entity_length_;
                 send(curr_event->ident, send_msg, send_msg_len, 0);
                 send(curr_event->ident, entity, entity_len, 0);
+                // TODO: set cookie;
+                // TODO: logging system;
+                DeleteUdata(ft_filter);
+                ChangeEvents(config.change_list_, curr_event->ident,
+                             EVFILT_WRITE, EV_DISABLE, 0, 0, 0);
+                ChangeEvents(config.change_list_, curr_event->ident,
+                             EVFILT_TIMER, EV_ADD, NOTE_SECONDS, 5, 0);
               } else if (curr_event->filter == EVFILT_TIMER) {
                 // TODO: time out 상태, 적절한 closing 필요
               }

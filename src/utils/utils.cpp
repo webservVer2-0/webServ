@@ -202,7 +202,7 @@ t_html MakeResponseMessages(s_client_type* client) {
   std::string date_str = std::asctime(std::gmtime(&now));
   date_str.erase(date_str.length() - 1);
 
-  msg.init_line_.insert({"version", "HTTP/1.1"});
+  msg.init_line_.insert({"a_version", "HTTP/1.1"});
   msg.init_line_.insert({"code", str_code});
   msg.header_.insert({"Date :", date_str});
   msg.header_.insert({"Server :", "webserv/0.1"});
