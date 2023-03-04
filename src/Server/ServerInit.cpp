@@ -75,77 +75,181 @@ void ServerKinit(ServerConfig& config) {
   return;
 }
 
-inline bool valid_method_check(const std::string& line) {
-  std::string method_three[2] = {"GET", "PUT"};
-  std::string method_four[2] = {"POST", "HEAD"};
-  std::string method_five = "TRACE";
-  std::string method_six[3] = {"DELETE", "OPTIONS", "CONNECT"};
+bool method_check(const std::string& line) {
+  const std::string method[5] = {"GET", "PUT", "POST", "HEAD", "DELETE"};
 
-  for (int i = 0; i < 2; ++i) {
-    if (line.substr(0, 3) == method_three[i]) {
-      return (false);
-    }
-  }
-  for (int i = 0; i < 2; ++i) {
-    if (line.substr(0, 4) == method_four[i]) {
-      return (false);
-    }
-  }
-  if (line.substr(0, 5) == method_five) {
-    return (false);
-  }
-  for (int i = 0; i < 3; ++i) {
-    if (line.substr(0, 6) == method_six[i]) {
+  for (int i = 0; i < 5; ++i) {
+    if (line == method[i]) {
       return (false);
     }
   }
   return (true);
 }
 
-inline bool host_check(std::vector<std::string>& lines) {
+bool vector_checker(std::vector<std::string>& lines, std::string to_find) {
   std::vector<std::string>::iterator it = lines.begin();
   for (; it != lines.end(); ++it) {
-    if (it->find("Host:") != std::string::npos) {
+    if (it->find(to_find) != std::string::npos) {
       return (false);
     }
   }
   return (true);
 }
 
-inline t_error valid_check(std::vector<std::string>& lines) {
-  if (lines.empty()) {
+bool colon_exist(std::string line) {
+  size_t pos = line.find(":");
+  if (pos == std::string::npos) {
+    return (false);
+  }
+  return (true);
+}
+
+bool colon_checker(std::vector<std::string>& lines) {
+  std::vector<std::string>::iterator it = lines.begin();
+  for (; it != lines.end(); ++it) {
+    if (colon_exist(*it)) {
+      return (false);
+    }
+  }
+  return (true);
+}
+
+t_error valid_check(std::string line, std::vector<std::string> lines,
+                    std::vector<std::string> tokens) {
+  if (line.empty()) {
     return (BAD_REQ);
   }
-  if (valid_method_check(lines[0])) {
+  std::string::size_type pos = line.find("\r\n\r\n");
+  if (pos == std::string::npos) {
     return (BAD_REQ);
   }
-  if (lines[0].find("HTTP/1.1") == std::string::npos) {
-    return (OLD_HTTP);
+  if (method_check(tokens[0])) {
+    return (NOT_IMPLE);
   }
-  if (host_check(lines)) {
+  try {
+    if (tokens.at(2) != "HTTP/1.1") {
+      return (OLD_HTTP);
+    }
+  } catch (std::out_of_range) {
+    return (BAD_REQ);
+  }
+  if (vector_checker(lines, "Host:")) {
+    return (BAD_REQ);
+  }
+  if (vector_checker(lines, ":")) {
     return (BAD_REQ);
   }
   return (NO_ERROR);
 }
 
-int request_msg(s_client_type* client_type, char* client_msg) {
-  client_type->SetStage(REQ_READY);
-  std::stringstream request(client_msg);
+std::vector<std::string> msg_tokenizer(char* const client_msg) {
+  std::stringstream ss(client_msg);
+  std::vector<std::string> tokens;
+  std::string line;
+  while (ss >> line) {
+    tokens.push_back(line);
+  }
+  return (tokens);
+}
+
+std::vector<std::string> msg_liner(char* const client_msg) {
+  std::stringstream ss(client_msg);
   std::vector<std::string> lines;
   std::string line;
-  t_error error_code;
-
-  while (std::getline(request, line)) {
+  while (std::getline(ss, line)) {
     lines.push_back(line);
   }
-  error_code = valid_check(lines);
-  if (error_code == NO_ERROR) {
-    return (0);
-  } else {
-    client_type->SetErrorCode(error_code);
-    client_type->SetStage(REQ_FIN);
-    return (1);
+  return (lines);
+}
+
+t_error fill_init_line(t_html* storage, std::vector<std::string> tokens) {
+  try {
+    /* method, target */
+    // TODO: tokens[1]의 경우, localhost::8080와 같으면 uri로 치환해주기
+    storage->init_line_[tokens[0]] = tokens[1];
+    if (tokens[2].find("/") != 4 || tokens[2].length() != 8) {
+      return (BAD_REQ);
+    }
+    std::string http = tokens[2].substr(0, 4);
+    std::string ver = tokens[2].substr(4, 6);
+    if (http != "HTTP" || ver != "1.1") {
+      return (BAD_REQ);
+    }
+    storage->init_line_[http] = ver;
+    return (NO_ERROR);
+  } catch (std::out_of_range) {
+    return (BAD_REQ);
   }
+}
+
+t_error fill_header_and_entity(t_html* html, std::string line) {
+  std::string::size_type pos = line.find("\r\n\r\n");
+  std::string::size_type endpos = line.find("\r\n");
+  std::string header_lines = line.substr(endpos + 2, pos - endpos - 2);
+
+  std::string::size_type last_pos = 0;
+  std::string::size_type next_pos = 0;
+  std::string::size_type colon_pos = 0;
+  std::string no_escape_line;
+  std::string key;
+  std::string value;
+  try {
+    while (last_pos != header_lines.size()) {
+      // 한 줄씩 파싱
+      next_pos = header_lines.find("\r\n", last_pos);
+      if (next_pos == std::string::npos) {
+        next_pos = header_lines.size();
+      }
+
+      // \r\n 제거한 라인
+      no_escape_line = header_lines.substr(last_pos, next_pos - last_pos);
+
+      // 콜론을 찾아서 key-value로 분리
+      colon_pos = no_escape_line.find(":");
+      if (colon_pos != std::string::npos) {
+        key = line.substr(0, colon_pos);
+        value = line.substr(colon_pos + 2);  // 콜론과 스페이스 제외
+        html->header_[key] = value;
+      } else {
+        return (BAD_REQ);
+      }
+      last_pos = next_pos + 2;
+    }
+  } catch (std::exception) {
+    return (NO_ERROR);
+  }
+  return (NO_ERROR);
+}
+
+t_error request_error(s_client_type* client_type, t_error err_code) {
+  client_type->SetErrorCode(err_code);
+  client_type->SetStage(REQ_FIN);
+  return (err_code);
+}
+
+t_error request_msg(void* udata, char* client_msg) {
+  /* set REQ_READY */
+  s_client_type* client_type = static_cast<s_client_type*>(udata);
+  client_type->SetStage(REQ_READY);
+
+  /* for parsing, and fill t_html */
+  t_html* storage = &client_type->GetRequest();
+  t_error error_code = NO_ERROR;
+  std::string line(client_msg);
+  std::vector<std::string> lines = msg_liner(client_msg);
+  std::vector<std::string> tokens = msg_tokenizer(client_msg);
+
+  if ((error_code = valid_check(line, lines, tokens))) {
+    return (request_error(client_type, error_code));
+  }
+  if ((error_code = fill_init_line(storage, tokens))) {
+    return (request_error(client_type, error_code));
+  }
+  if ((error_code = fill_header_and_entity(storage, line))) {
+    return (request_error(client_type, error_code));
+  }
+  client_type->SetStage(REQ_FIN);
+  return (error_code);
 }
 
 void ServerRun(ServerConfig& config) {
@@ -191,8 +295,6 @@ void ServerRun(ServerConfig& config) {
                       << static_cast<s_client_type*>(ft_filter)->GetCookieId()
                       << std::endl;
             {
-              s_client_type* client_type =
-                  static_cast<s_client_type*>(ft_filter);
               if (curr_event->filter == EVFILT_READ) {
                 std::cout << "client Read step" << std::endl;
                 char* client_msg = new char[curr_event->data];
@@ -202,7 +304,7 @@ void ServerRun(ServerConfig& config) {
                   // TODO : error handling
                 }
                 // TODO : http message valid check
-                if (request_msg(client_type, client_msg)) {
+                if (request_msg(curr_event->udata, client_msg)) {
                   // TODO : error();
                 } else {
                   ChangeEvents(config.change_list_, curr_event->ident,

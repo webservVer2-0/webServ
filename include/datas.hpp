@@ -56,6 +56,13 @@ typedef enum s_error {
 
 typedef enum s_chore { file, cgi } t_chore;
 
+/**
+ * @brief
+ *        html_line     init_line;
+ *        html_line     header;
+ *        size_t        entity_length;
+ *        char*         *entity;
+ */
 typedef struct s_html {
   typedef std::map<std::string, std::string> html_line;
   html_line init_line_;
@@ -156,6 +163,7 @@ class s_client_type : public s_base_type {
   s_base_type* CreateWork(std::string* path, int file_fd, s_chore work_type);
 
   int GetCookieId(void);
+
   t_html& GetRequest(void);
   t_html& GetResponse(void);
 

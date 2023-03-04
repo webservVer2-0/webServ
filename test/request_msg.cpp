@@ -52,40 +52,6 @@ bool validateHttpRequest(std::string request) {
   return true;
 }
 
-int main() {
-  std::string httpRequest1 =
-      "GET /index.html HTTP/1.1\r\nHost: www.example.com\r\nConnection: "
-      "close\r\n\r\n";
-  std::string httpRequest2 =
-      "POST /submit-form HTTP/1.1\r\nHost: www.example.com\r\nContent-Type: "
-      "application/json\r\nContent-Length: "
-      "42\r\n\r\n{\"name\":\"John\",\"age\":30,\"city\":\"New York\"}";
-
-  std::cout << "Request 1 is "
-            << (validateHttpRequest(httpRequest1) ? "valid" : "invalid")
-            << std::endl;
-  std::cout << "Request 2 is "
-            << (validateHttpRequest(httpRequest2) ? "valid" : "invalid")
-            << std::endl;
-
-  return 0;
-}
-
-void init_line_parsing(s_base_type* ft_filter, std::stringstream& client_msg) {
-  std::string line;
-
-  std::getline(client_msg, line);
-  if (line.empty()) {
-    ft_filter->stage_
-  }
-}
-
-void request_msg(s_base_type* ft_filter, char* client_msg) {
-  std::stringstream request(client_msg);
-
-  init_line_parsing(ft_filter, request);
-}
-
 void perror_exit(const char* msg) {
   perror(msg);
   exit(EXIT_FAILURE);
@@ -104,7 +70,8 @@ int main(int argc, char** argv) {
     std::cout << "USAGE\n$> ./unit_test http_msg\n";
     return (EXIT_FAILURE);
   }
-  preprocessing(argv[1]);
-  request_msg(buf);
+
+  std::map<std::string, std::string> exercise;
+
   return (EXIT_SUCCESS);
 }
