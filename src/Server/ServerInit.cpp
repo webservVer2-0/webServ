@@ -373,7 +373,6 @@ t_error request_msg(void* udata, char* client_msg) {
   std::string line(client_msg);
   std::vector<std::string> lines = msg_liner(client_msg);
   std::vector<std::string> tokens = msg_tokenizer(client_msg);
-
   if ((error_code = valid_check(client_msg, line, lines, tokens))) {
     return (request_error(client_type, error_code));
   }
