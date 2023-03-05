@@ -1,0 +1,92 @@
+file open 후 read, write 직전에 kevent에 등록 !
+- GET 먼저!!
+- error part 건들 ㄴㄴ
+- index.html은 open할 필요없이 copy만 해도 됨
+
+get {  // switch 문으로 해도 될것같
+  switch (GetStage()) {
+    case REQ_FIN:
+      1. uri 경로 확인하고 필요시 변경 2. 파일 존재 여부
+          확인 3. 파일 open 4. SetStage(GET_READY);
+    5. kevent로 등록 case GET_READY:
+                        5. 파일 read > client에게 보낸다(?)
+			6. (끝난거니까) SetStage(GET_FINISH)
+		default : // GET_FINISH
+			kevent 등록
+			entity 전달
+  }
+}
+
+post {
+  // CGI 작업이냐 아니냐에 따라 추가적으로 분기점이 생김 (s_stage enum 추가해야
+  // 할지도 모름)
+  if (POST_PAGE) {  // 페이지 POST라면,
+    if (REQ_FIN) {
+                        1. entity 할당 2. 파일 만들기 open() 3. s_stage =
+                            POST_READY;
+                        return to kevent;
+    } else if (POST_READY) {
+                        1. 파일 쓰기 2. close 3. 파일 오픈 4. s_stage =
+                            POST_SAVED;
+                        return to kevent;
+    } else {  // POST_SAVED:
+                        1. 파일 사이즈 확인 2. close 3. s_stage = POST_FIN;
+                        4. response msg로 보낸다.return to kevent;
+    }
+  } else if (CGI) {  // cgi 요청이라면
+    if (CGI_PIC) {   // 사진 POST 라면
+                        if (REQ_FIN) {
+                          1. entity 할당 2. 파일 만들기(fd open) 3. s_stage =
+                              PIC_READY;
+                          return to kevent;
+                        } else if (PIC_READY) {
+                          1. 파일 쓰기 2. 파이프 열기 3. client가 가진 ptr
+                              수정 4. 이전 CGI_PIC POST fd 삭제 5. CGI_PIC 파일
+                                  close 6. 파이프 입력 close 7. s_stage =
+                                      PIC_SAVED;
+                          8. fork하고 wait(
+                              -1) 9. '출력 파이프에서 읽기'를 kevent에 등록
+                              ->return to kevent;
+                        } else {  // PIC_SAVED
+                          1. 출력 파이프로부터 값을 읽어옴 .2. entity에
+                              저장 return to kevent;  // response msg로
+                        }
+    } else if (CGI_ASCII) {  // 텍스트 POST 라면
+                        if (REQ_FIN) {
+                          1. entity 할당 2. 파이프 열기 3. client가 가진 work
+                              ptr 수정 4. 이전 CGI_ASCII POST fd
+                                  삭제 6. 파이프 입력 close 7. s_stage =
+                                      ASCII_SEND;
+                          8. fork하고 wait(
+                              -1) 9. '출력 파이프에서 읽기'를 kevent에 등록
+                              ->return to kevent;
+                        } else {  // ASCII_RECIEVE;
+                          1. 출력 파이프로부터 값을 읽어옴 .2. entity에
+                              저장 return to kevent;  // response msg로
+                        }
+    }
+  }
+}
+
+delete  // 어디에 DELETE_READY 설정?
+{
+  switch (GetStage()) {
+    case REQ_FIN:
+                        if (권한 있)  // delete 메서드에 대한 디렉 권한 검사.
+                                      // tmp 경로인지 아닌지
+                        {
+                          if (파일 존재) {
+                            쿠키 id로 소유주 확인 삭제
+                          } else {
+                            // 클라이언트한테 파일 없다고 할지 / 그냥 파일
+                            // 지웠다고 보낼지
+                          }
+                        } else {
+                          // 클라이언트한테 권한 없다고 할지 / 그냥 파일
+                          // 지웠다고 보낼지
+                        }
+                        SetStage(DELETE_FIN);
+    case DELETE_FIN:
+                        kevent 등록 entity 전달
+  }
+}
