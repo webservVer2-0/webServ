@@ -178,13 +178,33 @@ std::string enumToString(t_error code) {
   }
 }
 
-std::string HeaderChecker(s_client_type* client, std::string string) {
-  t_html responsemsg = client->GetRequest();
-  if (responsemsg.header_.find(string) != responsemsg.header_.end()) {
-    std::string content_type = responsemsg.header_.find(string)->second;
-    return (content_type);
-  } else
+std::string MakeContentType(s_client_type* client) {
+  t_html type = client->GetRequest();
+  std::string path = type.init_line_.find("path")->second;
+  std::string ext;
+
+  std::map<std::string, std::string> mime_types = {{"txt", "text/plain"},
+                                                   {"html", "text/html"},
+                                                   {"jpeg", "image/jpeg"},
+                                                   {"png", "image/png"},
+                                                   {"py", "text/x-python"}};
+  std::string::size_type extension_pos = path.find_last_of(".");
+  if (extension_pos == std::string::npos) {
+    std::cerr << "Cannot find extension in path." << std::endl;
     return ("");
+  }
+
+  std::string extension = path.substr(extension_pos + 1);
+  std::transform(extension.begin(), extension.end(), extension.begin(),
+                 ::tolower);
+  std::map<std::string, std::string>::const_iterator iter =
+      mime_types.find(extension);
+  if (iter == mime_types.end()) {
+    std::cerr << "Cannot find available MIME_Type." << std::endl;
+    return ("");
+  }
+  std::string content_type = iter->second;
+  return (content_type);
 }
 
 std::string stToString(size_t size) {
@@ -207,14 +227,14 @@ t_html MakeResponseMessages(s_client_type* client) {
   msg.header_.insert({"Date :", date_str});
   msg.header_.insert({"Server :", "webserv/0.1"});
   std::string size = stToString(client->GetResponse().entity_length_);
-  // TODO:entity length 필요
   msg.header_.insert({"Content-Length :", size});
-  std::string header_str = HeaderChecker(client, "Accept");
+  std::string header_str = MakeContentType(client);
   msg.header_.insert({"Content-Type :", header_str});
   msg.header_.insert({"Connection :", "keep-alive"});
   return (msg);
-  // TODO: Expire
-  // TODO: Cache-Control
+  // TODO: Expire 시간 논의 필요(last-modified와 연계 고려 가능)
+  // TODO: Cache-Control 사용 여부 확인 필요
+  // TODO: last-modified 필요
 
   /*  switch (code) {
       case OK:
