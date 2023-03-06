@@ -11,7 +11,13 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
 
   ParssingServer(config_data);
   delete[] config_data;
+  //   PrintServerConfig();
   ValidCheckMain();
+  // TODO: mime.type
+  for (int i = 0; i < server_number_; i++) {
+    SetMime(GetServerMimnByNumber(i),
+            GetServerConfigByNumber(i)->main_config_.at(INC));
+  }
   ServerAddressInit();
   ServerSocketInit();
   ServerEventInit();
@@ -632,8 +638,12 @@ bool ServerConfig::ValidCheckServer(int server_number) {
       if (!ValidConfigError(target)) {
         return (false);
       }
+    } else if (temp.compare(INC) == 0) {
+      if (!ValidConfigFile(target)) {
+        return (false);
+      }
     } else {
-      PrintError(4, WEBSERV, "Location Config Error",
+      PrintError(4, WEBSERV, "Server Config Error",
                  target.operator->()->first.c_str(),
                  target.operator->()->second.c_str());
       return (false);
@@ -697,7 +707,7 @@ bool ServerConfig::ValidCheckLocation(int server_number,
       if (!ValidConfigError(target)) {
         return (false);
       }
-    } else if (0 == temp.compare(UPLOAD)) {
+    } else if (temp.compare(UPLOAD) == 0) {
       if (!ValidConfigFilePath(target)) {
         return (false);
       }
@@ -797,4 +807,8 @@ const t_server* ServerConfig::GetServerConfigByPort(const std::string& port) {
 
 const t_server& ServerConfig::GetServerList(int number) {
   return *this->server_list_.at(number);
+}
+
+t_mime& ServerConfig::GetServerMimnByNumber(int number) {
+  return this->server_list_.at(number)->mime_;
 }

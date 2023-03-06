@@ -7,6 +7,7 @@ server  {
 	upload_path storage/temp/var1;
 	access_log storage/log/access.log;
 	error_log storage/log/error.log;
+	include storage/static/mime.types;
 
 	# 서버명과 같은 것들은 모두 영어 + 숫자 + '_' 만 지원한다. 
 	server_name serv1;
@@ -59,8 +60,9 @@ server  {
 
 }
 
+
 server  {
-	listen 4242;
+	listen 90;
 	body_size 10240;
 	max_connect 200;
 	root storage/static/;
@@ -68,16 +70,17 @@ server  {
 	upload_path storage/temp/var1;
 	access_log storage/log/access.log;
 	error_log storage/log/error.log;
+	include storage/static2/mime.types;
 
 	# 서버명과 같은 것들은 모두 영어 + 숫자 + '_' 만 지원한다. 
-	server_name second_server;
+	server_name serv1;
 	timeout 10;
 	auto_index on;
 
 	# 메서드는 구현하기로 한 GET, POST, DELETE 왜에는 
 	method GET POST DELETE;
 	# 앞에 숫자, 뒤에 경로 파일 있어야 함 (반복형)
-	error 404 storage/loc/index.html 500 storage/loc/index.html;
+	error 404 storage/loc/404.html 500 storage/loc/index.html;
 
 	# 필수 location(root)
 	location / {
@@ -104,7 +107,7 @@ server  {
 	location /temp {
 		root storage/temp/var1;
 		method GET POST;
-		default_file index.html;
+		# default_file index.html;
 		auto_index off;
 		#redirection storage/static2; # redirection이 존재 시 다른 config 
 	}
@@ -112,7 +115,7 @@ server  {
 	# cgi 용 
 	location .py {
 		root storage/cgi;
-		default_file index.html;
+		#default_file index.html;
 		method GET POST;
 		cgi cgi.py; # 해당 내용이 켜져 있을 경우 default_file 은 없어도 됨. 
 		method GET;

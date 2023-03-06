@@ -1,9 +1,9 @@
 #ifndef errorchecker_hpp
 #define errorchecker_hpp
 
+#include "cache.hpp"
 #include "config.hpp"
 #include "datas.hpp"
-#include "static_cache.hpp"
 #include "webserv.hpp"
 
 // TODO : cache 를 config 내부에 등록 하는 방식으로 하여 작동하도록 하자
