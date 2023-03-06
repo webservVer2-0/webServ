@@ -1,0 +1,10 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "make debug output",
+            "command": "make fclean; make",
+        }
+    ],
+    "version": "2.0.0"
+}
