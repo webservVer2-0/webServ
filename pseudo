@@ -4,16 +4,26 @@ file open 후 read, write 직전에 kevent에 등록 !
 - index.html은 open할 필요없이 copy만 해도 됨
 
 get {  // switch 문으로 해도 될것같
-  switch (GetStage()) {
+  switch (GetStage())
+  {
     case REQ_FIN:
-      1. uri 경로 확인하고 필요시 변경 2. 파일 존재 여부
-          확인 3. 파일 open 4. SetStage(GET_READY);
-    5. kevent로 등록 case GET_READY:
-                        5. 파일 read > client에게 보낸다(?)
-			6. (끝난거니까) SetStage(GET_FINISH)
-		default : // GET_FINISH
-			kevent 등록
-			entity 전달
+      uri 경로 확인하고 필요시 변경
+      if (open() == -1) // 파일 존재 x
+      {
+        에러 처리
+      }
+      else // 파일 존재
+      {
+        SetStage(GET_READY);
+        kevent로 등록 
+      }
+	case GET_READY:
+	  파일 read
+	  //client에 전달해줘야함. read한거 어디에 넣어주지?
+	  (끝난거니까) SetStage(GET_FINISH)
+	  kevent 등록
+	case GET_FINISH:
+	  entity 전달
   }
 }
 
@@ -68,25 +78,32 @@ post {
   }
 }
 
-delete  // 어디에 DELETE_READY 설정?
+delete// 어디에 DELETE_READY 설정?
 {
-  switch (GetStage()) {
+  switch (GetStage())
+  {
     case REQ_FIN:
-                        if (권한 있)  // delete 메서드에 대한 디렉 권한 검사.
-                                      // tmp 경로인지 아닌지
-                        {
-                          if (파일 존재) {
-                            쿠키 id로 소유주 확인 삭제
-                          } else {
-                            // 클라이언트한테 파일 없다고 할지 / 그냥 파일
-                            // 지웠다고 보낼지
-                          }
-                        } else {
-                          // 클라이언트한테 권한 없다고 할지 / 그냥 파일
-                          // 지웠다고 보낼지
-                        }
-                        SetStage(DELETE_FIN);
+      if (권한 있)// delete 메서드에 대한 디렉 권한 검사.
+                // tmp 경로인지 아닌지
+      {
+        if (파일 존재)
+        {
+          쿠키 id로 소유주 확인 삭제
+        }
+        else
+        {
+          // 클라이언트한테 파일 없다고 할지 / 그냥 파일
+          // 지웠다고 보낼지
+        }
+      }
+      else
+      {
+        // 클라이언트한테 권한 없다고 할지 / 그냥 파일
+        // 지웠다고 보낼지
+      }
+      SetStage(DELETE_FIN);
+      kevent 등록
     case DELETE_FIN:
-                        kevent 등록 entity 전달
+      entity 전달
   }
 }
