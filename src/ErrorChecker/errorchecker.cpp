@@ -1,9 +1,5 @@
 #include "../../include/errorchecker.hpp"
 
-class ServerConfig;
-class s_client_type;
-typedef s_server t_server;
-
 void CheckError(ServerConfig* config, struct kevent* curr_event) {
   s_base_type* temp = static_cast<s_base_type*>(curr_event->udata);
   if (temp->GetType() == SERVER) {
