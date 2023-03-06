@@ -52,6 +52,7 @@
 #include "color.hpp"
 #include "config.hpp"
 #include "datas.hpp"
+#include "response.hpp"
 #include "server.hpp"
 #include "utils.hpp"
 
