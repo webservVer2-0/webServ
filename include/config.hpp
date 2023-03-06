@@ -1,6 +1,7 @@
 #ifndef CONFIG_HPP_
 #define CONFIG_HPP_
 
+#include "static_cache.hpp"
 #include "webserv.hpp"
 
 #define SER "server"
@@ -64,6 +65,9 @@ typedef struct s_server {
   location_list location_configs_;  // location structure
   int server_fd_;                   // server fd
   e_autoindex index_mode_;          // index mode 여부 확인
+                                    // TODO: cache setting 넣기
+  t_cache satatic_pages_;           // TODO: static cache 페이지들 저장용
+  t_cache error_pages_;             // TODO: error cache 페이지들 저장용
 } t_server;
 
 /**
