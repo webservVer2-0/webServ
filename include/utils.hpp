@@ -103,30 +103,6 @@ void DeleteUdata(s_base_type* data);
  */
 void SetSockoptReuseaddr(int* socket_fd, int socket_length);
 
-/**
- * @brief enum to string
- *
- * @param code
- * @return std::string
- */
-std::string enumToString(int code);
-
-/**
- * @brief responsemessage maker
- *
- * @param client
- * @return t_html
- */
-t_html MakeResponseMessages(s_client_type* client);
-
-/**
- * @brief send 할 messages maker
- *
- * @param client
- * @return char*
- */
-char* MakeSendMessage(s_client_type* client);
-
 /* debug tools */
 
 void PrintLine(std::string& target, pos_t pos);

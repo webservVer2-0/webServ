@@ -75,11 +75,16 @@ t_html MakeResponseMessages(s_client_type* client) {
   msg.init_line_.insert({"code", str_code});
   msg.header_.insert({"Date :", date_str});
   msg.header_.insert({"Server :", "webserv/0.1"});
-  std::string size = stToString(client->GetResponse().entity_length_);
-  msg.header_.insert({"Content-Length :", size});
-  std::string header_str = MakeContentType(client);
-  msg.header_.insert({"Content-Type :", header_str});
-  msg.header_.insert({"Connection :", "keep-alive"});
+  if (client->GetResponse().entity) {
+    std::string size = stToString(client->GetResponse().entity_length_);
+    msg.header_.insert({"Content-Length :", size});
+    std::string header_str = MakeContentType(client);
+    msg.header_.insert({"Content-Type :", header_str});
+  }
+  if (client->GetStage() == END) {
+    msg.header_.insert({"Connection :", "Closed"});
+  }
+  msg.header_.insert({"Connection :", "Keep-Alive"});
   return (msg);
   // TODO: Expire 시간 논의 필요(last-modified와 연계 고려 가능)
   // TODO: Cache-Control 사용 여부 확인 필요

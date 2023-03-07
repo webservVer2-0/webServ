@@ -113,10 +113,9 @@ void ServerRun(ServerConfig& config) {
             }
             break;
           case CLIENT:
+            s_client_type* client = static_cast<s_client_type*>(ft_filter);
             std::cout << "client type" << std::endl;
-            std::cout << "Client Id : "
-                      << static_cast<s_client_type*>(ft_filter)->GetCookieId()
-                      << std::endl;
+            std::cout << "Client Id : " << client->GetCookieId() << std::endl;
             {
               if (curr_event->filter == EVFILT_READ) {
                 std::cout << "client Read step" << std::endl;
@@ -140,26 +139,26 @@ void ServerRun(ServerConfig& config) {
                 // 진행하면 될듯
               } else if (curr_event->filter == EVFILT_WRITE) {
                 std::cout << " client Write step" << std::endl;
-                static_cast<s_client_type*>(ft_filter)->SetResponse();
-                char* send_msg =
-                    MakeSendMessage(static_cast<s_client_type*>(ft_filter));
-                size_t send_msg_len =
-                    static_cast<s_client_type*>(ft_filter)->GetMessageLength();
-                char* entity = static_cast<s_client_type*>(ft_filter)
-                                   ->GetResponse()
-                                   .entity;
-                size_t entity_len = static_cast<s_client_type*>(ft_filter)
-                                        ->GetResponse()
-                                        .entity_length_;
+                client->SetResponse();
+                char* send_msg = MakeSendMessage(client);
+                size_t send_msg_len = client->GetMessageLength();
+                char* entity = client->GetResponse().entity;
+                size_t entity_len = client->GetResponse().entity_length_;
                 send(curr_event->ident, send_msg, send_msg_len, 0);
                 send(curr_event->ident, entity, entity_len, 0);
                 // TODO: set cookie;
                 // TODO: logging system;
                 DeleteUdata(ft_filter);
-                ChangeEvents(config.change_list_, curr_event->ident,
-                             EVFILT_WRITE, EV_DISABLE, 0, 0, 0);
-                ChangeEvents(config.change_list_, curr_event->ident,
-                             EVFILT_TIMER, EV_ADD, NOTE_SECONDS, 5, 0);
+                if (client->GetStage() == END) {
+                  ChangeEvents(config.change_list_, curr_event->ident,
+                               EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+                } else {
+                  ChangeEvents(config.change_list_, curr_event->ident,
+                               EVFILT_WRITE, EV_DISABLE, 0, 0, 0);
+                  ChangeEvents(config.change_list_, curr_event->ident,
+                               EVFILT_TIMER, EV_ADD, NOTE_SECONDS, 5, 0);
+                  client->SetStage(RES_FIN);
+                }
               } else if (curr_event->filter == EVFILT_TIMER) {
                 // TODO: time out 상태, 적절한 closing 필요
               }
