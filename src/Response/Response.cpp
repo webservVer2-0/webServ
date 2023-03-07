@@ -81,7 +81,12 @@ t_html MakeResponseMessages(s_client_type* client) {
     std::string header_str = MakeContentType(client);
     msg.header_.insert({"Content-Type :", header_str});
   }
+
+  if (client->GetStage() == GET_FIN) {
+    msg.header_.insert({"Cache-Control", "public, max-age=3600"});
+  }
   if (client->GetStage() == END) {
+    msg.header_.insert({"Cache-Control", "public, max-age=3600"});
     msg.header_.insert({"Connection :", "Closed"});
   }
   msg.header_.insert({"Connection :", "Keep-Alive"});
