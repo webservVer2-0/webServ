@@ -7,11 +7,10 @@ file open 후 read, write 직전에 kevent에 등록 !
 - html에 요청 타입 체크 post일때
 - file 타입이냐 cgi에 따라 두개로 나눌건지, 아니면 메소드에 따라 나눌건지 고민
 
-get {  // switch 문으로 해도 될것같
+get { // switch? if?
   switch (GetStage())
   {
     case REQ_FIN:
-      ; uri(간이 일수도 있음) 경로 확인하고 필요시 실행가능한 구조로 변경 > sangtale님 파트
       //파일 존재 여부 확인
       if (open() == -1) // 파일 존재 x
       {
@@ -23,14 +22,11 @@ get {  // switch 문으로 해도 될것같
         kevent로 등록 
       }
     case GET_READY:
-      파일 read
-      (끝난거니까) SetStage(GET_FINISH)
-      kevent 등록
-    case GET_FINISH:
-      entity 할당
-      s_client_type 안의 t_html response_msg_에 entity에 넣어서(read한거. 이때, 바이너리가 들어올수도 있으므로, 길이까지 넣어준다)
+      파일 read (response용 entity 할당,
+                s_client_type 안의 t_html response_msg_에 entity에 넣어서(read한거. 이때, 바이너리가 들어올수도 있으므로, 길이까지 넣어준다)
       파일 close
       entity 전달
+      SetStage(GET_FINISH);
   }
 }
 
