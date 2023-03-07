@@ -13,10 +13,15 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   delete[] config_data;
   //   PrintServerConfig();
   ValidCheckMain();
-  // TODO: mime.type
   for (int i = 0; i < server_number_; i++) {
     SetMime(GetServerMimnByNumber(i),
             GetServerConfigByNumber(i)->main_config_.at(INC));
+  }
+  for (int i = 0; i < server_number_; i++) {
+    SetCache(*server_list_.at(i), server_list_.at(i)->static_pages_,
+             server_list_.at(i)->error_pages_);
+    GetCacheList(server_list_.at(i)->static_pages_,
+                 server_list_.at(i)->error_pages_);
   }
   ServerAddressInit();
   ServerSocketInit();
@@ -211,32 +216,68 @@ ssize_t ServerConfig::PrintServerConfig() {
         SOUT << std::setw(30) << std::right << it.operator->()->second << " ]"
              << SEND;
       } else {
-        pos_t limit = it.operator->()->second.size();
-        pos_t cnt = 0;
-        pos_t pos = 0;
-        pos_t skip_white_space = 0;
-        std::string temp = it.operator->()->second;
-        while (cnt < limit) {
-          SOUT << "[ " << GREEN << std::setw(15) << std::left
-               << it.operator->()->first << RESET << " : ";
-          skip_white_space = 0;
-          while (cnt < limit) {
-            if (temp.at(cnt) == ' ') {
-              skip_white_space++;
-              if (skip_white_space == 2) {
-                break;
+        int j = 0;
+        int limit = it.operator->()->second.size();
+        int pos = 0;
+        std::string target = it.operator->()->second;
+        std::string errnum;
+        std::string path;
+
+        while (j < limit) {
+          while (j < limit) {
+            SOUT << "[ " << GREEN << std::setw(15) << std::left
+                 << it.operator->()->first << RESET << " : ";
+            if (IsWhiteSpace(target.at(j))) {
+              j++;
+            }
+            if (isnumber(target.at(j))) {
+              while (isnumber(target.at(j))) {
+                errnum.push_back(target.at(j));
+                j++;
               }
+              while (IsWhiteSpace(target.at(j))) {
+                j++;
+              }
+              pos = j;
+              while (!IsWhiteSpace(target.at(j))) {
+                j++;
+                if (j == limit) {
+                  break;
+                }
+              }
+              path = target.substr(pos, j - pos);
             }
-            if (cnt == limit) {
-              break;
+            SOUT << std::setw(9) << std::right << errnum << " " << std::setw(19)
+                 << std::right << path << " ]" << SEND;
+            errnum.clear();
+            path.clear();
+            while (j < limit && IsWhiteSpace(target.at(j))) {
+              j++;
             }
-            cnt++;
           }
-          SOUT << std::setw(30) << std::right << temp.substr(pos, cnt) << " ]"
-               << SEND;
-          cnt++;
-          pos = cnt;
         }
+        // pos_t limit = it.operator->()->second.size();
+        // pos_t cnt = 0;
+        // pos_t pos = 0;
+        // pos_t skip_white_space = 0;
+        // std::string temp = it.operator->()->second;
+        // while (cnt < limit) {
+        //   skip_white_space = 0;
+        //   while (cnt < limit) {
+        //     if (temp.at(cnt) == ' ') {
+        //       skip_white_space++;
+        //       if (skip_white_space == 2) {
+        //         break;
+        //       }
+        //     }
+        //     if (cnt == limit) {
+        //       break;
+        //     }
+        //     cnt++;
+        //   }
+        //   cnt++;
+        //   pos = cnt;
+        // }
       }
       it++;
     }
@@ -676,12 +717,12 @@ bool ServerConfig::ValidCheckLocation(int server_number,
       if (!ValidConfigFilePath(target)) {
         return (false);
       }
-      target_location->loc_type_[0] = T_ROOT;
     } else if (temp.compare(METHOD) == 0) {
       if (!ValidConfigStr(target)) {
         return (false);
       }
     } else if (temp.compare(DEFFILE) == 0) {
+      target_location->loc_type_[0] = T_ROOT;
       if (!ValidConfigHTML(target)) {
         return (false);
       }
