@@ -3,6 +3,9 @@ file open 후 read, write 직전에 kevent에 등록 !
 - error part 건들 ㄴㄴ
 - index.html은 open할 필요없이 copy만 해도 됨
 - t_html의 entity_length_, entity 채워넣어서 chpark님께 전달해야함
+- ServerInit.cpp 부분
+- html에 요청 타입 체크 post일때
+- file 타입이냐 cgi에 따라 두개로 나눌건지, 아니면 메소드에 따라 나눌건지 고민
 
 get {  // switch 문으로 해도 될것같
   switch (GetStage())
@@ -24,6 +27,7 @@ get {  // switch 문으로 해도 될것같
       (끝난거니까) SetStage(GET_FINISH)
       kevent 등록
     case GET_FINISH:
+      entity 할당
       s_client_type 안의 t_html response_msg_에 entity에 넣어서(read한거. 이때, 바이너리가 들어올수도 있으므로, 길이까지 넣어준다)
       파일 close
       entity 전달
@@ -33,50 +37,80 @@ get {  // switch 문으로 해도 될것같
 post {
   // CGI 작업이냐 아니냐에 따라 추가적으로 분기점이 생김 (s_stage enum 추가해야
   // 할지도 모름)
-  if (POST_PAGE) {  // 페이지 POST라면,
-    if (REQ_FIN) {
-                        1. entity 할당 2. 파일 만들기 open() 3. s_stage =
-                            POST_READY;
-                        return to kevent;
-    } else if (POST_READY) {
-                        1. 파일 쓰기 2. close 3. 파일 오픈 4. s_stage =
-                            POST_SAVED;
-                        return to kevent;
-    } else {  // POST_SAVED:
-                        1. 파일 사이즈 확인 2. close 3. s_stage = POST_FIN;
-                        4. response msg로 보낸다.return to kevent;
+  if (POST_PAGE)
+  {  // 페이지 POST라면,
+    if (REQ_FIN)
+    {
+      1. entity 할당 
+      2. 파일 만들기 open() 
+      3. s_stage = POST_READY;
+      return to kevent;
     }
-  } else if (CGI) {  // cgi 요청이라면
-    if (CGI_PIC) {   // 사진 POST 라면
-                        if (REQ_FIN) {
-                          1. entity 할당 2. 파일 만들기(fd open) 3. s_stage =
-                              PIC_READY;
-                          return to kevent;
-                        } else if (PIC_READY) {
-                          1. 파일 쓰기 2. 파이프 열기 3. client가 가진 ptr
-                              수정 4. 이전 CGI_PIC POST fd 삭제 5. CGI_PIC 파일
-                                  close 6. 파이프 입력 close 7. s_stage =
-                                      PIC_SAVED;
-                          8. fork하고 wait(
-                              -1) 9. '출력 파이프에서 읽기'를 kevent에 등록
-                              ->return to kevent;
-                        } else {  // PIC_SAVED
-                          1. 출력 파이프로부터 값을 읽어옴 .2. entity에
-                              저장 return to kevent;  // response msg로
-                        }
-    } else if (CGI_ASCII) {  // 텍스트 POST 라면
-                        if (REQ_FIN) {
-                          1. entity 할당 2. 파이프 열기 3. client가 가진 work
-                              ptr 수정 4. 이전 CGI_ASCII POST fd
-                                  삭제 6. 파이프 입력 close 7. s_stage =
-                                      ASCII_SEND;
-                          8. fork하고 wait(
-                              -1) 9. '출력 파이프에서 읽기'를 kevent에 등록
-                              ->return to kevent;
-                        } else {  // ASCII_RECIEVE;
-                          1. 출력 파이프로부터 값을 읽어옴 .2. entity에
-                              저장 return to kevent;  // response msg로
-                        }
+    else if (POST_READY)
+    {
+      1. 파일 쓰기 
+      2. close 
+      3. 파일 오픈 
+      4. s_stage = POST_SAVED;
+      return to kevent;
+    }
+    else
+    {  // POST_SAVED:
+      1. 파일 사이즈 확인 
+      2. close 
+      3. s_stage = POST_FIN;
+      4. response msg로 보낸다.
+      return to kevent;
+    }
+  }
+  else if (CGI)
+  {  // cgi 요청이라면
+    if (CGI_PIC) 
+    {   // 사진 POST 라면
+      if (REQ_FIN) 
+      {
+        1. entity 할당 
+        2. 파일 만들기(fd open) 
+        3. s_stage = PIC_READY;
+        return to kevent;
+      } 
+      else if (PIC_READY) 
+      {
+        1. 파일 쓰기 
+        2. 파이프 열기 
+        3. client가 가진 ptr 수정 
+        4. 이전 CGI_PIC POST fd 삭제 
+        5. CGI_PIC 파일 close 
+        6. 파이프 입력 close 
+        7. s_stage = PIC_SAVED;
+        8. fork하고 wait(-1) 
+        9. '출력 파이프에서 읽기'를 kevent에 등록 ->return to kevent;
+      } 
+      else 
+      {  // PIC_SAVED
+        1. 출력 파이프로부터 값을 읽어옴 .
+        2. entity에 저장 return to kevent;  // response msg로
+      }
+    } 
+    else if (CGI_ASCII) 
+    {  // 텍스트 POST 라면
+      if (REQ_FIN) 
+      {
+        1. entity 할당 
+        2. 파이프 열기 
+        3. client가 가진 work ptr 수정 
+        4. 이전 CGI_ASCII POST fd 삭제 
+        6. 파이프 입력 close 
+        7. s_stage = ASCII_SEND;
+        8. fork하고 wait(-1) 
+        9. '출력 파이프에서 읽기'를 kevent에 등록 ->return to kevent;
+      } 
+      else 
+      {  // ASCII_RECIEVE;
+        1. 출력 파이프로부터 값을 읽어옴 .
+        2. entity에 저장 
+        return to kevent;  // response msg로
+      }
     }
   }
 }
