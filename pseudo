@@ -19,14 +19,14 @@ get {  // switch 문으로 해도 될것같
         SetStage(GET_READY);
         kevent로 등록 
       }
-	case GET_READY:
-	  파일 read
-	  (끝난거니까) SetStage(GET_FINISH)
-	  kevent 등록
-	case GET_FINISH:
-    s_client_type 안의 t_html response_msg_에 entity에 넣어서(read한거. 이때, 바이너리가 들어올수도 있으므로, 길이까지 넣어준다)
-    파일 close
-	  entity 전달
+    case GET_READY:
+      파일 read
+      (끝난거니까) SetStage(GET_FINISH)
+      kevent 등록
+    case GET_FINISH:
+      s_client_type 안의 t_html response_msg_에 entity에 넣어서(read한거. 이때, 바이너리가 들어올수도 있으므로, 길이까지 넣어준다)
+      파일 close
+      entity 전달
   }
 }
 
