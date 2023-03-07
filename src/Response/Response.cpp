@@ -88,8 +88,9 @@ t_html MakeResponseMessages(s_client_type* client) {
   if (client->GetStage() == END) {
     msg.header_.insert({"Cache-Control", "public, max-age=3600"});
     msg.header_.insert({"Connection :", "Closed"});
+  } else {
+    msg.header_.insert({"Connection :", "Keep-Alive"});
   }
-  msg.header_.insert({"Connection :", "Keep-Alive"});
   return (msg);
   // TODO: Expire 시간 논의 필요(last-modified와 연계 고려 가능)
   // TODO: Cache-Control 사용 여부 확인 필요
