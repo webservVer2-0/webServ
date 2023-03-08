@@ -32,6 +32,7 @@ typedef enum s_stage {
   POST_FIN,
   DELETE_READY,
   DELETE_FIN,
+  ERR_FIN,  // error case로 page를 전달해야 할 때 체크해야할 enum
   RES_READY,
   RES_FIN,
   END
@@ -46,6 +47,7 @@ typedef enum s_stage {
 typedef enum s_error {
   NO_ERROR = 0,
   OK = 200,
+  MOV_RDIR = 301,
   BAD_REQ = 400,
   FORBID = 403,
   NOT_FOUND = 404,
@@ -56,13 +58,13 @@ typedef enum s_error {
 
 typedef enum s_chore { file, cgi } t_chore;
 
-typedef struct s_html {
-  typedef std::map<std::string, std::string> html_line;
-  html_line init_line_;
-  html_line header_;
+typedef struct s_http {
+  typedef std::map<std::string, std::string> http_line;
+  http_line init_line_;
+  http_line header_;
   size_t entity_length_;
-  char* entity;
-} t_html;
+  char* entity_;
+} t_http;
 
 /**
  * @brief 다형성을 활용하여 제작한 클래스입니다. 해당 클래스는 type과 fd 를 갖고
@@ -128,14 +130,16 @@ class s_client_type : public s_base_type {
  private:
   int cookie_id_;
   t_server* config_ptr_;
-  t_html request_msg_;
-  t_html response_msg_;
+  t_http request_msg_;
+  t_http response_msg_;
 
   s_base_type* parent_ptr_;
   s_base_type* data_ptr_;
 
   t_stage stage_;
   t_error status_code_;
+  std::string err_custom_;  // custom msg 보관용
+  int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다.
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);
@@ -156,8 +160,8 @@ class s_client_type : public s_base_type {
   s_base_type* CreateWork(std::string* path, int file_fd, s_chore work_type);
 
   int GetCookieId(void);
-  t_html& GetRequest(void);
-  t_html& GetResponse(void);
+  t_http& GetRequest(void);
+  t_http& GetResponse(void);
 
   const t_stage& GetStage(void);
   void SetStage(t_stage val);
@@ -168,6 +172,9 @@ class s_client_type : public s_base_type {
   const t_server& GetConfig(void);
   const s_server_type& GetParentServer(void);
   s_work_type* GetChildWork(void);
+
+  bool GetCachePage(const std::string& uri, t_http& response);
+  bool GetCacheError(t_error code, t_http& response);
 };
 
 /**
