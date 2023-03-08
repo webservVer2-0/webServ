@@ -1,5 +1,7 @@
 #include "../../include/datas.hpp"
 
+#include <sstream>
+
 /****************** Base Type ********************/
 
 s_base_type::s_base_type(int fd) : type_(SERVER), fd_(fd) {}
@@ -56,8 +58,8 @@ s_base_type* s_client_type::CreateWork(std::string* path, int file_fd,
 
 int s_client_type::GetCookieId(void) { return this->cookie_id_; }
 
-t_html& s_client_type::GetRequest(void) { return this->request_msg_; }
-t_html& s_client_type::GetResponse(void) { return this->response_msg_; }
+t_http& s_client_type::GetRequest(void) { return this->request_msg_; }
+t_http& s_client_type::GetResponse(void) { return this->response_msg_; }
 
 const t_stage& s_client_type::GetStage(void) { return this->stage_; }
 void s_client_type::SetStage(t_stage val) { this->stage_ = val; }
@@ -71,6 +73,53 @@ const s_server_type& s_client_type::GetParentServer(void) {
 }
 s_work_type* s_client_type::GetChildWork(void) {
   return (dynamic_cast<s_work_type*>(data_ptr_));
+}
+
+bool s_client_type::GetCachePage(const std::string& uri, t_http& response) {
+  t_server* rule = this->config_ptr_;
+  std::string path;
+  path += "./";
+  path += uri;
+
+  if (rule->static_pages_.find(path) == rule->static_pages_.end()) {
+    return (false);
+  }
+  std::string temp_str(rule->static_pages_.find(path).operator->()->second);
+  response.entity_length_ = temp_str.size();
+
+  response.entity_ = new char[response.entity_length_ + 1];
+  if (response.entity_ != NULL) {
+    // TODO: error handling
+  }
+  temp_str.copy(response.entity_, response.entity_length_, 0);
+  response.entity_[response.entity_length_] = '\0';
+  temp_str.clear();
+  return (true);
+}
+
+bool s_client_type::GetCacheError(t_error code, t_http& response) {
+  t_server* rule = this->config_ptr_;
+
+  std::ostringstream temp;
+  temp << code;
+
+  std::string err_key = temp.str();
+  temp.clear();
+
+  if (rule->error_pages_.find(err_key) == rule->error_pages_.end()) {
+    return (false);
+  }
+  std::string temp_str(rule->error_pages_.find(err_key).operator->()->second);
+  response.entity_length_ = temp_str.size();
+
+  response.entity_ = new char[response.entity_length_ + 1];
+  if (response.entity_ != NULL) {
+    // TODO: error handling
+  }
+  temp_str.copy(response.entity_, response.entity_length_, 0);
+  response.entity_[response.entity_length_] = '\0';
+  temp_str.clear();
+  return (true);
 }
 
 /****************** Work Type ********************/

@@ -65,7 +65,7 @@ typedef unsigned long pos_t;
 typedef struct s_loc {
   std::string location_;    // location name
   config_map main_config_;  // location config value map
-  e_type loc_type_[3];      //
+  e_type loc_type_[3];  // location 타입들이 순서대로 들어간다. ROOT, REDIR, CGI
   e_autoindex index_mode_;  //
 } t_loc;
 
@@ -81,7 +81,7 @@ typedef struct s_server {
   int server_fd_;                   // server fd
   e_autoindex index_mode_;          // index mode 여부 확인
                                     // TODO: cache setting 넣기
-  t_cache satatic_pages_;           // TODO: static cache 페이지들 저장용
+  t_cache static_pages_;            // TODO: static cache 페이지들 저장용
   t_cache error_pages_;             // TODO: error cache 페이지들 저장용
   t_mime mime_;                     // TODO: mime 작성하기
 
