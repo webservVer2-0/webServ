@@ -6,6 +6,7 @@
 #include "datas.hpp"
 #include "webserv.hpp"
 
+typedef struct s_http t_http;
 /**
  * @brief enum to string
  *

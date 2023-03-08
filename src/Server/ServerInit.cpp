@@ -128,9 +128,9 @@ void ServerRun(ServerConfig& config) {
                 std::cout << "[ client (" << curr_event->ident << ") ]"
                           << std::endl;
                 write(1, client_msg, curr_event->data);
-                ChangeEvents(config.change_list_, curr_event->ident,
-                             EVFILT_READ, EV_DELETE, 0, 0, NULL);
-                DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
+                ChangeEvents(config.change_list_, curr_event->ident, 0,
+                             EV_DELETE, 0, 0, NULL);
+                // DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
                 close(curr_event->ident);
                 config.change_list_.clear();
                 delete[] client_msg;
@@ -142,8 +142,9 @@ void ServerRun(ServerConfig& config) {
                 client->SetResponse();
                 char* send_msg = MakeSendMessage(client);
                 size_t send_msg_len = client->GetMessageLength();
-                char* entity = client->GetResponse().entity;
+                char* entity = client->GetResponse().entity_;
                 size_t entity_len = client->GetResponse().entity_length_;
+                // TODO : char* 하나로 합쳐버리기;
                 send(curr_event->ident, send_msg, send_msg_len, 0);
                 send(curr_event->ident, entity, entity_len, 0);
                 // TODO: set cookie;
@@ -183,6 +184,8 @@ void ServerRun(ServerConfig& config) {
                   static_cast<s_client_type*>(server->CreateClient(client_fd));
               ChangeEvents(config.change_list_, client_fd, EVFILT_READ,
                            EV_ADD | EV_EOF, 0, 0, client);
+              ChangeEvents(config.change_list_, client_fd, EVFILT_WRITE,
+                           EV_ADD | EV_DISABLE, 0, 0, client);
               int timer =
                   atoi(client->GetConfig().main_config_.at("timeout").c_str());
               ChangeEvents(config.change_list_, client_fd, EVFILT_TIMER, EV_ADD,
@@ -193,6 +196,7 @@ void ServerRun(ServerConfig& config) {
             break;
         }
       }
+      CheckError(&config, curr_event);
     }
   }
   return;

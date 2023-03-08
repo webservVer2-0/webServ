@@ -32,6 +32,7 @@ typedef enum s_stage {
   POST_FIN,
   DELETE_READY,
   DELETE_FIN,
+  ERR_FIN,  // error case로 page를 전달해야 할 때 체크해야할 enum
   RES_READY,
   RES_FIN,
   END
@@ -46,6 +47,7 @@ typedef enum s_stage {
 typedef enum s_error {
   NO_ERROR = 0,
   OK = 200,
+  MOV_RDIR = 301,
   BAD_REQ = 400,
   FORBID = 403,
   NOT_FOUND = 404,
@@ -61,7 +63,7 @@ typedef struct s_http {
   http_line init_line_;
   http_line header_;
   size_t entity_length_;
-  char* entity;
+  char* entity_;
 } t_http;
 
 /**
@@ -137,6 +139,8 @@ class s_client_type : public s_base_type {
   t_stage stage_;
   t_error status_code_;
   size_t msg_length;
+  std::string err_custom_;  // custom msg 보관용
+  int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다.
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);
@@ -173,6 +177,9 @@ class s_client_type : public s_base_type {
   const t_server& GetConfig(void);
   const s_server_type& GetParentServer(void);
   s_work_type* GetChildWork(void);
+
+  bool GetCachePage(const std::string& uri, t_http& response);
+  bool GetCacheError(t_error code, t_http& response);
 };
 
 /**

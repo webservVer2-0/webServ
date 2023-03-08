@@ -75,11 +75,11 @@ t_http MakeResponseMessages(s_client_type* client) {
   msg.init_line_.insert({"code", str_code});
   msg.header_.insert({"Date :", date_str});
   msg.header_.insert({"Server :", "webserv/0.1"});
-  if (client->GetResponse().entity) {
+  if (client->GetResponse().entity_) {
     std::string size = stToString(client->GetResponse().entity_length_);
     msg.header_.insert({"Content-Length :", size});
-    std::string header_str = MakeContentType(client);
-    msg.header_.insert({"Content-Type :", header_str});
+    // std::string header_str = MakeContentType(client);
+    // msg.header_.insert({"Content-Type :", header_str});
   }
 
   if (client->GetStage() == GET_FIN) {
@@ -135,7 +135,7 @@ t_http MakeResponseMessages(s_client_type* client) {
 char* MakeSendMessage(s_client_type client) {
   t_http msg = client.GetResponse();
   std::string joined_str = "";
-  std::string entity = msg.entity;
+  std::string entity = msg.entity_;
   for (std::map<std::string, std::string>::const_iterator iter =
            msg.init_line_.begin();
        iter != msg.init_line_.end(); ++iter) {
