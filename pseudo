@@ -22,10 +22,12 @@ get { // switch? if?
         kevent로 등록 
       }
     case GET_READY:
-      파일 read (response용 entity 할당,
-                s_client_type 안의 t_html response_msg_에 entity에 넣어서(read한거. 이때, 바이너리가 들어올수도 있으므로, 길이까지 넣어준다)
+      파일 read (response용 entity 할당하고,
+                read한거 s_client_type 안의 t_html response_msg_에 entity에 넣)
+      (바이너리가 들어올수도 있으므로,)s_client_type의 t_html response_msg의 entity_length_에 길이까지 넣어준다
       파일 close
-      entity 전달
+      response entity 할당해제
+      ; entity 전달 ?
       SetStage(GET_FINISH);
   }
 }
