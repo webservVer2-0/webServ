@@ -27,7 +27,7 @@ std::string enumToString(t_error code) {
 }
 
 std::string MakeContentType(s_client_type* client) {
-  t_html type = client->GetRequest();
+  t_http type = client->GetRequest();
   std::string path = type.init_line_.find("path")->second;
 
   std::map<std::string, std::string> mime_types = {{"txt", "text/plain"},
@@ -56,22 +56,22 @@ std::string MakeContentType(s_client_type* client) {
   return (content_type);
 }
 
-std::string stToString(size_t size) {
+static std::string stToString(size_t size) {
   size_t num = size;
   char buf[1024];
   std::sprintf(buf, "%lu", num);
   std::string str_num = std::string(buf);
 }
 
-t_html MakeResponseMessages(s_client_type* client) {
+t_http MakeResponseMessages(s_client_type* client) {
   t_error code = client->GetErrorCode();
-  t_html msg = client->GetResponse();
+  t_http msg = client->GetResponse();
   std::string str_code = enumToString(code);
   std::time_t now = std::time(NULL);
   std::string date_str = std::asctime(std::gmtime(&now));
   date_str.erase(date_str.length() - 1);
 
-  msg.init_line_.insert({"a_version", "HTTP/1.1"});
+  msg.init_line_.insert({"version", "HTTP/1.1"});
   msg.init_line_.insert({"code", str_code});
   msg.header_.insert({"Date :", date_str});
   msg.header_.insert({"Server :", "webserv/0.1"});
@@ -133,7 +133,7 @@ t_html MakeResponseMessages(s_client_type* client) {
 }
 
 char* MakeSendMessage(s_client_type client) {
-  t_html msg = client.GetResponse();
+  t_http msg = client.GetResponse();
   std::string joined_str = "";
   std::string entity = msg.entity;
   for (std::map<std::string, std::string>::const_iterator iter =

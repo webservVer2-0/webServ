@@ -56,8 +56,8 @@ s_base_type* s_client_type::CreateWork(std::string* path, int file_fd,
 
 int s_client_type::GetCookieId(void) { return this->cookie_id_; }
 
-t_html& s_client_type::GetRequest(void) { return this->request_msg_; }
-t_html& s_client_type::GetResponse(void) { return this->response_msg_; }
+t_http& s_client_type::GetRequest(void) { return this->request_msg_; }
+t_http& s_client_type::GetResponse(void) { return this->response_msg_; }
 void s_client_type::SetResponse(void) {
   this->response_msg_ = MakeResponseMessages(this);
 }

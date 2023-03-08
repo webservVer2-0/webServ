@@ -56,13 +56,13 @@ typedef enum s_error {
 
 typedef enum s_chore { file, cgi } t_chore;
 
-typedef struct s_html {
-  typedef std::map<std::string, std::string> html_line;
-  html_line init_line_;
-  html_line header_;
+typedef struct s_http {
+  typedef std::map<std::string, std::string> http_line;
+  http_line init_line_;
+  http_line header_;
   size_t entity_length_;
   char* entity;
-} t_html;
+} t_http;
 
 /**
  * @brief 다형성을 활용하여 제작한 클래스입니다. 해당 클래스는 type과 fd 를 갖고
@@ -128,8 +128,8 @@ class s_client_type : public s_base_type {
  private:
   int cookie_id_;
   t_server* config_ptr_;
-  t_html request_msg_;
-  t_html response_msg_;
+  t_http request_msg_;
+  t_http response_msg_;
 
   s_base_type* parent_ptr_;
   s_base_type* data_ptr_;
@@ -157,8 +157,8 @@ class s_client_type : public s_base_type {
   s_base_type* CreateWork(std::string* path, int file_fd, s_chore work_type);
 
   int GetCookieId(void);
-  t_html& GetRequest(void);
-  t_html& GetResponse(void);
+  t_http& GetRequest(void);
+  t_http& GetResponse(void);
   void SetResponse(void);
 
   size_t& GetMessageLength(void);

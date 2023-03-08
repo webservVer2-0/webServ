@@ -3,6 +3,7 @@
 
 #include <cstdarg>
 
+#include "datas.hpp"
 #include "webserv.hpp"
 
 /**
@@ -17,9 +18,9 @@ std::string enumToString(int code);
  * @brief responsemessage maker
  *
  * @param client
- * @return t_html
+ * @return t_http
  */
-t_html MakeResponseMessages(s_client_type* client);
+t_http MakeResponseMessages(s_client_type* client);
 
 /**
  * @brief send 할 messages maker
