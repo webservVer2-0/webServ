@@ -129,10 +129,10 @@ void ServerRun(ServerConfig& config) {
                 std::cout << "[ client (" << curr_event->ident << ") ]"
                           << std::endl;
                 write(1, client_msg, curr_event->data);
+                close(curr_event->ident);
                 ChangeEvents(config.change_list_, curr_event->ident, 0,
                              EV_DELETE, 0, 0, NULL);
                 // DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
-                close(curr_event->ident);
                 config.change_list_.clear();
                 delete[] client_msg;
                 // TODO: 작업 END시 처리해줘야 할 것들은 다음과 같다.
