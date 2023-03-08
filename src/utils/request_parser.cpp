@@ -1,5 +1,8 @@
 #include "../include/webserv.hpp"
 
+#define CRLF "\n"
+#define DOUBLE_CRLF "\n\n"
+
 /**
  * @brief 요청을 공백과 이스케이프를 구분자로 토큰화
  *
@@ -40,10 +43,11 @@ static std::vector<std::string> msg_liner(const char* client_msg) {
  * @return true
  * @return false
  */
+
 static bool exist_post_and_entity(std::string line,
                                   std::vector<std::string> tokens) {
   if (tokens[0] == "POST") {
-    if (line.find("\r\n\r\n") + strlen("\r\n\r\n") < line.size()) {
+    if (line.find(DOUBLE_CRLF) + strlen(DOUBLE_CRLF) < line.size()) {
       return (true);
     }
   }
@@ -58,9 +62,9 @@ static bool exist_post_and_entity(std::string line,
  * @return false  지원하는 메소드가 있으면
  */
 static bool method_check(const std::string& line) {
-  const std::string method[5] = {"GET", "PUT", "POST", "HEAD", "DELETE"};
+  const std::string method[3] = {"GET", "DELETE", "POST"};
 
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 3; ++i) {
     if (line == method[i]) {
       return (false);
     }
@@ -93,8 +97,10 @@ static bool host_check(std::vector<std::string>& lines) {
  * @return header_line
  */
 static std::string refine_header_line(std::string line) {
-  size_t header_start = line.find("\r\n") + 2;
-  size_t header_end = line.find("\r\n\r\n");
+  // 첫 CRLF 찾은 지점에서 + 2(... HTTP/1.1\n\n<here>)
+  const size_t header_start = line.find(CRLF) + 2;
+  // 헤더와 entity 라인 사이의 "\n\n" 지점
+  const size_t header_end = line.find(DOUBLE_CRLF);
   std::string header_line =
       line.substr(header_start, header_end - header_start);
   return (header_line);
@@ -108,6 +114,7 @@ static std::string refine_header_line(std::string line) {
  * @return false 콜론이 존재하면
  */
 static bool colon_check(std::string line) {
+  // 헤더 라인만 체크
   std::string header_line = refine_header_line(line);
   const char* hd_line = header_line.c_str();
   std::vector<std::string> lines = msg_liner(hd_line);
@@ -139,10 +146,11 @@ static t_error valid_check(char* client_msg, std::string& line,
   if (line.empty()) {
     return (BAD_REQ);
   }
-  size_t pos = line.find("\r\n\r\n");
+  size_t pos = line.find(DOUBLE_CRLF); /* TODO : char* 형태로 고쳐야 함 */
   if (pos == std::string::npos) {
     return (BAD_REQ);
   }
+  /* TODO : URI 기반 체크 */
   if (method_check(tokens[0])) {
     return (NOT_IMPLE);
   }
@@ -187,6 +195,7 @@ static t_error fill_init_line(t_html* storage,
     if (tokens[2].find("/") != 4 || tokens[2].length() != 8) {
       return (BAD_REQ);
     }
+    /* HTTP, 1.1*/
     std::string http = tokens[2].substr(0, 4);
     std::string ver = tokens[2].substr(5, 6);
     if (http != "HTTP" || ver != "1.1") {
@@ -223,15 +232,20 @@ static void recursive_fill_header(t_html* html, std::string line, size_t s,
   }
   no_escape_line = line.substr(s, e - s);
   colon_pos = no_escape_line.find(":");
-  if (colon_pos != std::string::npos) {
-    std::string key = no_escape_line.substr(0, colon_pos);
-    std::string value = no_escape_line.substr(colon_pos + strlen(": "));
-    html->header_[key] = value;
+  try {
+    if (colon_pos != std::string::npos) {
+      std::string key = no_escape_line.substr(0, colon_pos);
+      std::string value = no_escape_line.substr(colon_pos + strlen(": "));
+      html->header_[key] = value;
+    }
+  } catch (std::out_of_range) {
+    std::cerr << "recursive_fill_header() out_of_range occur\n";
+    return;
   }
   if (last_line) {
     return;
   }
-  recursive_fill_header(html, line, s + e + strlen("\r\n"), e);
+  recursive_fill_header(html, line, s + e + strlen(CRLF), e);
 }
 
 /**
@@ -242,9 +256,10 @@ static void recursive_fill_header(t_html* html, std::string line, size_t s,
  * @param line        string으로 형변환한 client_msg
  * @return t_error    동적 할당에 실패하면 SYS_ERR 반환
  */
+
 static t_error malloc_n_copy_entity(t_html* rq_msg, char* client_msg,
                                     std::string line) {
-  std::string::size_type header_end = line.find("\r\n\r\n");
+  std::string::size_type header_end = line.find(DOUBLE_CRLF);
   /* bad alloc throw */
   try {
     size_t entity_start = header_end + 4;
@@ -259,7 +274,7 @@ static t_error malloc_n_copy_entity(t_html* rq_msg, char* client_msg,
   }
   /* bad alloc catch */
   catch (std::bad_alloc& e) {
-    rq_msg->entity = nullptr;
+    rq_msg->entity = NULL;
     rq_msg->entity_length_ = 0;
     std::cerr << "entity_ memory allocation failed: " << e.what() << SEND;
     return (SYS_ERR);
@@ -273,6 +288,7 @@ static t_error malloc_n_copy_entity(t_html* rq_msg, char* client_msg,
  * @param line
  * @return t_error
  */
+
 static t_error fill_header(t_html* rq_msg, std::string line) {
   std::string header_line = refine_header_line(line);
   /* 재귀 돌면서 header line을 map에 담음 */
@@ -356,9 +372,14 @@ t_error request_msg(void* udata, char* client_msg) {
   /* for parsing, and fill request_msg */
   t_html* rq_msg = &client_type->GetRequest();
   t_error error_code = NO_ERROR;
+
   std::string line(client_msg);
   std::vector<std::string> lines = msg_liner(client_msg);
   std::vector<std::string> tokens = msg_tokenizer(client_msg);
+
+  /* TODO : char*로 parsing 해야 함
+    size_t header_end = find_header_end();
+  */
 
   if ((error_code = valid_check(client_msg, line, lines, tokens))) {
     return (request_error(client_type, error_code));
@@ -371,7 +392,7 @@ t_error request_msg(void* udata, char* client_msg) {
   }
   /* method가 post면서 entity가 있으면 */
   if (exist_post_and_entity(line, tokens)) {
-    /* entity_ 동적 할당 */
+    /* t_html* rq_msg->entity_ 동적 할당 */
     if (error_code = fill_entity(rq_msg, line, client_msg)) {
       return (request_error(client_type, error_code));
     }
@@ -379,6 +400,9 @@ t_error request_msg(void* udata, char* client_msg) {
     if (error_code = entity_length_check(rq_msg, lines)) {
       return (request_error(client_type, error_code));
     }
+  } else {
+    rq_msg->entity = NULL;
+    rq_msg->entity_length_ = 0;
   }
   client_type->SetStage(REQ_FIN);
   return (error_code);

@@ -265,5 +265,6 @@ int main(void) {
   std::cout << "entity_ : " << h2.entity << "\n";
   std::cout << "entity_length : " << h2.entity_length_ << "\n";
   std::cout << "strlen() : " << strlen(h2.entity) << "\n";
+  delete[] h2.entity;
   return 0;
 }
