@@ -48,6 +48,7 @@ t_error Read_File(t_error error_code)
     error_code = SYS_ERR;
   }
 
+  client_type->response_msg_.entity_length_ = ;
   return error_code;
 }
 
@@ -60,17 +61,24 @@ t_error Get_Method(void* udata) {
       // open();
       if (error_code = Open_File())
       {
+        //에러처리 어떻게?
         //response에 보내야할것같은데 뭘 보내지?
       }
       else
       {
-        Read_File();
+        client_type->SetStage(GET_READY);
+        // kevent 등록 
       }
       break;
     case GET_READY:
-      error_code = Read_File(); // SYS_ERR ?
+      if (error_code = Read_File())
+      {
+
+      }
+      //file close
+      //delete[] entity;
       break;
-    default:
+    default: //없어도 될듯..?
       break;
   }
 
