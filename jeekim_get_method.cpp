@@ -52,10 +52,12 @@ t_error Read_File(t_error error_code)
   return error_code;
 }
 
+Get_Method(struct kevent *)로 수정
 t_error Get_Method(void* udata) {
-  s_client_type* client_type = static_cast<s_client_type*>(udata);
+  s_client_type* client_type = static_cast<s_client_type*>(udata);//base type으로 형변환하고 client 인지 file인지 확인
   t_error error_code = NO_ERROR;
 
+  //조건문 쓰는게 더 좋을것같음 switch case 말고
   switch (client_type->GetStage()) {
     case REQ_FIN:
       // open();

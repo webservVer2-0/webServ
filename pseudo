@@ -6,6 +6,14 @@ file open 후 read, write 직전에 kevent에 등록 !
 - ServerInit.cpp 부분
 - html에 요청 타입 체크 post일때
 - file 타입이냐 cgi에 따라 두개로 나눌건지, 아니면 메소드에 따라 나눌건지 고민
+- 레퍼런스 만들어주신대
+
+GET
+- client read event
+- file read event
+
+s_work_type 안에 t_http& 넣어주실예정
+
 
 get { // switch? if?
   switch (GetStage())
@@ -19,16 +27,18 @@ get { // switch? if?
       else // 파일 존재
       {
         SetStage(GET_READY);
-        kevent로 등록 
+        kevent로 등록 // udata에 work 등록 나중에 더 구체적으로
       }
     case GET_READY:
       파일 read (response용 entity 할당하고,
                 read한거 s_client_type 안의 t_html response_msg_에 entity에 넣)
       (바이너리가 들어올수도 있으므로,)s_client_type의 t_html response_msg의 entity_length_에 길이까지 넣어준다
-      파일 close
-      response entity 할당해제
+      파일 close;
+      EV_DELETE (이벤트 삭제)
+      ; if (POST) request entity 할당해제
       ; entity 전달 ?
       SetStage(GET_FINISH);
+      changeevent(); // kevent 등록
   }
 }
 
