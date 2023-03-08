@@ -1,7 +1,7 @@
 #ifndef CONFIG_HPP_
 #define CONFIG_HPP_
 
-#include "static_cache.hpp"
+#include "cache.hpp"
 #include "webserv.hpp"
 
 #define SER "server"
@@ -23,6 +23,21 @@
 #define CGIFILE "cgi"           //   l
 #define LOCNAME "location"      //   l
 #define REDIR "redirection"     //   l
+#define INC "include"
+
+typedef std::string extension;
+typedef std::string mime_type;
+
+typedef std::map<extension, mime_type> t_mime;
+typedef std::pair<extension, mime_type> pair_mime;
+typedef t_mime::iterator mime_iterator;
+
+typedef std::string path;
+typedef char* cache_entity;
+
+typedef std::map<path, cache_entity> t_cache;
+typedef std::pair<path, cache_entity> pair_cache;
+typedef t_cache::iterator cache_iterator;
 
 /**
  * @brief 해당 로케이션이 어떤 타입의 로케이션인지를 구분짓는 역할을 함.
@@ -68,6 +83,8 @@ typedef struct s_server {
                                     // TODO: cache setting 넣기
   t_cache satatic_pages_;           // TODO: static cache 페이지들 저장용
   t_cache error_pages_;             // TODO: error cache 페이지들 저장용
+  t_mime mime_;                     // TODO: mime 작성하기
+
 } t_server;
 
 /**
@@ -148,6 +165,8 @@ class ServerConfig {
    * @return const t_server* , error = NULL
    */
   const t_server* GetServerConfigByPort(const std::string& port);
+
+  t_mime& GetServerMimnByNumber(int number);
 
   // TODO : 핵심 정보를 가져올 수 있는 getter
   // TODO : 메인 로직에서 필요시 되는 getter

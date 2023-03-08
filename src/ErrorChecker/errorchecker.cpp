@@ -33,7 +33,7 @@ void PutErrorPage(s_client_type* client, const t_server& self_config) {
   std::ostringstream temp;
   temp << error_code;
   std::string val = temp.str();
-  char* entity = strdup(self_config.error_pages_.data_collection_.at(val));
+  char* entity = strdup(self_config.error_pages_.at(val));
   if (!entity) {
     // TODO: error handling
   }
