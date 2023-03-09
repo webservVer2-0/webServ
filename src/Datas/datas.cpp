@@ -125,11 +125,11 @@ bool s_client_type::GetCacheError(t_error code, t_http& response) {
 /****************** Work Type ********************/
 
 s_work_type::s_work_type(std::string& path, int fd, s_chore work_type,
-                         t_http& resoponse_msg)
+                         t_http& response_msg)
     : s_base_type(fd),
       uri_(path),
       work_type_(work_type),
-      response_msg_(resoponse_msg) {}
+      response_msg_(response_msg) {}
 
 s_work_type::~s_work_type() {}
 
