@@ -8,6 +8,56 @@ file open 후 read, write 직전에 kevent에 등록 !
 - file 타입이냐 cgi에 따라 두개로 나눌건지, 아니면 메소드에 따라 나눌건지 고민
 - 레퍼런스 만들어주신대
 
+
+
+
+t_error ClientGet(struct kevent* event) {
+
+// 우선 클라이언트니까 형변환을 해줍니다.
+s_client_type* client = static_cast<s_client_type*>(event->udata);
+
+// request_msg의 init_line map에서 URI를 가져와서, c_str(const char*)로 바꿔줍니다.
+const char* dir = client->request_msg->init_line.find("URI").c_str;
+
+// open!! 
+int req_fd = open(dir, O_RDONLY);
+
+// 만약 여는걸 실패했으면, error stage나 t_error를 설정해줘요.
+if (req_fd == -1) {
+  error code set;
+  return error_code?
+}
+fcntl([non block]); // 열고 나면 논블록 처리 해야합니다!
+
+// 이벤트를 생성합니다.
+s_work_type* work = client->CreateWork(dir, req_fd, 2);
+ChangeEvent([tmp vector], req_fd, ... , work);
+// stage 변경은 ChangeEvent 전 혹은 후에 들어갈 수 있습니다.
+return error code;
+}
+
+t_error WorkGet(struct kevent* event) {
+
+s_work_type* work = static_cast<work*>(event->udata);
+int req_fd = work->GetFD();
+size_t file_len = event->data->[file lenght] // 이게 data 어딘가에 있데요;
+size_t read_ret = 0;
+
+char* buf = work->client_ptr->response_msg->entity[file_len];  // response entity에 파일 길이만큼 할당하고서 여기에 읽어여.
+// 이부분은 하류님이 추가적으로 함수를 작성해주셔서 t_http&에 작업을 해 줄 예정일것 같아요.
+read_ret = read(req_fd, buf, file_len);
+// 읽은 byte 수가 파일 길이랑 안맞으면 에러처리를 하겠죠?
+if (read_ret != file_len) {
+  error code set;
+  여기서 할당 해제를 할지 말지는 모르겠어요;;
+  return error code?
+}
+ChangeEvent([temp vector], req_fd, ... , [EV_DELETE], ... , NULL); // 여기 udata는 없을거 같네요.
+// 클라이언트 이벤트 등록 부분도 하류님이 추가적으로 함수 작성을 해 주실껍니다.
+ChangeEvent([temp vector], work->client_ptr->GetFD(), ..., ???); // 여기 udata는 뭔가 들어가야 할지도??
+return error code;
+}
+
 GET
 - client read event
 - file read event
