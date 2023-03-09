@@ -80,8 +80,8 @@ t_http MakeResponseMessages(s_client_type* client) {
   return (msg);
 }
 
-char* MaketopMessage(s_client_type client) {
-  t_http msg = client.GetResponse();
+char* MaketopMessage(s_client_type* client) {
+  t_http msg = client->GetResponse();
   std::string joined_str = "";
   std::string entity = msg.entity_;
   for (std::map<std::string, std::string>::const_iterator iter =
@@ -97,20 +97,20 @@ char* MaketopMessage(s_client_type client) {
   }
   joined_str += "\r\n\r\n";
 
-  client.SetMessageLength(joined_str.length());
+  client->SetMessageLength(joined_str.length());
   char* result = new char[joined_str.length() + 1];
   std::strcpy(result, joined_str.c_str());
   return result;
 }
 
-char* MakeSendMessage(s_client_type client, char* msg) {
-  size_t len = client.GetMessageLength();
-  size_t entity_length = client.GetResponse().entity_length_;
+char* MakeSendMessage(s_client_type* client, char* msg) {
+  size_t len = client->GetMessageLength();
+  size_t entity_length = client->GetResponse().entity_length_;
 
   char* result = new char[len + entity_length];
   std::memcpy(result, msg, len);
-  std::memcpy(result + len, client.GetResponse().entity_, entity_length);
-  client.SetMessageLength(len + entity_length);
+  std::memcpy(result + len, client->GetResponse().entity_, entity_length);
+  client->SetMessageLength(len + entity_length);
   return (result);
 }
 

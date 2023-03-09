@@ -113,9 +113,10 @@ void ServerRun(ServerConfig& config) {
             }
             break;
           case CLIENT:
-            s_client_type* client = static_cast<s_client_type*>(ft_filter);
             std::cout << "client type" << std::endl;
-            std::cout << "Client Id : " << client->GetCookieId() << std::endl;
+            std::cout << "Client Id : "
+                      << static_cast<s_client_type*>(ft_filter)->GetCookieId()
+                      << std::endl;
             {
               if (curr_event->filter == EVFILT_READ) {
                 std::cout << "client Read step" << std::endl;
@@ -138,6 +139,7 @@ void ServerRun(ServerConfig& config) {
                 // TODO: client udata ~ file udata 까지 찾아들어가서 delete 를
                 // 진행하면 될듯
               } else if (curr_event->filter == EVFILT_WRITE) {
+                s_client_type* client = static_cast<s_client_type*>(ft_filter);
                 std::cout << " client Write step" << std::endl;
                 client->SetResponse();
                 char* msg_top = MaketopMessage(client);
