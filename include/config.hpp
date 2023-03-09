@@ -166,12 +166,7 @@ class ServerConfig {
    */
   const t_server* GetServerConfigByPort(const std::string& port);
 
-  t_mime& GetServerMimnByNumber(int number);
-
-  // TODO : 핵심 정보를 가져올 수 있는 getter
-  // TODO : 메인 로직에서 필요시 되는 getter
-  // TODO : request, response handling 을 위한 각 설정과 uri 별 getter
-  // index.html 문서 캐시 클래스 만들기
+  t_mime& GetServerMimeByNumber(int number);
 };
 
 #endif
