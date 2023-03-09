@@ -17,8 +17,8 @@ void CheckError(ServerConfig* config, struct kevent* curr_event) {
       return;
     target->SetStage(ERR_FIN);
     PutErrorPage(target);
-    ChangeEvents(config->change_list_, curr_event->ident, 0, EV_DELETE, 0, 0,
-                 NULL);
+    // ChangeEvents(config->change_list_, curr_event->ident, 0, EV_DELETE, 0, 0,
+    //              NULL);
     ChangeEvents(config->change_list_, target->GetFD(), EVFILT_READ, EV_DISABLE,
                  0, 0, NULL);
     ChangeEvents(config->change_list_, target->GetFD(), EVFILT_WRITE, EV_ENABLE,

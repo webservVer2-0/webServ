@@ -187,17 +187,37 @@ class s_work_type : public s_base_type {
   const std::string uri_;
   s_base_type* client_ptr_;
   s_chore work_type_;
+  t_http& response_msg_;
 
   s_work_type(const s_work_type& target);
   s_work_type& operator=(const s_work_type& target);
 
  public:
-  s_work_type(std::string& path, int fd, s_chore work_type);
+  s_work_type(std::string& path, int fd, s_chore work_type,
+              t_http& response_msg);
   ~s_work_type();
   void SetClientPtr(s_base_type* ptr);
   s_base_type* GetClientPtr(void);
   const std::string& GetUri(void);
+
   s_chore GetWorkType(void);
+  t_http& GetResponseMsg(void);
+  /**
+   * @brief File fd에서 해당 작업이 끝나고 나면, client 처리를 위해 사용하는
+   * 함수입니다. 설정에 필요한 fliter~udata까지 집어 넣으시면 됩니다. 신규
+   * 등록이 아니니 udata는 NULL 로 넣어 됩니다.
+   *
+   * @param filter
+   * @param flags
+   * @param fflags
+   * @param data
+   * @param udata
+   */
+  void ChangeClientEvent(int16_t filter, uint16_t flags, uint16_t fflags,
+                         intptr_t data, void* udata);
+
+  t_stage GetClientStage(void);
+  void SetClientStage(t_stage val);
 };
 
 #endif

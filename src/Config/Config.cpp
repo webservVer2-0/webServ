@@ -14,7 +14,7 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   //   PrintServerConfig();
   ValidCheckMain();
   for (int i = 0; i < server_number_; i++) {
-    SetMime(GetServerMimnByNumber(i),
+    SetMime(GetServerMimeByNumber(i),
             GetServerConfigByNumber(i)->main_config_.at(INC));
   }
   for (int i = 0; i < server_number_; i++) {
@@ -850,6 +850,6 @@ const t_server& ServerConfig::GetServerList(int number) {
   return *this->server_list_.at(number);
 }
 
-t_mime& ServerConfig::GetServerMimnByNumber(int number) {
+t_mime& ServerConfig::GetServerMimeByNumber(int number) {
   return this->server_list_.at(number)->mime_;
 }
