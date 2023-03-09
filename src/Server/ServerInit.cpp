@@ -140,13 +140,11 @@ void ServerRun(ServerConfig& config) {
               } else if (curr_event->filter == EVFILT_WRITE) {
                 std::cout << " client Write step" << std::endl;
                 client->SetResponse();
-                char* send_msg = MakeSendMessage(client);
+                char* msg_top = MaketopMessage(client);
+                char* send_msg = MakeSendMessage(client, msg_top);
                 size_t send_msg_len = client->GetMessageLength();
-                char* entity = client->GetResponse().entity_;
-                size_t entity_len = client->GetResponse().entity_length_;
-                // TODO : char* 하나로 합쳐버리기;
                 send(curr_event->ident, send_msg, send_msg_len, 0);
-                send(curr_event->ident, entity, entity_len, 0);
+                DeleteSendMessage(send_msg, send_msg_len);
                 // TODO: set cookie;
                 // TODO: logging system;
                 DeleteUdata(ft_filter);
@@ -161,7 +159,7 @@ void ServerRun(ServerConfig& config) {
                   client->SetStage(RES_FIN);
                 }
               } else if (curr_event->filter == EVFILT_TIMER) {
-                // TODO: time out 상태, 적절한 closing 필요
+                break;  // TODO: time out 상태, 적절한 closing 필요
               }
               // eof 로 확인하기는 불확실한 방법으로 판단됨
               //   else if (curr_event->flags == EV_EOF) {

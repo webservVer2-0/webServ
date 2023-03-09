@@ -23,12 +23,16 @@ std::string enumToString(int code);
  */
 t_http MakeResponseMessages(s_client_type* client);
 
+char* MaketopMessage(s_client_type* client);
+
 /**
  * @brief send 할 messages maker
  *
  * @param client
  * @return char*
  */
-char* MakeSendMessage(s_client_type* client);
+char* MakeSendMessage(s_client_type* client, char* msg);
+
+void DeleteSendMessage(char* msg, size_t size);
 
 #endif

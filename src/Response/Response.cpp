@@ -29,31 +29,12 @@ std::string enumToString(t_error code) {
 std::string MakeContentType(s_client_type* client) {
   t_http type = client->GetRequest();
   std::string path = type.init_line_.find("path")->second;
-
-  std::map<std::string, std::string> mime_types = {{"txt", "text/plain"},
-                                                   {"html", "text/html"},
-                                                   {"jpeg", "image/jpeg"},
-                                                   {"png", "image/png"},
-                                                   {"py", "text/x-python"}};
+  const t_mime* mime = &client->GetConfig().mime_;
   std::string::size_type extension_pos = path.find_last_of(".");
-  if (extension_pos == std::string::npos) {
-    std::cerr << "Cannot find extension in path." << std::endl;
-    return ("");
-    // error message 고려 사항
-  }
-
   std::string extension = path.substr(extension_pos + 1);
   std::transform(extension.begin(), extension.end(), extension.begin(),
                  ::tolower);
-  std::map<std::string, std::string>::const_iterator iter =
-      mime_types.find(extension);
-  if (iter == mime_types.end()) {
-    std::cerr << "Cannot find available MIME_Type." << std::endl;
-    return ("");
-    // error message 고려 사항
-  }
-  std::string content_type = iter->second;
-  return (content_type);
+  return (mime->at(extension));
 }
 
 static std::string stToString(size_t size) {
@@ -61,6 +42,7 @@ static std::string stToString(size_t size) {
   char buf[1024];
   std::sprintf(buf, "%lu", num);
   std::string str_num = std::string(buf);
+  return str_num;
 }
 
 t_http MakeResponseMessages(s_client_type* client) {
@@ -71,68 +53,34 @@ t_http MakeResponseMessages(s_client_type* client) {
   std::string date_str = std::asctime(std::gmtime(&now));
   date_str.erase(date_str.length() - 1);
 
-  msg.init_line_.insert({"version", "HTTP/1.1"});
-  msg.init_line_.insert({"code", str_code});
-  msg.header_.insert({"Date :", date_str});
-  msg.header_.insert({"Server :", "webserv/0.1"});
+  msg.init_line_.insert(
+      std::make_pair(std::string("version"), std::string("HTTP/1.1")));
+  msg.init_line_.insert(std::make_pair(std::string("code"), str_code));
+  msg.header_.insert(std::make_pair(std::string("Date :"), date_str));
+  msg.header_.insert(
+      std::make_pair(std::string("Server :"), std::string("serv1")));
   if (client->GetResponse().entity_) {
     std::string size = stToString(client->GetResponse().entity_length_);
-    msg.header_.insert({"Content-Length :", size});
-    // std::string header_str = MakeContentType(client);
-    // msg.header_.insert({"Content-Type :", header_str});
+    msg.header_.insert(std::make_pair(std::string("Content-length :"), size));
   }
 
   if (client->GetStage() == GET_FIN) {
-    msg.header_.insert({"Cache-Control", "public, max-age=3600"});
+    msg.header_.insert(std::make_pair(std::string("Cache-Control"),
+                                      std::string("public, max-age=3600")));
   }
   if (client->GetStage() == END) {
-    msg.header_.insert({"Cache-Control", "public, max-age=3600"});
-    msg.header_.insert({"Connection :", "Closed"});
+    msg.header_.insert(std::make_pair(std::string("Cache-Control"),
+                                      std::string("public, max-age=3600")));
+    msg.header_.insert(
+        std::make_pair(std::string("Connection :"), std::string("Closed")));
   } else {
-    msg.header_.insert({"Connection :", "Keep-Alive"});
+    msg.header_.insert(
+        std::make_pair(std::string("Connection :"), std::string("Keep-Alive")));
   }
   return (msg);
-  // TODO: Expire 시간 논의 필요(last-modified와 연계 고려 가능)
-  // TODO: Cache-Control 사용 여부 확인 필요
-  // TODO: last-modified 필요
-
-  /*  switch (code) {
-      case OK:
-        std::cout << "OK_stage" << std::endl;
-        {
-          // msg.header_.insert({"Last-Modified :", date_str});
-          // 본문 마지막 수정 시간 정보 필요
-          msg.header_.insert({"Connection :", "close"});
-        }
-        break;
-      case BAD_REQ:
-        std::cout << "BAD_REQ_stage" << std::endl;
-        {}
-        break;
-      case FORBID:
-        std::cout << "FORBID_stage" << std::endl;
-        {}
-        break;
-      case NOT_FOUND:
-        std::cout << "NOT_FOUND_stage" << std::endl;
-        {}
-        break;
-      case NOT_IMPLE:
-        std::cout << "NOT_IMPLE_stage" << std::endl;
-        {}
-        break;
-      case OLD_HTTP:
-        std::cout << "OLD_HTTP_stage" << std::endl;
-        {}
-        break;
-      default:  // SYS_ERR
-        std::cout << "SYS_ERR_stage" << std::endl;
-        {}
-        break;
-    }*/
 }
 
-char* MakeSendMessage(s_client_type client) {
+char* MaketopMessage(s_client_type client) {
   t_http msg = client.GetResponse();
   std::string joined_str = "";
   std::string entity = msg.entity_;
@@ -153,4 +101,22 @@ char* MakeSendMessage(s_client_type client) {
   char* result = new char[joined_str.length() + 1];
   std::strcpy(result, joined_str.c_str());
   return result;
+}
+
+char* MakeSendMessage(s_client_type client, char* msg) {
+  size_t len = client.GetMessageLength();
+  size_t entity_length = client.GetResponse().entity_length_;
+
+  char* result = new char[len + entity_length];
+  std::memcpy(result, msg, len);
+  std::memcpy(result + len, client.GetResponse().entity_, entity_length);
+  client.SetMessageLength(len + entity_length);
+  return (result);
+}
+
+void DeleteSendMessage(char* msg, size_t size) {
+  for (std::size_t i = 0; i < size; ++i) {
+    std::cout << msg[i] << " ";
+  }
+  delete[] msg;
 }
