@@ -161,7 +161,7 @@ void ServerRun(ServerConfig& config) {
                   client->SetStage(RES_FIN);
                 }
               } else if (curr_event->filter == EVFILT_TIMER) {
-                break;  // TODO: time out 상태, 적절한 closing 필요
+                // TODO: time out 상태, 적절한 closing 필요
               }
               // eof 로 확인하기는 불확실한 방법으로 판단됨
               //   else if (curr_event->flags == EV_EOF) {
