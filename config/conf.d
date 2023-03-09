@@ -1,6 +1,6 @@
 server  {
 	listen 80;
-	body_size 10240;
+	body_size 10000000;
 	max_connect 200;
 	root storage/static/;
 	default_file index.html;
