@@ -63,14 +63,9 @@ t_http MakeResponseMessages(s_client_type* client) {
     std::string size = stToString(client->GetResponse().entity_length_);
     msg.header_.insert(std::make_pair(std::string("Content-length :"), size));
   }
-
-  if (client->GetStage() == GET_FIN) {
-    msg.header_.insert(std::make_pair(std::string("Cache-Control"),
-                                      std::string("public, max-age=3600")));
-  }
+  msg.header_.insert(std::make_pair(std::string("Cache-Control"),
+                                    std::string("public, max-age=3600")));
   if (client->GetStage() == END) {
-    msg.header_.insert(std::make_pair(std::string("Cache-Control"),
-                                      std::string("public, max-age=3600")));
     msg.header_.insert(
         std::make_pair(std::string("Connection :"), std::string("Closed")));
   } else {
