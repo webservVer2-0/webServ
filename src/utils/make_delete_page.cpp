@@ -42,7 +42,7 @@ void MakeDeleteHead(t_http& response) {
 
   response.entity_ = new char[entity.size()];
   response.entity_length_ = entity.size();
-  for (int i = 0; i < response.entity_length_; i++) {
+  for (size_t i = 0; i < response.entity_length_; i++) {
     response.entity_[i] = entity[i];
   }
   entity.clear();
@@ -85,7 +85,7 @@ void MakeDeleteBody(std::string directory_path, t_http& response) {
 
   response.entity_ = new char[entity.size()];
   response.entity_length_ = entity.size();
-  for (int i = 0; i < response.entity_length_; i++) {
+  for (size_t i = 0; i < response.entity_length_; i++) {
     response.entity_[i] = entity[i];
   }
   entity.clear();
@@ -102,7 +102,7 @@ void MakeDeleteFooter(t_http& response) {
 
   response.entity_ = new char[entity.size() + 1];
   response.entity_length_ = entity.size();
-  for (int i = 0; i < response.entity_length_; i++) {
+  for (size_t i = 0; i < response.entity_length_; i++) {
     response.entity_[i] = entity[i];
   }
   response.entity_[response.entity_length_] = '\0';

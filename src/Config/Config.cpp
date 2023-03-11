@@ -473,7 +473,7 @@ bool ServerConfig::ValidConfigHTML(conf_iterator& target) {
   int i = 0;
   int limit = temp.size();
   while (i < limit) {
-    if (isalnum(temp.at(i))) {
+    if (isalnum(temp.at(i)) || temp.at(i) == '_') {
       i++;
     } else if (temp.at(i) == '.') {
       if (temp.find("html", i) != std::string::npos) {
@@ -731,9 +731,9 @@ bool ServerConfig::ValidCheckLocation(int server_number,
         return (false);
       }
     } else if (temp.compare(REDIR) == 0) {
-      if (!ValidConfigFilePath(target)) {
-        return (false);
-      }
+      //   if (!ValidConfigFilePath(target)) {
+      //     return (false);
+      //   }
       target_location->loc_type_[1] = T_REDIR;
     } else if (temp.compare(CGIFILE) == 0) {
       if (!ValidConfigCGIFile(target, error_log, *target_location)) {

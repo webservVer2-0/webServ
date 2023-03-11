@@ -78,11 +78,12 @@ pos_t FindKeyLength(std::string& str, pos_t& pos) {
   pos_t ret = 0;
   const char* target = str.c_str();
   while (!IsWhiteSpace(str[pos])) {
-    if (isalpha(target[pos]) || (target[pos] == '_') || target[pos] == '/' ||
+    if (isalnum(target[pos]) || (target[pos] == '_') || target[pos] == '/' ||
         target[pos] == '.') {
       pos++;
       ret++;
     } else {
+      PrintLine(str, pos);
       PrintError(4, WEBSERV, CRITICAL, "Code Error \"utils.cpp\" - 86 line",
                  str.substr(pos, 1).c_str());
     }
