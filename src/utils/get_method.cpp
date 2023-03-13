@@ -2,9 +2,7 @@
 
 // TODO : err_custom_ getter, setter 만들까?
 // TODO : error 발생시 err_custom_ 지정해줘야함
-// CreateWork()시 첫번째 인수 왜 포인터? > reference로 할까 했는데 const 때문에 복잡해서 std::string*로 설정하심
-// s_work_type에서 SetError 필요하지 않을까? > 괜춘. client에 해주기때문에
-// s_work_type client_ptr_ 언제 쓰지? > 일단 에러 지정하고, kevent 등록할때
+// TODO : 예외처리 더 ?
 
 /**
  * @brief
@@ -51,14 +49,14 @@ void WorkGet(struct kevent* event) {
     // entity_ 할당해제 여기서 X
     return ;
   }
-  // TODO : read 성공시 200으로 바꿔줘야함
+  // TODO : read 성공시 200으로 바꿔줘야함 < 이거 좀 더 물어봐야 함
 
   work->ChangeClientEvent(EVFILT_READ, EV_DISABLE, 0, 0, client);
   // work->ChangeClientEvent(EVFILT_WRITE, EV_ADD, 0, 0, work);
   // TODO : write enable 해줘야함
   work->SetClientStage(GET_FIN);
   // TODO : delete도 해줘야함
-  close(req_fd);
+  close(req_fd);// TODO : close() 에러시 ?
 
   return ;
-}  // TODO : t_error 반환형말고 void로 해도 됨. 어차피 client에 들어있으니까
+}
