@@ -34,9 +34,13 @@ s_base_type* s_server_type::CreateClient(int client_fd) {
 s_client_type::s_client_type(t_server* config, int client_fd,
                              s_server_type* mother)
     : s_base_type(client_fd) {
-  cookie_id_ = rand();
+  std::ostringstream temp;
+  temp << rand();
+  cookie_id_ = temp.str();
+  temp.clear();
   this->SetType(CLIENT);
   this->config_ptr_ = config;
+  this->loc_config_ptr_ = NULL;
   parent_ptr_ = mother;
   data_ptr_ = NULL;
   stage_ = DEF;
@@ -56,7 +60,10 @@ s_base_type* s_client_type::CreateWork(std::string* path, int file_fd,
   return (work);
 }
 
-int s_client_type::GetCookieId(void) { return this->cookie_id_; }
+std::string s_client_type::GetCookieId(void) { return this->cookie_id_; }
+void s_client_type::SetCookieId(std::string prev_id) {
+  this->cookie_id_ = prev_id;
+}
 
 t_http& s_client_type::GetRequest(void) { return this->request_msg_; }
 t_http& s_client_type::GetResponse(void) { return this->response_msg_; }
@@ -71,6 +78,11 @@ const t_server& s_client_type::GetConfig(void) { return *this->config_ptr_; }
 const s_server_type& s_client_type::GetParentServer(void) {
   return *(dynamic_cast<s_server_type*>(parent_ptr_));
 }
+const t_loc& s_client_type::GetLocationConfig(void) {
+  return *this->loc_config_ptr_;
+}
+void s_client_type::SetConfigPtr(t_loc* ptr) { this->loc_config_ptr_ = ptr; }
+
 s_work_type* s_client_type::GetChildWork(void) {
   return (dynamic_cast<s_work_type*>(data_ptr_));
 }

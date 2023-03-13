@@ -13,7 +13,7 @@ void CheckError(ServerConfig* config, struct kevent* curr_event) {
       target = static_cast<s_client_type*>(temp);
     }
     if (target->GetErrorCode() == OK || target->GetErrorCode() == NO_ERROR ||
-        target->GetErrorCode() == MOV_RDIR)
+        target->GetErrorCode() == MOV_PERMAN)
       return;
     target->SetStage(ERR_FIN);
     PutErrorPage(target);
