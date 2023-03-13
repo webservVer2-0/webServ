@@ -10,6 +10,7 @@ class s_client_type;
 class s_work_type;
 
 typedef struct s_server t_server;
+typedef struct s_loc t_loc;
 
 /**
  * @brief 이벤트 type을 정의하기 위한 enum
@@ -24,13 +25,16 @@ typedef enum s_event_type { SERVER, CLIENT, WORK } t_event;
 typedef enum s_stage {
   DEF,
   REQ_READY,
-  REQ_FIN,
+  //   REQ_FIN,
   GET_READY,
+  GET_START,
   GET_FIN,
   POST_READY,
+  POST_START,
   POST_SAVED,
   POST_FIN,
   DELETE_READY,
+  DELETE_START,
   DELETE_FIN,
   ERR_FIN,  // error case로 page를 전달해야 할 때 체크해야할 enum
   RES_READY,
@@ -47,7 +51,7 @@ typedef enum s_stage {
 typedef enum s_error {
   NO_ERROR = 0,
   OK = 200,
-  MOV_RDIR = 301,
+  MOV_PERMAN = 308,
   BAD_REQ = 400,
   FORBID = 403,
   NOT_FOUND = 404,
@@ -128,8 +132,11 @@ class s_server_type : public s_base_type {
  */
 class s_client_type : public s_base_type {
  private:
-  int cookie_id_;
+  std::string cookie_id_;
+
   t_server* config_ptr_;
+  t_loc* loc_config_ptr_;
+
   t_http request_msg_;
   t_http response_msg_;
 
@@ -159,7 +166,8 @@ class s_client_type : public s_base_type {
    */
   s_base_type* CreateWork(std::string* path, int file_fd, s_chore work_type);
 
-  int GetCookieId(void);
+  std::string GetCookieId(void);
+  void SetCookieId(std::string);
   t_http& GetRequest(void);
   t_http& GetResponse(void);
 
@@ -171,6 +179,8 @@ class s_client_type : public s_base_type {
 
   const t_server& GetConfig(void);
   const s_server_type& GetParentServer(void);
+  const t_loc& GetLocationConfig(void);
+  void SetConfigPtr(t_loc* ptr);
   s_work_type* GetChildWork(void);
 
   bool GetCachePage(const std::string& uri, t_http& response);
