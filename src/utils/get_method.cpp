@@ -47,16 +47,17 @@ void WorkGet(struct kevent* event) {
   if ((read_ret != tmp_entity_len) || read_ret == -1) {
     client->SetErrorCode(SYS_ERR);
     // entity_ 할당해제 여기서 X
+    // TODO : 파일 그냥 보내주면 돼서 할당안해도 되지 않나싶은데 물어보기
     return ;
   }
   // TODO : read 성공시 200으로 바꿔줘야함 < 이거 좀 더 물어봐야 함
 
-  work->ChangeClientEvent(EVFILT_READ, EV_DISABLE, 0, 0, client);
-  // work->ChangeClientEvent(EVFILT_WRITE, EV_ADD, 0, 0, work);
+  work->ChangeClientEvent(EVFILT_WRITE, EV_ADD, 0, 0, work);
   // TODO : write enable 해줘야함
-  work->SetClientStage(GET_FIN);
+  work->ChangeClientEvent(EVFILT_READ, EV_DISABLE, 0, 0, client);
   // TODO : delete도 해줘야함
   close(req_fd);// TODO : close() 에러시 ?
+  work->SetClientStage(GET_FIN);
 
   return ;
 }
