@@ -20,7 +20,7 @@ void ClientGet(struct kevent* event) {
   int req_fd = open(dir, O_RDONLY);
   if (req_fd == -1) {
     client->SetErrorCode(SYS_ERR);
-    return ;
+    return;
   }
   fcntl(req_fd, F_SETFL, O_NONBLOCK);
 
@@ -29,7 +29,7 @@ void ClientGet(struct kevent* event) {
   ChangeEvents(tmp, req_fd, EVFILT_READ, EV_ADD, 0, 0, work);
   client->SetStage(GET_READY);
 
-  return ;
+  return;
 }
 
 void WorkGet(struct kevent* event) {
@@ -46,21 +46,20 @@ void WorkGet(struct kevent* event) {
   read_ret = read(req_fd, work->GetResponseMsg().entity_, tmp_entity_len);
   if ((read_ret != tmp_entity_len) || read_ret == -1) {
     client->SetErrorCode(SYS_ERR);
-    // 파일 그냥 보내주면 돼서 할당안해도 되지 않나싶은데 물어보기 > get말고 post에 해당
-    return ;
+    return;
   }
 
   work->ChangeClientEvent(EVFILT_WRITE, EV_ADD, 0, 0, work);
   work->ChangeClientEvent(EVFILT_READ, EV_DISABLE | EV_DELETE, 0, 0, client);
   // TODO : delete close 관계 더 찾아보기
-  if (close(req_fd) == -1);
+  if (close(req_fd) == -1)
+    ;
   {
     client->SetErrorCode(SYS_ERR);
-    return ;
+    return;
   }
   client->SetErrorCode(OK);
-  // read 성공시 200으로 바꿔줘야함 < 이거 좀 더 물어봐야 함 >> 안물어봐도됨 200으로 바꾸고 끝임
   work->SetClientStage(GET_FIN);
 
-  return ;
+  return;
 }
