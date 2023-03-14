@@ -143,8 +143,11 @@ class s_client_type : public s_base_type {
   s_base_type* parent_ptr_;  // server 클래스 포인터
   s_base_type* data_ptr_;  // work type으로 작업을 하는 영역의 클래스 포인터
 
-  t_stage stage_;           // 현재의 작업 단계를 확인용
-  t_error status_code_;     // HTTP status를 확인하는 용
+  t_stage stage_;        // 현재의 작업 단계를 확인용
+  t_error status_code_;  // HTTP status를 확인하는 용
+  t_stage stage_;
+  t_error status_code_;
+  size_t msg_length;
   std::string err_custom_;  // custom msg 보관용
   int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다.
 
@@ -170,6 +173,10 @@ class s_client_type : public s_base_type {
   void SetCookieId(std::string prev_id);
   t_http& GetRequest(void);
   t_http& GetResponse(void);
+  void SetResponse(void);
+
+  size_t& GetMessageLength(void);
+  void SetMessageLength(size_t);
 
   const t_stage& GetStage(void);
   void SetStage(t_stage val);
