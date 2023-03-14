@@ -352,6 +352,56 @@ static t_error request_error(s_client_type* client_type, t_error err_code) {
   return (err_code);
 }
 
+/*
+  new
+*/
+
+int method_check(char* msg) {
+  if ((memcmp(msg, "GET", 3) == 0)) {
+    return (0);
+  }
+  if ((memcmp(msg, "DELETE", 6) == 0)) {
+    return (0);
+  }
+  if ((memcmp(msg, "POST", 4) == 0)) {
+    return (0);
+  }
+  return (1);
+}
+
+int http_check(char* client_msg) {
+  const char* offset = strstr(client_msg, "HTTP/1.1");
+  if (offset == NULL) {
+    return (1);
+  }
+  return (0);
+}
+
+/**
+ * @brief ""
+ *
+ * @param client_msg
+ * @return t_error
+ */
+t_error _valid_check(char* client_msg) {
+  if (client_msg == NULL) {
+    return (BAD_REQ);
+  }
+  if (memcmp(client_msg, "", strlen(client_msg)) == 0) {
+    return (BAD_REQ);
+  }
+  if (strstr(client_msg, DOUBLE_CRLF) == NULL) {
+    return (BAD_REQ);
+  }
+  if (method_check(client_msg)) {
+    return (NOT_IMPLE);
+  }
+  if (http_check(client_msg)) {
+    return (OLD_HTTP);
+  }
+  return (NO_ERROR);
+}
+
 /**
  * @brief 1. REQ_READY
  *        2. 유효성 검사
@@ -365,13 +415,14 @@ static t_error request_error(s_client_type* client_type, t_error err_code) {
  * @return t_error 에러 코드
  */
 t_error request_msg(void* udata, char* client_msg) {
-  /* set REQ_READY */
   s_client_type* client_type = static_cast<s_client_type*>(udata);
   client_type->SetStage(REQ_READY);
+  t_error error_code = NO_ERROR;
+  t_html* rq_msg = &client_type->GetRequest();
+
+  /* set REQ_READY */
 
   /* for parsing, and fill request_msg */
-  t_html* rq_msg = &client_type->GetRequest();
-  t_error error_code = NO_ERROR;
 
   std::string line(client_msg);
   std::vector<std::string> lines = msg_liner(client_msg);
@@ -403,6 +454,22 @@ t_error request_msg(void* udata, char* client_msg) {
   } else {
     rq_msg->entity = NULL;
     rq_msg->entity_length_ = 0;
+  }
+  client_type->SetStage(REQ_FIN);
+  return (error_code);
+}
+
+t_error request_message(void* udata, char* client_msg) {
+  s_client_type* client_type = static_cast<s_client_type*>(udata);
+  client_type->SetStage(REQ_READY);
+  t_error error_code = NO_ERROR;
+  t_html* rq_msg = &client_type->GetRequest();
+
+  if ((error_code = _valid_check(client_msg))) {
+    return (request_error(client_type, error_code));
+  }
+  if ((error_code = _fill_init_line(client_msg))) {
+    return (request_error(client_type, error_code));
   }
   client_type->SetStage(REQ_FIN);
   return (error_code);

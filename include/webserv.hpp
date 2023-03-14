@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   webserv.hpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: kalabi <kalabi@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/02/08 20:50:04 by haryu             #+#    #+#             */
-/*   Updated: 2023/03/04 16:01:58 by kalabi           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef WEBSERV_HPP_
 #define WEBSERV_HPP_
 
@@ -49,10 +37,13 @@
 #include <vector>
 
 /********************************************/
-// serf headers
+// self headers
+#include "cache.hpp"
 #include "color.hpp"
 #include "config.hpp"
 #include "datas.hpp"
+#include "errorchecker.hpp"
+#include "mime.hpp"
 #include "server.hpp"
 #include "utils.hpp"
 

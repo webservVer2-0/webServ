@@ -1,4 +1,4 @@
-#include "../include/webserv.hpp"
+#include "../../include/webserv.hpp"
 
 /* test 1*/
 
@@ -33,24 +33,3 @@ int main() {
     std::cout << ex[pos1];
 }
 */
-
-/* test3 */
-int main() {
-  std::string r_line =
-      "GET /index.html HTTP/1.1\r\nHost: "
-      "www.example.com\r\nConnection: "
-      "close\r\n\r\nRequest body: hello world";
-  std::string line =
-      "GET /index.html HTTP/1.1\r\nHost: "
-      "www.example.com\r\nConnection: "
-      "close\r\n\r\n";
-
-  std::string::size_type endpos = line.find("\r\n\r\n");
-  std::string::size_type pos = line.find("\r\n");
-  printf("%lu, %lu\n", pos, endpos);
-  std::string header_lines = line.substr(pos + 2, endpos - pos - 2);
-  if (endpos + 5 > line.size())
-    std::cout << "?! zz\n";
-  else
-    std::cout << "helo";
-}

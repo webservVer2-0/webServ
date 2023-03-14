@@ -126,11 +126,13 @@ void ServerRun(ServerConfig& config) {
                 if (ret == -1) {
                   // TODO : error handling
                 }
-                // TODO : http message valid check
-                ChangeEvents(config.change_list_, curr_event->ident,
-                             EVFILT_READ, EV_DELETE, 0, 0, NULL);
-                DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
+                std::cout << "[ client (" << curr_event->ident << ") ]"
+                          << std::endl;
+                write(1, client_msg, curr_event->data);
                 close(curr_event->ident);
+                ChangeEvents(config.change_list_, curr_event->ident, 0,
+                             EV_DELETE, 0, 0, NULL);
+                // DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
                 config.change_list_.clear();
                 delete[] client_msg;
                 // TODO: 작업 END시 처리해줘야 할 것들은 다음과 같다.
@@ -162,6 +164,8 @@ void ServerRun(ServerConfig& config) {
                   static_cast<s_client_type*>(server->CreateClient(client_fd));
               ChangeEvents(config.change_list_, client_fd, EVFILT_READ,
                            EV_ADD | EV_EOF, 0, 0, client);
+              ChangeEvents(config.change_list_, client_fd, EVFILT_WRITE,
+                           EV_ADD | EV_DISABLE, 0, 0, client);
               int timer =
                   atoi(client->GetConfig().main_config_.at("timeout").c_str());
               ChangeEvents(config.change_list_, client_fd, EVFILT_TIMER, EV_ADD,
@@ -172,6 +176,7 @@ void ServerRun(ServerConfig& config) {
             break;
         }
       }
+      CheckError(&config, curr_event);
     }
   }
   return;
