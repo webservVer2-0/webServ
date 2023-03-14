@@ -149,6 +149,35 @@ bool s_client_type::IncreaseChunked(size_t sent_size) {
     return true;
 }
 
+std::time_t* s_client_type::GetTimeData(void) { return this->time_data_; }
+
+void s_client_type::SetOriginURI(std::string path) { this->origin_uri_ = path; }
+const std::string& s_client_type::GetOriginURI(void) {
+  return this->origin_uri_;
+}
+
+void s_client_type::SetWorkFinishTime(void) {
+  this->time_data_[1] = std::time(NULL);
+}
+void s_client_type::SetIP(const char* IP) { this->ip_.assign(IP); }
+const std::string& s_client_type::GetIP(void) { return this->ip_; }
+
+void s_client_type::PrintClientStatus(void) {
+  char msg[40];
+  const std::time_t* time = this->GetTimeData();
+  std::strftime(msg, 40, "%a, %d, %b, %Y %H:%M:%S", std::localtime(&time[0]));
+
+  std::cout << "==================================" << std::endl;
+  std::cout << "Client Information" << std::endl;
+  std::cout << "ID : " << this->GetCookieId() << std::endl;
+  std::cout << "Client IP : " << this->GetIP() << std::endl;
+  std::cout << "FD : " << this->GetFD() << std::endl;
+  std::cout << "ACCESS Time : " << msg << std::endl;
+  std::cout << "Stage : " << this->GetStage() << std::endl;
+  std::cout << "HTTP status : " << this->GetErrorCode() << std::endl;
+  std::cout << "==================================" << std::endl;
+}
+
 /****************** Work Type ********************/
 
 s_work_type::s_work_type(std::string& path, int fd, s_chore work_type,

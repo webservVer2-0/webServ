@@ -132,6 +132,7 @@ class s_server_type : public s_base_type {
 class s_client_type : public s_base_type {
  private:
   std::string cookie_id_;  // 접속한 클라이언트에 대해 부여하는 고유한 넘버
+  std::string ip_;            // TODO: logger
   std::time_t time_data_[2];  // 0 - access time, 1 - stage change time
                               // TODO: logger
 
@@ -191,16 +192,26 @@ class s_client_type : public s_base_type {
 
   bool GetChunked(void);
   size_t GetChunkSize(void);
-
   /**
-   * @brief 전달한 사이즈만큼과 실제 전체 entity_length_를 비교하여 값을 다보낸
-   * 경우 true, 아닌 경우 false를 보낸다.
+   * @brief 전달한 사이즈만큼과 실제 전체 entity_length_를 비교하여 값을
+   * 다보낸 경우 true, 아닌 경우 false를 보낸다.
    *
    * @param set_size
    * @return true
    * @return false
    */
   bool IncreaseChunked(size_t set_size);
+
+  void SetOriginURI(std::string path);
+  const std::string& GetOriginURI(void);
+
+  void SetWorkFinishTime(void);
+  void SetIP(const char* IP);
+  const std::string& GetIP(void);
+
+  std::time_t* GetTimeData(void);
+
+  void PrintClientStatus(void);
 };
 
 /**

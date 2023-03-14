@@ -11,7 +11,7 @@ void ServerInit(ServerConfig& config) {
   int server_number = config.GetServerNumber();
 
   for (int i = 0; i < server_number; i++) {
-    socket_list[i] = socket(PF_INET, SOCK_STREAM, 0);
+    socket_list[i] = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_list[i] == -1) {
       PrintError(2, WEBSERV, "Server socket function is failed");
     }
@@ -165,24 +165,21 @@ void ServerRun(ServerConfig& config) {
             //   }
           } break;
           default: {  // Server case
-            // struct sockaddr_in client_addrinfo[500];
-            // int client_fd(accept(curr_event->ident,
-            //                      reinterpret_cast<sockaddr*>(client_addrinfo),
-            //                      NULL));
+            sockaddr_in* addr_info = config.GetServerAddress();
+            socklen_t addrlen = sizeof(addr_info);
+            int client_fd(accept(curr_event->ident,
+                                 reinterpret_cast<sockaddr*>(addr_info),
+                                 &addrlen));
 
-            // char ip_str[INET_ADDRSTRLEN];
-
-            // inet_ntop(AF_INET, &(client_addrinfo->sin_addr), ip_str,
-            //           INET_ADDRSTRLEN);
-            // std::cout << ip_str << std::endl;
-            // TODO: logging socket ip 가져오기
-            int client_fd(accept(curr_event->ident, NULL, NULL));
+            char ip_str[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &(addr_info->sin_addr), ip_str, INET_ADDRSTRLEN);
             if (client_fd == -1) { /* error handling*/
                                    // TODO:
             }
             s_server_type* server = static_cast<s_server_type*>(ft_filter);
             s_client_type* client =
                 static_cast<s_client_type*>(server->CreateClient(client_fd));
+            client->SetIP(ip_str);
             ChangeEvents(config.change_list_, client_fd, EVFILT_READ,
                          EV_ADD | EV_EOF, 0, 0, client);
             ChangeEvents(config.change_list_, client_fd, EVFILT_WRITE,
@@ -193,6 +190,7 @@ void ServerRun(ServerConfig& config) {
                          NOTE_SECONDS, timer, client);
             //   std::cout << "time setting" << timer << std::endl;
             // TODO: socket option setting;
+            client->PrintClientStatus();
           } break;
         }
       }
