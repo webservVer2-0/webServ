@@ -9,27 +9,21 @@
 #define CRLF_LEN 2
 #define DOUBLE_CRLF_LEN 4
 
-typedef enum t_method {
-  GET,
-  POST,
-  DELETE,
-} e_method;
+typedef enum t_method { GET, POST, DELETE } e_method;
 
 typedef struct s_elem {
   std::string _init_line;
   std::string _header_line;
-  char* _entity;
   e_method _method;
-  bool _error;
   size_t _content_length;
   size_t _header_end;
 } t_elem;
 
-inline std::string int_to_string(int num) {
-  std::stringstream ss;
-  ss << num;
-  std::string s = ss.str();
-  return s;
+template <typename T>
+std::string to_string(const T& value) {
+  std::ostringstream oss;
+  oss << value;
+  return oss.str();
 }
 
 int method_parser(t_elem* e) {
@@ -45,33 +39,38 @@ int method_parser(t_elem* e) {
 }
 
 t_error init_line_parser(t_http* http, t_elem* e) {
-  size_t first_space = e->_header_line.find(" ");
+  if (method_parser(e)) {
+    return (NOT_IMPLE);
+  }
+  size_t first_space = e->_init_line.find(" ");
   if (first_space == std::string::npos) {
     return (BAD_REQ);
   }
   try {
-    http->init_line_["METHOD"] = e->_header_line.substr(0, first_space);
+    http->init_line_["METHOD"] = e->_init_line.substr(0, first_space);
   } catch (std::exception) {
     return (SYS_ERR);
   }
 
-  size_t second_space = e->_header_line.find(" ", first_space + 1);
+  size_t second_space = e->_init_line.find(" ", first_space + 1);
   if (second_space == std::string::npos) {
     return (BAD_REQ);
   }
   try {
     http->init_line_["URI"] =
-        e->_header_line.substr(first_space + 1, second_space - first_space - 1);
+        e->_init_line.substr(first_space + 1, second_space - first_space - 1);
   } catch (std::exception) {
     return (SYS_ERR);
   }
   std::string http_ver;
   try {
-    http_ver = e->_header_line.substr(
-        second_space + 1, e->_header_line.size() - second_space + 1);
+    // std::cout << "e->init_line : " << e->_init_line << "\n";
+    http_ver = e->_init_line.substr(second_space + 1,
+                                    e->_init_line.size() - second_space + 1);
   } catch (std::exception) {
     return (SYS_ERR);
   }
+  // std::cout << "HTTP_VER: " << http_ver << "\n";
   if (http_ver == "HTTP/0.9" || http_ver == "HTTP/1.0") {
     return (OLD_HTTP);
   }
@@ -81,145 +80,138 @@ t_error init_line_parser(t_http* http, t_elem* e) {
   return (NO_ERROR);
 }
 
-void recursive_fill_header(t_http* http, t_elem* elem, std::string line,
-                           size_t s, size_t e) {
-  int content_len_flag = 0;
-  int end_flag = 0;
-  std::string no_escape_line;
-  size_t colon_pos;
-
-  e = line.find(CRLF, s);
-  if (e == std::string::npos) {
-    e = line.size();
-    end_flag = 1;
-  }
+t_error malloc_entity(t_http* http, t_elem* e, unsigned char* client_msg) {
+  ssize_t entity_len;
   try {
-    no_escape_line = line.substr(s, e - s);
-    /*
-      post면 체크
-    */
-    if (elem->_method == POST) {
-      if (no_escape_line.find("Content-Length: ") != std::string::npos) {
-        content_len_flag = 1;
-      }
-    }
-    colon_pos = no_escape_line.find(":");
-    if (colon_pos != std::string::npos) {
-      std::string key = no_escape_line.substr(0, colon_pos);
-      std::string value = no_escape_line.substr(colon_pos + strlen(": "));
-      http->header_[key] = value;
-      if (content_len_flag) {
-        elem->_content_length = atoi(value.c_str());
-      }
-    } else {
-      elem->_error = true;
-      return;
-    }
-    if (end_flag) {
-      return;
-    }
-  } catch (std::exception) {
-    elem->_error = true;
-    return;
+    entity_len = std::stol(http->header_["Content-Length"]);
+  } catch (std::invalid_argument const& ex) {
+    return (BAD_REQ);
   }
-  recursive_fill_header(http, elem, line, s + e + CRLF_LEN, e);
+  if (entity_len < 0) {
+    return (BAD_REQ);
+  }
+  http->entity_length_ = entity_len;
+  try {
+    size_t entity_start = e->_header_end + 4;
+    http->entity_ = new unsigned char[entity_len + 1];
+    memcpy(http->entity_, client_msg + entity_start, entity_len);
+    http->entity_[entity_len + 1] = '\0';
+    return (NO_ERROR);
+  } catch (std::bad_alloc& e) {
+    return (SYS_ERR);
+  }
 }
 
-void parser(char* msg, t_http* http) {
+/*
+      "Host: www.example.com\r\n
+      Content-Type: application/x-www-form-urlencoded\r\n
+      Content-Length: 26\r\n\r\n"
+*/
+t_error fill_header(t_http* http, t_elem* e) {
+  size_t pos = 0;
+  size_t end_pos;
+  std::string key;
+  std::string value;
+
+  try {
+    while ((end_pos = e->_header_line.find(CRLF, pos)) != std::string::npos) {
+      std::string line = e->_header_line.substr(pos, end_pos - pos);
+
+      size_t colon_pos = line.find(": ");
+      if (colon_pos != std::string::npos) {
+        key = line.substr(0, colon_pos);
+        value = line.substr(colon_pos + CRLF_LEN);
+        http->header_[key] = value;
+      } else if (pos == end_pos) {
+        break;
+      } else {
+        return (BAD_REQ);
+      }
+      pos = end_pos + CRLF_LEN;
+    }
+  } catch (std::exception& e) {
+    return (BAD_REQ);
+  }
+  return (NO_ERROR);
+}
+
+t_error elem_initializer(t_elem* e, std::string line) {
+  memset(e, 0, sizeof(t_elem));
+
+  if (line.empty()) {
+    return (BAD_REQ);
+  }
+  size_t init_end = line.find(CRLF);
+  if (init_end == std::string::npos) {
+    return (BAD_REQ);
+  }
+  e->_header_end = line.find(DOUBLE_CRLF);
+  if (e->_header_end == std::string::npos) {
+    return (BAD_REQ);
+  }
+  e->_header_line =
+      line.substr(init_end + CRLF_LEN, e->_header_end - init_end + CRLF_LEN);
+  e->_init_line = line.substr(0, init_end);
+  return (NO_ERROR);
+}
+
+void parser(unsigned char* msg, t_http* http) {
   if (!msg) {
     return;  // error
   }
   t_elem e;
-  memset(&e, 0, sizeof(t_elem));
-  std::string line(msg);
-  size_t init_end = line.find(CRLF);
-  if (init_end == std::string::npos) {
-    return;  // error
-  }
+  std::string line((char*)msg);
   try {
-    e._init_line = line.substr(0, init_end - CRLF_LEN);
-  } catch (std::out_of_range) {
-    return;  // error;
+    if (elem_initializer(&e, line)) {
+      return;
+    }
+    if (init_line_parser(http, &e)) {
+      return;  // error;
+    }
+    if (fill_header(http, &e)) {
+      return;
+    }
+    if (e._method == POST) {
+      if (malloc_entity(http, &e, msg)) {
+        return;  // error
+      }
+    }
+  } catch (std::exception& e) {
+    return;
   }
-  if (init_line_parser(http, &e)) {
-    return;  // error;
-  } else {
-    /* t_http에 넣기 */
-  }
-  e._header_end = line.find(DOUBLE_CRLF);
-  if (e._header_end == std::string::npos) {
-    return;  // error
-  }
-  try {
-    // e.e->_header_line = line.substr(init_end + CRLF_LEN, ._header_end);
-  } catch (std::out_of_range) {
-    return;  // error
-  }
-  recursive_fill_header(http, &e, e._header_line, 0, 0);
-  if (e._error) {
-    return;  // error;
-  }
-  /*
-    entity
-  */
-  /*
-
-   jinypark님 파트
-
-  */
   return;
 }
 
-t_error fun_test(t_http* http) {
-  std::string _header_line = "POST /index.html HTTP/1.1 ";
+void show_map(std::map<std::string, std::string> map) {
+  std::map<std::string, std::string>::iterator it;
+  for (it = map.begin(); it != map.end(); it++) {
+    std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
+  }
+}
 
-  size_t first_space = _header_line.find(" ");
-  if (first_space == std::string::npos) {
-    return (BAD_REQ);
-  }
-  try {
-    http->init_line_["METHOD"] = _header_line.substr(0, first_space);
-  } catch (std::exception) {
-    return (SYS_ERR);
-  }
-
-  size_t second_space = _header_line.find(" ", first_space + 1);
-  if (second_space == std::string::npos) {
-    return (BAD_REQ);
-  }
-  try {
-    http->init_line_["URI"] =
-        _header_line.substr(first_space + 1, second_space - first_space - 1);
-  } catch (std::exception) {
-    return (SYS_ERR);
-  }
-  std::string http_ver;
-  try {
-    http_ver = _header_line.substr(second_space + 1,
-                                   _header_line.size() - second_space + 1);
-  } catch (std::exception) {
-    return (SYS_ERR);
-  }
-  if (http_ver == "HTTP/0.9" || http_ver == "HTTP/1.0") {
-    return (OLD_HTTP);
-  }
-  if (http_ver != "HTTP/1.1") {
-    return (BAD_REQ);
-  }
-  return (NO_ERROR);
+void print(t_http* h) {
+  std::cout << "init_line [METHOD] : " << h->init_line_["METHOD"] << "\n";
+  std::cout << "init_line [URI] : " << h->init_line_["URI"] << "\n";
+  std::cout << "entity_ : " << h->entity_ << "\n";
+  std::cout << "entity_length : " << h->entity_length_ << "\n";
+  std::cout << "strlen() : " << strlen((char*)h->entity_) << "\n";
+  std::cout << "[Header]\n";
+  show_map(h->header_);
+  std::cout << "[end]\n";
+  delete[] h->entity_;
 }
 
 int main(void) {
-  char* rq =
+  unsigned char* rq = (unsigned char*)
       "POST /index.html HTTP/1.1\r\n"
-      "Host : www.example.com\r\nContent-Type: "
+      "Host: www.example.com\r\nContent-Type: "
       "application/x-www-form-urlencoded\r\nContent-Length: "
-      "26\r\n\r\nname=John+Doe&age=25&sex=M";
+      "30\r\n\r\nname=John+Doe&age=25&sex=M";
+
   t_elem e;
   t_http h;
   t_error er;
-  if ((er = fun_test(&h))) {
-    std::cout << "error : " << (int)er;
-  }
   parser(rq, &h);
+  print(&h);
+  return 0;
 }
