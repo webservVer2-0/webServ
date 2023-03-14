@@ -52,6 +52,7 @@ t_http MakeResponseMessages(s_client_type* client) {
   std::time_t now = std::time(NULL);
   std::string date_str = std::asctime(std::gmtime(&now));
   date_str.erase(date_str.length() - 1);
+  char buf[1024];
 
   msg.init_line_.insert(
       std::make_pair(std::string("version"), std::string("HTTP/1.1")));
@@ -59,6 +60,17 @@ t_http MakeResponseMessages(s_client_type* client) {
   msg.header_.insert(std::make_pair(std::string("Date :"), date_str));
   msg.header_.insert(
       std::make_pair(std::string("Server :"), std::string("serv1")));
+  std::string cookie_id = stToString(client->GetCookieId());
+  std::sprintf(buf, "my_cookie=%s; HttpOnly;", cookie_id);
+  std::string set_cookie = std::string(buf);
+  msg.header_.insert(std::make_pair(std::string("Set-Cookie :"), set_cookie));
+  if (client->GetStage() == 301) {
+    msg.header_.insert(
+        std::make_pair(std::string("location :"), std::string("uri")));
+    msg.header_.insert(
+        std::make_pair(std::string("Connection :"), std::string("Closed")));
+    return (msg);
+  }
   if (client->GetResponse().entity_) {
     std::string size = stToString(client->GetResponse().entity_length_);
     msg.header_.insert(std::make_pair(std::string("Content-length :"), size));
