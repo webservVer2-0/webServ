@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+typedef std::map<std::string, std::string> config_map;
+
 /****************** Base Type ********************/
 
 s_base_type::s_base_type(int fd) : type_(SERVER), fd_(fd) {}
@@ -43,6 +45,7 @@ s_client_type::s_client_type(t_server* config, int client_fd,
   this->loc_config_ptr_ = NULL;
   parent_ptr_ = mother;
   data_ptr_ = NULL;
+  sent_size_ = 0;
   stage_ = DEF;
   status_code_ = NO_ERROR;
 }
@@ -132,6 +135,16 @@ bool s_client_type::GetCacheError(t_error code, t_http& response) {
   response.entity_[response.entity_length_] = '\0';
   temp_str.clear();
   return (true);
+}
+
+bool s_client_type::GetChunked(void) { return (this->GetStage() == GET_CHUNK); }
+bool s_client_type::IncreaseChunked(size_t sent_size) {
+  size_t sent_unit = sent_size;
+  sent_size_ += sent_unit;
+  if (sent_size_ < this->response_msg_.entity_length_)
+    return false;
+  else
+    return true;
 }
 
 /****************** Work Type ********************/
