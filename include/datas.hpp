@@ -146,8 +146,6 @@ class s_client_type : public s_base_type {
 
   t_stage stage_;        // 현재의 작업 단계를 확인용
   t_error status_code_;  // HTTP status를 확인하는 용
-  t_stage stage_;
-  t_error status_code_;
   size_t msg_length;
   std::string err_custom_;  // custom msg 보관용
   int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다.

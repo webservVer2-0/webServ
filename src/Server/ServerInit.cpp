@@ -146,18 +146,23 @@ void ServerRun(ServerConfig& config) {
                 char* send_msg = MakeSendMessage(client, msg_top);
                 size_t send_msg_len;
                 delete msg_top;
-                if (client->GetType() == RES_CHUNK) {
+                if (client->GetStage() == RES_CHUNK) {
                   send_msg_len =
                       static_cast<size_t>(client->GetConfig()
                                               .main_config_.find(BODY)
                                               ->second.size());
-                } else if (client->GetType() == RES_FIN) {
+                } else if (client->GetStage() == RES_CHUNK &&
+                           client->GetChunkSize() >
+                               client->GetResponse().entity_length_) {
+                  send_msg_len = client->GetChunkSize() %
+                                 client->GetResponse().entity_length_;
+                } else if (client->GetStage() == RES_FIN) {
                   send_msg_len = 5;
                 } else
                   send_msg_len = client->GetMessageLength();
                 send(curr_event->ident, send_msg, send_msg_len, 0);
                 DeleteSendMessage(send_msg, send_msg_len);
-                if (!client->GetChunked() || client->GetType() != RES_CHUNK) {
+                if (!client->GetChunked() || client->GetStage() != RES_CHUNK) {
                   DeleteUdata(ft_filter);
                   if (client->GetStage() == END) {
                     ChangeEvents(config.change_list_, curr_event->ident,

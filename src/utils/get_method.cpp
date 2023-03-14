@@ -34,7 +34,7 @@ void WorkGet(struct kevent* event) {
   size_t read_ret = 0;
   int req_fd = work->GetFD();
   read_ret = read(req_fd, work->GetResponseMsg().entity_, tmp_entity_len);
-  if ((read_ret != tmp_entity_len) || read_ret == -1) {
+  if ((read_ret != tmp_entity_len) || read_ret == size_t(-1)) {
     client->SetErrorCode(SYS_ERR);
     return;
   }
@@ -51,3 +51,4 @@ void WorkGet(struct kevent* event) {
     work->SetClientStage(GET_FIN);
 
   return;
+}

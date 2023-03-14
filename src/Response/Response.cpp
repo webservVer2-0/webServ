@@ -55,47 +55,64 @@ static std::string to_hex_string(size_t value) {
   return os.str();
 }
 
-static char* Chunk_msg(s_client_type* client, char* msg) {
+inline char* ChunkMsgFirst(char* send_size, std::string hex_size, t_http& res,
+                           size_t chunk_size) {
+  sprintf(send_size, "%s\r\n", hex_size.c_str());
+  size_t len = sizeof(send_size);
+  char* buf = new char[len + chunk_size + 2];
+  std::memcpy(buf, send_size, len);
+  std::memcpy(buf + len, res.entity_, chunk_size);
+  std::memcpy(buf + len + chunk_size, "\r\n", 2);
+  return buf;
+}
+
+inline char* ChunkMsgMain(char* send_size, std::string hex_size, t_http& res,
+                          size_t chunk_size) {
+  sprintf(send_size, "%s\r\n", hex_size.c_str());
+  size_t len = sizeof(send_size);
+  char* buf = new char[len + chunk_size + 2];
+  std::memcpy(buf, send_size, len);
+  std::memcpy(buf + len, res.entity_ + chunk_size, chunk_size);
+  std::memcpy(buf + len + chunk_size, "\r\n", 2);
+  return buf;
+}
+
+inline char* ChunkMsgEnd(char* send_size, std::string last_size, t_http& res,
+                         size_t chunk_size, s_client_type* client) {
+  sprintf(send_size, "%s\r\n", last_size.c_str());
+  size_t len = sizeof(send_size);
+  char* buf = new char[len + chunk_size + 4];
+  std::memcpy(buf, send_size, len);
+  std::memcpy(buf + len, res.entity_ + chunk_size, chunk_size);
+  std::memcpy(buf + len + (chunk_size % res.entity_length_), "\r\n", 2);
+  client->SetStage(RES_FIN);
+  return buf;
+}
+
+static char* ChunkMsg(s_client_type* client, char* msg) {
   t_http res = client->GetResponse();
   size_t chunk_size = static_cast<size_t>(
       client->GetConfig().main_config_.find(BODY)->second.size());
   std::string hex_size = to_hex_string(chunk_size);
   std::string last_size = to_hex_string(chunk_size % res.entity_length_);
-  char* send_size;
+  char send_size[1024];
 
   if (client->GetChunkSize() == 0) {
     client->SetStage(RES_CHUNK);
     return msg;
   }
-  if (client->GetType() == RES_CHUNK) {
+  if (client->GetStage() == RES_CHUNK) {
     if (client->GetChunkSize() == 0) {
-      sprintf(send_size, "%s\r\n", hex_size);
-      char* buf = new char[sizeof(send_size) + chunk_size + 2];
-      std::memcpy(buf, send_size, sizeof(send_size));
-      std::memcpy(buf + sizeof(send_size), res.entity_, chunk_size);
-      std::memcpy(buf + sizeof(send_size) + chunk_size, "\r\n", 2);
-      return buf;
+      return (ChunkMsgFirst(send_size, hex_size, res, chunk_size));
     } else if (client->IncreaseChunked(chunk_size)) {
-      sprintf(send_size, "%s\r\n", hex_size);
-      char* buf = new char[sizeof(send_size) + chunk_size + 2];
-      std::memcpy(buf, send_size, sizeof(send_size));
-      std::memcpy(buf + sizeof(send_size), res.entity_ + chunk_size,
-                  chunk_size);
-      std::memcpy(buf + sizeof(send_size) + chunk_size, "\r\n", 2);
-      return buf;
+      return (ChunkMsgMain(send_size, hex_size, res, chunk_size));
     } else {
-      sprintf(send_size, "%s\r\n", last_size);
-      char* buf = new char[sizeof(send_size) + chunk_size + 4];
-      std::memcpy(buf, send_size, sizeof(send_size));
-      std::memcpy(buf + sizeof(send_size), res.entity_, chunk_size);
-      std::memcpy(buf + sizeof(send_size) + chunk_size, "\r\n", 2);
-      client->SetStage(RES_FIN);
-      return buf;
+      return (ChunkMsgEnd(send_size, hex_size, res, chunk_size, client));
     }
   }
   sprintf(send_size, "0\r\n\r\n");
   char* buf = new char[5];
-  std::memcpy(buf, send_size, sizeof(send_size));
+  std::memcpy(buf, send_size, 5);
   return buf;
 }
 
@@ -115,17 +132,17 @@ t_http MakeResponseMessages(s_client_type* client) {
   msg.header_.insert(
       std::make_pair(std::string("Server :"), std::string("serv1")));
   std::string cookie_id = client->GetCookieId();
-  std::sprintf(buf, "my_cookie=%s; HttpOnly;", cookie_id);
+  std::sprintf(buf, "my_cookie=%s; HttpOnly;", cookie_id.c_str());
   std::string set_cookie = std::string(buf);
   msg.header_.insert(std::make_pair(std::string("Set-Cookie :"), set_cookie));
-  if (client->GetChunked() && client->GetChunkSize() == 0) {
+  if (client->GetChunked()) {
     msg.header_.insert(
         std::make_pair(std::string("Content-Type :"), MakeContentType(client)));
     msg.header_.insert((std::make_pair(std::string("Transfer-Encoding :"),
                                        std::string("chunked"))));
     return (msg);
   }
-  if (client->GetStage() == 301) {
+  if (code == MOV_PERMAN) {
     msg.header_.insert(
         std::make_pair(std::string("location :"), std::string("uri")));
     msg.header_.insert(
@@ -174,9 +191,9 @@ char* MaketopMessage(s_client_type* client) {
 }
 
 char* MakeSendMessage(s_client_type* client, char* msg) {
-  if (client->GetChunked() || client->GetType() == RES_CHUNK ||
-      client->GetType() == RES_FIN) {
-    return (Chunk_msg(client, msg));
+  if (client->GetChunked() || client->GetStage() == RES_CHUNK ||
+      client->GetStage() == RES_FIN) {
+    return (ChunkMsg(client, msg));
   }
   size_t len = client->GetMessageLength();
   size_t entity_length = client->GetResponse().entity_length_;
