@@ -144,19 +144,22 @@ void ServerRun(ServerConfig& config) {
                 client->SetResponse();
                 char* msg_top = MaketopMessage(client);
                 char* send_msg = MakeSendMessage(client, msg_top);
+                delete msg_top;
                 size_t send_msg_len = client->GetMessageLength();
                 send(curr_event->ident, send_msg, send_msg_len, 0);
                 DeleteSendMessage(send_msg, send_msg_len);
-                DeleteUdata(ft_filter);
-                if (client->GetStage() == END) {
-                  ChangeEvents(config.change_list_, curr_event->ident,
-                               EVFILT_WRITE, EV_DELETE, 0, 0, 0);
-                } else {
-                  ChangeEvents(config.change_list_, curr_event->ident,
-                               EVFILT_WRITE, EV_DISABLE, 0, 0, 0);
-                  ChangeEvents(config.change_list_, curr_event->ident,
-                               EVFILT_TIMER, EV_ADD, NOTE_SECONDS, 5, 0);
-                  client->SetStage(RES_FIN);
+                if (!client->GetChunked() || client->GetType() != RES_CHUNK) {
+                  DeleteUdata(ft_filter);
+                  if (client->GetStage() == END) {
+                    ChangeEvents(config.change_list_, curr_event->ident,
+                                 EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+                  } else {
+                    ChangeEvents(config.change_list_, curr_event->ident,
+                                 EVFILT_WRITE, EV_DISABLE, 0, 0, 0);
+                    ChangeEvents(config.change_list_, curr_event->ident,
+                                 EVFILT_TIMER, EV_ADD, NOTE_SECONDS, 5, 0);
+                    client->SetStage(RES_FIN);
+                  }
                 }
               } else if (curr_event->filter == EVFILT_TIMER) {
                 // TODO: time out 상태, 적절한 closing 필요

@@ -37,6 +37,7 @@ typedef enum s_stage {
   DELETE_START,
   DELETE_FIN,
   ERR_FIN,  // error case로 page를 전달해야 할 때 체크해야할 enum
+  RES_CHUNK,
   RES_FIN,
   END
 } t_stage;
@@ -194,6 +195,7 @@ class s_client_type : public s_base_type {
   bool GetCacheError(t_error code, t_http& response);
 
   bool GetChunked(void);
+  size_t GetChunkSize(void);
 
   /**
    * @brief 전달한 사이즈만큼과 실제 전체 entity_length_를 비교하여 값을 다보낸

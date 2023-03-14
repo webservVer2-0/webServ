@@ -143,6 +143,7 @@ bool s_client_type::GetCacheError(t_error code, t_http& response) {
 }
 
 bool s_client_type::GetChunked(void) { return (this->GetStage() == GET_CHUNK); }
+size_t s_client_type::GetChunkSize(void) { return this->sent_size_; }
 bool s_client_type::IncreaseChunked(size_t sent_size) {
   size_t sent_unit = sent_size;
   sent_size_ += sent_unit;
