@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2023-03-14T08:29:48.602Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36" etag="sUXPnctCd7IBYXoaJpzo" version="21.0.6" type="github" pages="3">
+<mxfile host="app.diagrams.net" modified="2023-03-14T12:15:33.544Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36" etag="Jm9NWQy_IO97GzMfNYtL" version="21.0.6" type="github" pages="3">
   <diagram name="data_structure" id="0lBOWSRzW262vy09HFQD">
-    <mxGraphModel dx="1169" dy="902" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="2024" dy="1052" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -389,7 +389,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="LQptrI-g6rzxv_2xL_lt" name="method_overall">
-    <mxGraphModel dx="2894" dy="4103" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+    <mxGraphModel dx="1016" dy="1692" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -459,7 +459,7 @@
             <mxPoint x="9" y="-1" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="NOxQud3-YWQdBA9590gq-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="7zTSCtCjmm9JlzjVkFWO-7" target="M-l8_07o4uYDBGb-Llfn-4">
+        <mxCell id="NOxQud3-YWQdBA9590gq-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="7zTSCtCjmm9JlzjVkFWO-7" target="M-l8_07o4uYDBGb-Llfn-4" edge="1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="600" y="305" />
@@ -467,7 +467,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="NOxQud3-YWQdBA9590gq-16" value="case&lt;br&gt;POST_READY&lt;br&gt;or&lt;br&gt;POST_START" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#FFF2CC;" vertex="1" connectable="0" parent="NOxQud3-YWQdBA9590gq-15">
+        <mxCell id="NOxQud3-YWQdBA9590gq-16" value="case&lt;br&gt;POST_READY&lt;br&gt;or&lt;br&gt;POST_START" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#FFF2CC;" parent="NOxQud3-YWQdBA9590gq-15" vertex="1" connectable="0">
           <mxGeometry x="0.629" y="2" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -478,18 +478,18 @@
         <mxCell id="7zTSCtCjmm9JlzjVkFWO-9" value="&lt;u&gt;&lt;b&gt;t_stage&lt;span style=&quot;white-space: pre;&quot;&gt; &lt;/span&gt;curr_stage = getStage();&lt;br&gt;&lt;/b&gt;&lt;/u&gt;&lt;br&gt;1. event-&amp;gt;udata에서 현재 이벤트의 처리 stage를 가지고 온다.&lt;br&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;2. stage에 맞게 하위 함수로 넘어간다.&lt;/span&gt;&lt;/div&gt;(switch 문 사용)" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="7zTSCtCjmm9JlzjVkFWO-7" vertex="1">
           <mxGeometry y="30" width="320" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="NOxQud3-YWQdBA9590gq-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="M-l8_07o4uYDBGb-Llfn-4" target="NOxQud3-YWQdBA9590gq-1">
+        <mxCell id="NOxQud3-YWQdBA9590gq-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="M-l8_07o4uYDBGb-Llfn-4" target="NOxQud3-YWQdBA9590gq-1" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="NOxQud3-YWQdBA9590gq-9" value="s_chore가 file인 경우" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#FFF2CC;" vertex="1" connectable="0" parent="NOxQud3-YWQdBA9590gq-6">
+        <mxCell id="NOxQud3-YWQdBA9590gq-9" value="s_chore가 file인 경우" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#FFF2CC;" parent="NOxQud3-YWQdBA9590gq-6" vertex="1" connectable="0">
           <mxGeometry x="0.0124" y="3" relative="1" as="geometry">
             <mxPoint y="-1" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="NOxQud3-YWQdBA9590gq-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="M-l8_07o4uYDBGb-Llfn-4" target="NOxQud3-YWQdBA9590gq-3">
+        <mxCell id="NOxQud3-YWQdBA9590gq-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="M-l8_07o4uYDBGb-Llfn-4" target="NOxQud3-YWQdBA9590gq-3" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="NOxQud3-YWQdBA9590gq-10" value="s_chore가 cgi인 경우" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#FFF2CC;" vertex="1" connectable="0" parent="NOxQud3-YWQdBA9590gq-7">
+        <mxCell id="NOxQud3-YWQdBA9590gq-10" value="s_chore가 cgi인 경우" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#FFF2CC;" parent="NOxQud3-YWQdBA9590gq-7" vertex="1" connectable="0">
           <mxGeometry x="-0.0341" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -499,7 +499,7 @@
             <mxRectangle x="824.5199999999999" y="1850.2499999999998" width="220" height="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="A2abhhcmgCklDLw0iGOL-1" value="s_work_type 내의 s_chore로 &lt;br&gt;file 작업인지 CGI 작업인지 확인합니다.&lt;br&gt;&lt;br&gt;file의 경우,&amp;nbsp;입력 form으로 들어오는 data와&amp;nbsp;&lt;span style=&quot;background-color: initial;&quot;&gt;image 일때 따라 &lt;br&gt;처리 작업이 약간 다릅니다.&lt;/span&gt;&lt;br&gt;&lt;br&gt;(CGI의 경우 따로 처리해 줍니다.)" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="M-l8_07o4uYDBGb-Llfn-4">
+        <mxCell id="A2abhhcmgCklDLw0iGOL-1" value="s_work_type 내의 s_chore로 &lt;br&gt;file 작업인지 CGI 작업인지 확인합니다.&lt;br&gt;&lt;br&gt;file의 경우,&amp;nbsp;입력 form으로 들어오는 data와&amp;nbsp;&lt;span style=&quot;background-color: initial;&quot;&gt;image 일때 따라 &lt;br&gt;처리 작업이 약간 다릅니다.&lt;/span&gt;&lt;br&gt;&lt;br&gt;(CGI의 경우 따로 처리해 줍니다.)" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="M-l8_07o4uYDBGb-Llfn-4" vertex="1">
           <mxGeometry x="11.5" y="33" width="338" height="137" as="geometry" />
         </mxCell>
         <mxCell id="M-l8_07o4uYDBGb-Llfn-16" value="case WORK:" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" parent="1" vertex="1">
@@ -646,7 +646,7 @@
             <mxPoint x="9" y="2" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-115" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" edge="1">
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-115" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#7F00FF;" parent="1" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="2630" y="835.5000000000005" as="sourcePoint" />
             <mxPoint x="2950" y="425" as="targetPoint" />
@@ -670,15 +670,15 @@
         <mxCell id="F4LRof5FCmn5BzIcXzMc-118" value="GET_CHUNK가 되면 더이상 method에서 처리하지 않습니다!!" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;labelBackgroundColor=#FF99CC;" parent="1" vertex="1">
           <mxGeometry x="2890" y="870" width="320" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="NOxQud3-YWQdBA9590gq-1" value="WorkFile()" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="NOxQud3-YWQdBA9590gq-1" value="WorkFile()" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="1320" y="1730" width="400" height="235" as="geometry">
             <mxRectangle x="824.5199999999999" y="1850.2499999999998" width="220" height="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="NOxQud3-YWQdBA9590gq-11" value="POST에서 처리하는 file 이벤트는 크게 두 종류가 있습니다.&lt;br&gt;&lt;br&gt;&lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;1. page 입력 form에 따라 들어오는 텍스트 형식의 데이터&lt;/span&gt;&lt;br&gt;(이름, 이메일, 나이가 들어있는 간단한 텍스트 입니다.)&lt;br&gt;&lt;br&gt;&lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;2. 유저가 업로드 하는 image 파일&lt;/span&gt;&lt;br&gt;(.jpg, .png 등이 될 수 있습니다.)" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="NOxQud3-YWQdBA9590gq-1">
+        <mxCell id="NOxQud3-YWQdBA9590gq-11" value="POST에서 처리하는 file 이벤트는 크게 두 종류가 있습니다.&lt;br&gt;&lt;br&gt;&lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;1. page 입력 form에 따라 들어오는 텍스트 형식의 데이터&lt;/span&gt;&lt;br&gt;(이름, 이메일, 나이가 들어있는 간단한 텍스트 입니다.)&lt;br&gt;&lt;br&gt;&lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;2. 유저가 업로드 하는 image 파일&lt;/span&gt;&lt;br&gt;(.jpg, .png 등이 될 수 있습니다.)" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="NOxQud3-YWQdBA9590gq-1" vertex="1">
           <mxGeometry x="10" y="32.5" width="380" height="170" as="geometry" />
         </mxCell>
-        <mxCell id="NOxQud3-YWQdBA9590gq-3" value="WorkCGI()" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="NOxQud3-YWQdBA9590gq-3" value="WorkCGI()" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="1320" y="2219" width="400" height="235" as="geometry">
             <mxRectangle x="824.5199999999999" y="1850.2499999999998" width="220" height="30" as="alternateBounds" />
           </mxGeometry>
