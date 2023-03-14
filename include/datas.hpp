@@ -187,6 +187,7 @@ class s_client_type : public s_base_type {
   bool GetCacheError(t_error code, t_http& response);
 
   bool GetChunked(void);
+  size_t GetChunkSize(void);
 
   /**
    * @brief 전달한 사이즈만큼과 실제 전체 entity_length_를 비교하여 값을 다보낸

@@ -135,6 +135,20 @@ void ServerRun(ServerConfig& config) {
                 // DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
                 config.change_list_.clear();
                 delete[] client_msg;
+                switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
+                  case GET_READY: {
+                    break;
+                  }
+                  case POST_READY: {
+                    break;
+                  }
+                  case DELETE_READY: {
+                    break;
+                  }
+                  default: {
+                    break;
+                  }
+                }
                 // TODO: 작업 END시 처리해줘야 할 것들은 다음과 같다.
                 // TODO: client udata ~ file udata 까지 찾아들어가서 delete 를
                 // 진행하면 될듯
