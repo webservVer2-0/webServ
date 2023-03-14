@@ -24,7 +24,8 @@ void ClientGet(struct kevent* event) {
 void WorkGet(struct kevent* event) {
   s_work_type* work = static_cast<s_work_type*>(event->udata);
   s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
-  size_t chunk_size = 100ULL * 1024ULL * 1024ULL;
+  size_t chunk_size = static_cast<size_t>(
+      client->GetConfig().main_config_.find(BODY)->second.size());
   client->SetErrorCode(NO_ERROR);
 
   work->GetResponseMsg().entity_length_ = event->data;
