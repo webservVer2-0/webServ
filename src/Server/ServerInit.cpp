@@ -144,8 +144,17 @@ void ServerRun(ServerConfig& config) {
                 client->SetResponse();
                 char* msg_top = MaketopMessage(client);
                 char* send_msg = MakeSendMessage(client, msg_top);
+                size_t send_msg_len;
                 delete msg_top;
-                size_t send_msg_len = client->GetMessageLength();
+                if (client->GetType() == RES_CHUNK) {
+                  send_msg_len =
+                      static_cast<size_t>(client->GetConfig()
+                                              .main_config_.find(BODY)
+                                              ->second.size());
+                } else if (client->GetType() == RES_FIN) {
+                  send_msg_len = 5;
+                } else
+                  send_msg_len = client->GetMessageLength();
                 send(curr_event->ident, send_msg, send_msg_len, 0);
                 DeleteSendMessage(send_msg, send_msg_len);
                 if (!client->GetChunked() || client->GetType() != RES_CHUNK) {
