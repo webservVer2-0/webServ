@@ -25,9 +25,9 @@ typedef enum s_event_type { SERVER, CLIENT, WORK } t_event;
 typedef enum s_stage {
   DEF,
   REQ_READY,
-  //   REQ_FIN,
   GET_READY,
   GET_START,
+  GET_CHUNK,
   GET_FIN,
   POST_READY,
   POST_START,
@@ -37,7 +37,7 @@ typedef enum s_stage {
   DELETE_START,
   DELETE_FIN,
   ERR_FIN,  // error case로 page를 전달해야 할 때 체크해야할 enum
-  RES_READY,
+  RES_CHUNK,
   RES_FIN,
   END
 } t_stage;
@@ -132,19 +132,21 @@ class s_server_type : public s_base_type {
  */
 class s_client_type : public s_base_type {
  private:
-  std::string cookie_id_;
+  std::string cookie_id_;  // 접속한 클라이언트에 대해 부여하는 고유한 넘버
 
-  t_server* config_ptr_;
-  t_loc* loc_config_ptr_;
+  t_server* config_ptr_;  // 클라이언트에서 사용해야 하는 서버 설정
+  t_loc* loc_config_ptr_;  // 클라이언트의 uri가 소속된 로케이션 설정
 
-  t_http request_msg_;
-  t_http response_msg_;
+  t_http request_msg_;   // request 메시지
+  t_http response_msg_;  // response 메시지
+  size_t sent_size_;  // chunked encoding 상황에서 얼마나 전달했는지를 체크함
 
-  s_base_type* parent_ptr_;
-  s_base_type* data_ptr_;
+  s_base_type* parent_ptr_;  // server 클래스 포인터
+  s_base_type* data_ptr_;  // work type으로 작업을 하는 영역의 클래스 포인터
 
-  t_stage stage_;
-  t_error status_code_;
+  t_stage stage_;        // 현재의 작업 단계를 확인용
+  t_error status_code_;  // HTTP status를 확인하는 용
+  size_t msg_length;
   std::string err_custom_;  // custom msg 보관용
   int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다.
 
@@ -167,9 +169,13 @@ class s_client_type : public s_base_type {
   s_base_type* CreateWork(std::string* path, int file_fd, s_chore work_type);
 
   std::string GetCookieId(void);
-  void SetCookieId(std::string);
+  void SetCookieId(std::string prev_id);
   t_http& GetRequest(void);
   t_http& GetResponse(void);
+  void SetResponse(void);
+
+  size_t& GetMessageLength(void);
+  void SetMessageLength(size_t);
 
   const t_stage& GetStage(void);
   void SetStage(t_stage val);
@@ -185,6 +191,19 @@ class s_client_type : public s_base_type {
 
   bool GetCachePage(const std::string& uri, t_http& response);
   bool GetCacheError(t_error code, t_http& response);
+
+  bool GetChunked(void);
+  size_t GetChunkSize(void);
+
+  /**
+   * @brief 전달한 사이즈만큼과 실제 전체 entity_length_를 비교하여 값을 다보낸
+   * 경우 true, 아닌 경우 false를 보낸다.
+   *
+   * @param set_size
+   * @return true
+   * @return false
+   */
+  bool IncreaseChunked(size_t set_size);
 };
 
 /**
