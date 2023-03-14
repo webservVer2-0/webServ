@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2023-03-14T05:30:33.052Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36" etag="7nlIfPdheeO2OR_dkllc" version="21.0.6" type="github" pages="3">
+<mxfile host="app.diagrams.net" modified="2023-03-14T06:20:43.408Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36" etag="hbc0f1HaSKpXK0XoIGhE" version="21.0.6" type="github" pages="3">
   <diagram name="data_structure" id="0lBOWSRzW262vy09HFQD">
     <mxGraphModel dx="1169" dy="902" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
@@ -389,24 +389,16 @@
     </mxGraphModel>
   </diagram>
   <diagram id="LQptrI-g6rzxv_2xL_lt" name="method_overall">
-    <mxGraphModel dx="2886" dy="4153" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+    <mxGraphModel dx="1836" dy="2952" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-78" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="7zTSCtCjmm9JlzjVkFWO-12" target="F4LRof5FCmn5BzIcXzMc-76">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-79" value="&lt;b&gt;case GET_CHUNK&lt;/b&gt;&lt;br&gt;: 파일을 분할해서 보냄" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#FFF2CC;" vertex="1" connectable="0" parent="F4LRof5FCmn5BzIcXzMc-78">
-          <mxGeometry x="0.6978" relative="1" as="geometry">
-            <mxPoint y="30" as="offset" />
-          </mxGeometry>
-        </mxCell>
         <mxCell id="F4LRof5FCmn5BzIcXzMc-42" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="7zTSCtCjmm9JlzjVkFWO-12" target="F4LRof5FCmn5BzIcXzMc-40">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="F4LRof5FCmn5BzIcXzMc-43" value="&lt;b&gt;case GET_START&lt;/b&gt;&lt;br&gt;: open()한 파일을 읽어옴" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#FFF2CC;" vertex="1" connectable="0" parent="F4LRof5FCmn5BzIcXzMc-42">
           <mxGeometry x="0.6369" relative="1" as="geometry">
-            <mxPoint as="offset" />
+            <mxPoint y="-27" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="F4LRof5FCmn5BzIcXzMc-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="7zTSCtCjmm9JlzjVkFWO-12" target="F4LRof5FCmn5BzIcXzMc-26">
@@ -581,28 +573,28 @@
         <mxCell id="F4LRof5FCmn5BzIcXzMc-45" value="요청한 파일을 열고 읽기 위해 &lt;br&gt;이벤트를 새로 등록하고 kevent()로 회귀합니다." style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="F4LRof5FCmn5BzIcXzMc-32">
           <mxGeometry x="17.5" y="40" width="250" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-82" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-40" target="F4LRof5FCmn5BzIcXzMc-80">
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-111" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-40" target="F4LRof5FCmn5BzIcXzMc-109">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="F4LRof5FCmn5BzIcXzMc-40" value="read(file_fd, entity_len, response_msg-&amp;gt;entity)" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1320" y="780" width="400" height="180" as="geometry">
+          <mxGeometry x="1320" y="720" width="400" height="230" as="geometry">
             <mxRectangle x="1320" y="440" width="90" height="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-64" value="&lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;open()한 파일을 한번에 읽습니다.&lt;br&gt;(chunk로 쪼개던 안쪼개던 일단 읽는건 한번에 읽는게 맞습니다.)&lt;br&gt;&lt;/span&gt;&lt;br&gt;읽은 파일의 크기가 나눠서 보내야 하는 큰 파일인 경우 STAGE를 GET_CHUNK로 유지한채 response_msg로 나누어서 보냅니다.&lt;br&gt;&lt;br&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;파일의 모든 내용이 보내졌을 경우, 파일을 닫고 STAGE 변경 후 file 이벤트를 삭제하고 WRITE 이벤트를 활성화 시켜 줍니다.&lt;/span&gt;&lt;/div&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="F4LRof5FCmn5BzIcXzMc-40">
-          <mxGeometry x="15" y="30" width="360" height="140" as="geometry" />
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-64" value="&lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;open()한 파일을 한번에 읽습니다.&lt;br&gt;(chunk로 쪼개던 안쪼개던 일단 읽는건 한번에 읽는게 맞습니다.)&lt;br&gt;&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;background-color: rgb(255, 181, 112);&quot;&gt;entity_len &amp;gt; body_size 인 경우,&lt;/span&gt;&lt;br&gt;client event WRITE를 활성화 시킨 후 &lt;br&gt;&lt;span style=&quot;background-color: rgb(255, 181, 112);&quot;&gt;STAGE를 GET_CHUNK로 설정&lt;/span&gt;하고&amp;nbsp;&lt;br&gt;전체 메시지를 response로 보냅니다.&lt;br&gt;&lt;br&gt;만약 &lt;span style=&quot;background-color: rgb(255, 255, 153);&quot;&gt;한번에 보내도 되는 경우&lt;/span&gt;는&amp;nbsp;&lt;br&gt;&lt;span style=&quot;background-color: rgb(255, 255, 153);&quot;&gt;STAGE를 GET_FIN으로 설정&lt;/span&gt;하고 response에 보냅니다." style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="F4LRof5FCmn5BzIcXzMc-40">
+          <mxGeometry x="15" y="30" width="360" height="190" as="geometry" />
         </mxCell>
         <mxCell id="F4LRof5FCmn5BzIcXzMc-88" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-46" target="F4LRof5FCmn5BzIcXzMc-61">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-46" value="STAGE = GET_FIN" style="whiteSpace=wrap;html=1;fontStyle=1;fontSize=16;" vertex="1" parent="1">
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-46" value="STAGE = GET_FIN" style="whiteSpace=wrap;html=1;fontStyle=1;fontSize=16;labelBackgroundColor=#99FFFF;" vertex="1" parent="1">
           <mxGeometry x="2950" y="394.5" width="200" height="60" as="geometry" />
         </mxCell>
         <mxCell id="F4LRof5FCmn5BzIcXzMc-89" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-49" target="F4LRof5FCmn5BzIcXzMc-61">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-49" value="STAGE = GET_START" style="whiteSpace=wrap;html=1;fontStyle=1;fontSize=16;" vertex="1" parent="1">
-          <mxGeometry x="2425" y="580" width="200" height="60" as="geometry" />
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-49" value="STAGE = GET_START" style="whiteSpace=wrap;html=1;fontStyle=1;fontSize=16;labelBackgroundColor=#99FFFF;" vertex="1" parent="1">
+          <mxGeometry x="2950" y="580" width="200" height="60" as="geometry" />
         </mxCell>
         <mxCell id="F4LRof5FCmn5BzIcXzMc-59" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-52" target="F4LRof5FCmn5BzIcXzMc-46">
           <mxGeometry relative="1" as="geometry" />
@@ -619,71 +611,39 @@
         <mxCell id="F4LRof5FCmn5BzIcXzMc-87" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-67" target="F4LRof5FCmn5BzIcXzMc-61">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-67" value="STAGE = GET_CHUNK" style="whiteSpace=wrap;html=1;fontStyle=1;fontSize=16;" vertex="1" parent="1">
-          <mxGeometry x="2640" y="1000" width="200" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-96" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-76" target="F4LRof5FCmn5BzIcXzMc-94">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-76" value="send chunk til the end" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1320" y="1095" width="400" height="180" as="geometry">
-            <mxRectangle x="1320" y="440" width="90" height="30" as="alternateBounds" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-77" value="chunk 크기 만큼 분할해서 보내는 경우입니다.&lt;br&gt;분할해서 보내는 경우 분할 전송이 끝나기 전까지 &lt;br&gt;계속 GET_CHUNK로 stage를 유지하다가 &lt;br&gt;전송이 끝이 나게 되면 그때 GET_FIN으로 변경해줍니다.&lt;br&gt;&lt;br&gt;(분할 전송시 kevent()로 회귀하기 때문에 어딘가에 읽은 내용을 &lt;br&gt;저장해야 할것 같은데, 관련 사항은 알아보고 업데이트 하겠습니다.)" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="F4LRof5FCmn5BzIcXzMc-76">
-          <mxGeometry x="15" y="30" width="360" height="140" as="geometry" />
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-85" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-80" target="F4LRof5FCmn5BzIcXzMc-46">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-100" value="분할 전송하지 않아도 되는 파일이라면" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=15;labelBackgroundColor=#FFF2CC;" vertex="1" connectable="0" parent="F4LRof5FCmn5BzIcXzMc-85">
-          <mxGeometry x="-0.2636" y="1" relative="1" as="geometry">
-            <mxPoint x="105" y="1" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-93" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-80" target="F4LRof5FCmn5BzIcXzMc-67">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-101" value="chunk로 분할해서 전송해야 한다면" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=15;labelBackgroundColor=#FFF2CC;" vertex="1" connectable="0" parent="F4LRof5FCmn5BzIcXzMc-93">
-          <mxGeometry x="-0.0132" y="1" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-80" value="set mime type" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" collapsed="1" parent="1">
-          <mxGeometry x="2030" y="855" width="120" height="30" as="geometry">
-            <mxRectangle x="2220" y="1010" width="310" height="182.5" as="alternateBounds" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-81" value="response로 파일을 보내기 전에&lt;br&gt;method 파트에서 해당 파일이&lt;br&gt;어떤 형식인지를 지정해주고 보내야 합니다.&lt;br&gt;&lt;br&gt;mime.types 문서에 해당 파일 확장자가&lt;br&gt;어떤 타입을 가지는지 설정해놓았습니다.&lt;br&gt;해당 설정에 따라 mime type을 결정하면 됩니다." style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="F4LRof5FCmn5BzIcXzMc-80">
-          <mxGeometry x="10" y="32.5" width="290" height="140" as="geometry" />
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-98" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-94" target="F4LRof5FCmn5BzIcXzMc-67">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-99" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-94" target="F4LRof5FCmn5BzIcXzMc-46">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-103" value="분할 전송이 끝났다면" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=15;labelBackgroundColor=#FFF2CC;" vertex="1" connectable="0" parent="F4LRof5FCmn5BzIcXzMc-99">
-          <mxGeometry x="-0.4374" y="-2" relative="1" as="geometry">
-            <mxPoint x="132" y="-2" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-94" value="set mime type" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" collapsed="1" parent="1">
-          <mxGeometry x="2030" y="1170" width="120" height="30" as="geometry">
-            <mxRectangle x="2220" y="1010" width="310" height="182.5" as="alternateBounds" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-95" value="response로 파일을 보내기 전에&lt;br&gt;method 파트에서 해당 파일이&lt;br&gt;어떤 형식인지를 지정해주고 보내야 합니다.&lt;br&gt;&lt;br&gt;mime.types 문서에 해당 파일 확장자가&lt;br&gt;어떤 타입을 가지는지 설정해놓았습니다.&lt;br&gt;해당 설정에 따라 mime type을 결정하면 됩니다." style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="F4LRof5FCmn5BzIcXzMc-94">
-          <mxGeometry x="10" y="32.5" width="290" height="140" as="geometry" />
-        </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-102" value="chunk로 분할해서 전송해야 한다면" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=15;labelBackgroundColor=#FFF2CC;" vertex="1" connectable="0" parent="1">
-          <mxGeometry x="2400" y="1109.999999999999" as="geometry" />
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-67" value="STAGE = GET_CHUNK" style="whiteSpace=wrap;html=1;fontStyle=1;fontSize=16;labelBackgroundColor=#99FFFF;" vertex="1" parent="1">
+          <mxGeometry x="2950" y="805" width="200" height="60" as="geometry" />
         </mxCell>
         <mxCell id="F4LRof5FCmn5BzIcXzMc-105" value="&lt;pre style=&quot;box-sizing: inherit; margin-top: 4px; margin-bottom: 4px; padding: 8px; --saf-0:rgba(var(--sk_foreground_low,29,28,29),0.13); overflow-wrap: break-word; font-variant-ligatures: none; line-height: 1.50001; tab-size: 4; word-break: normal; background: rgba(var(--sk_foreground_min,29,28,29),0.04); border: 1px solid var(--saf-0); border-radius: 4px; overflow-y: hidden; counter-reset: list-0 0 list-1 0 list-2 0 list-3 0 list-4 0 list-5 0 list-6 0 list-7 0 list-8 0 list-9 0; color: rgb(29, 28, 29); font-size: 10px; font-family: Monaco, Menlo, Consolas, &amp;quot;Courier New&amp;quot;, monospace !important;&quot; data-stringify-type=&quot;pre&quot; class=&quot;c-mrkdwn__pre&quot;&gt; switch (static_cast&amp;lt;s_client_type*&amp;gt;(ft_filter)-&amp;gt;GetStage()){&lt;br style=&quot;font-size: 10px;&quot;&gt;                  case GET_READY: {&lt;br style=&quot;font-size: 10px;&quot;&gt;                    =&amp;gt; GET 메소드 시작&lt;br style=&quot;font-size: 10px;&quot;&gt;                    break;&lt;br style=&quot;font-size: 10px;&quot;&gt;                  }&lt;br style=&quot;font-size: 10px;&quot;&gt;                  case POST_READY: {&lt;br style=&quot;font-size: 10px;&quot;&gt;                    =&amp;gt; POST 메소드 시작&lt;br style=&quot;font-size: 10px;&quot;&gt;                    break;&lt;br style=&quot;font-size: 10px;&quot;&gt;                  }&lt;br style=&quot;font-size: 10px;&quot;&gt;                  case DELETE_READY: {&lt;br style=&quot;font-size: 10px;&quot;&gt;                    =&amp;gt; DELETE 메소드 시작&lt;br style=&quot;font-size: 10px;&quot;&gt;                    break;&lt;br style=&quot;font-size: 10px;&quot;&gt;                  }&lt;br style=&quot;font-size: 10px;&quot;&gt;                  default: {&lt;br style=&quot;font-size: 10px;&quot;&gt;                    break;&lt;br style=&quot;font-size: 10px;&quot;&gt;                  }&lt;br style=&quot;font-size: 10px;&quot;&gt;                }&lt;/pre&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
           <mxGeometry x="130" y="-490" width="400" height="280" as="geometry" />
         </mxCell>
         <mxCell id="F4LRof5FCmn5BzIcXzMc-106" value="GET_READY가 가장 처음이고 START -&amp;gt; FIN 순으로 STAGE가 변경됩니다." style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="125" y="-200" width="390" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-112" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-109" target="F4LRof5FCmn5BzIcXzMc-67">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-117" value="entity_len &amp;gt; body_size&lt;br&gt;: 나눠서 보내야 하는 경우" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#FFF2CC;" vertex="1" connectable="0" parent="F4LRof5FCmn5BzIcXzMc-112">
+          <mxGeometry x="0.3189" y="2" relative="1" as="geometry">
+            <mxPoint x="22" y="2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-115" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-109" target="F4LRof5FCmn5BzIcXzMc-46">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-116" value="파일 크기가 한번에 보내도 되는 경우" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#FFF2CC;" vertex="1" connectable="0" parent="F4LRof5FCmn5BzIcXzMc-115">
+          <mxGeometry x="-0.2695" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-109" value="set mime type" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="2370" y="743.75" width="310" height="182.5" as="geometry" />
+        </mxCell>
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-110" value="response로 파일을 보내기 전에&lt;br&gt;method 파트에서 해당 파일이&lt;br&gt;어떤 형식인지를 지정해주고 보내야 합니다.&lt;br&gt;&lt;br&gt;mime.types 문서에 해당 파일 확장자가&lt;br&gt;어떤 타입을 가지는지 설정해놓았습니다.&lt;br&gt;해당 설정에 따라 mime type을 결정하면 됩니다." style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="F4LRof5FCmn5BzIcXzMc-109">
+          <mxGeometry x="10" y="32.5" width="290" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-118" value="GET_CHUNK가 되면 더이상 method에서 처리하지 않습니다!!" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;labelBackgroundColor=#FF99CC;" vertex="1" parent="1">
+          <mxGeometry x="2890" y="870" width="320" height="30" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
