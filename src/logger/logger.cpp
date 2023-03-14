@@ -30,6 +30,10 @@ void s_logger_type::PushData(void) {
     }
   }
   logs_.clear();
+  std::vector<struct kevent> temp;
+  ChangeEvents(temp, this->error_fd_, EVFILT_WRITE, EV_DISABLE, 0, NULL, this);
+  ChangeEvents(temp, this->logging_fd_, EVFILT_WRITE, EV_DISABLE, 0, NULL,
+               this);
 }
 
 void s_logger_type::SetFDs(int log_fd, int err_fd) {
