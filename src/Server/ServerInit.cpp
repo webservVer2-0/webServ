@@ -1,3 +1,8 @@
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+
 #include "../../include/webserv.hpp"
 
 void ServerInit(ServerConfig& config) {
@@ -98,96 +103,97 @@ void ServerRun(ServerConfig& config) {
     for (int i = 0; i < new_event_number; i++) {
       curr_event = &config.event_list_[i];
       if (curr_event->flags & EV_ERROR) {
+        printf("%s\n", gai_strerror(curr_event->data));
         PrintError(3, WEBSERV, CRITICAL, "kevent running error");
       } else {
         s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
         switch (ft_filter->GetType()) {
-          case WORK:
-            std::cout << "work type" << std::endl;
-            {
-              s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
-              if (work_type->GetWorkType() == file)
-                std::cout << "file steps" << std::endl;
-              else if (work_type->GetWorkType() == cgi)
-                std::cout << "cgi steps" << std::endl;
-            }
-            break;
-          case CLIENT:
-            std::cout << "client type" << std::endl;
-            std::cout << "Client Id : "
-                      << static_cast<s_client_type*>(ft_filter)->GetCookieId()
-                      << std::endl;
-            {
-              if (curr_event->filter == EVFILT_READ) {
-                std::cout << "client Read step" << std::endl;
-                char* client_msg = new char[curr_event->data];
-                int ret =
-                    recv(curr_event->ident, client_msg, curr_event->data, 0);
-                if (ret == -1) {
-                  // TODO : error handling
-                }
-                std::cout << "[ client (" << curr_event->ident << ") ]"
-                          << std::endl;
-                write(1, client_msg, curr_event->data);
-                close(curr_event->ident);
-                ChangeEvents(config.change_list_, curr_event->ident, 0,
-                             EV_DELETE, 0, 0, NULL);
-                // DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
-                config.change_list_.clear();
-                delete[] client_msg;
-                switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
-                  case GET_READY: {
-                    break;
-                  }
-                  case POST_READY: {
-                    break;
-                  }
-                  case DELETE_READY: {
-                    break;
-                  }
-                  default: {
-                    break;
-                  }
-                }
-                // TODO: 작업 END시 처리해줘야 할 것들은 다음과 같다.
-                // TODO: client udata ~ file udata 까지 찾아들어가서 delete 를
-                // 진행하면 될듯
-              } else if (curr_event->filter == EVFILT_WRITE) {
-                std::cout << " client Write step" << std::endl;
-              } else if (curr_event->filter == EVFILT_TIMER) {
-                // TODO: time out 상태, 적절한 closing 필요
+          case WORK: {
+            s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
+            if (work_type->GetWorkType() == file)
+              std::cout << "file steps" << std::endl;
+            else if (work_type->GetWorkType() == cgi)
+              std::cout << "cgi steps" << std::endl;
+          } break;
+          case CLIENT: {
+            if (curr_event->filter == EVFILT_READ) {
+              std::cout << "client Read step" << std::endl;
+              char* client_msg = new char[curr_event->data];
+              int ret =
+                  recv(curr_event->ident, client_msg, curr_event->data, 0);
+              if (ret == -1) {
+                // TODO : error handling
               }
-              // eof 로 확인하기는 불확실한 방법으로 판단됨
-              //   else if (curr_event->flags == EV_EOF) {
-              //     // 임시 삭제
-              //     std::cout << "EOF Error, ID 삭제" << std::endl;
-              //     delete ft_filter;
-              //     ChangeEvents(config.change_list_, curr_event->ident,
-              //                  EVFILT_READ, EV_DELETE, 0, 0, NULL);
-              //   }
-            }
-            break;
-          default:  // Server case
-            std::cout << "server type" << std::endl;
-            {
-              int client_fd(accept(curr_event->ident, NULL, NULL));
-              if (client_fd == -1) { /* error handling*/
+              std::cout << "[ client (" << curr_event->ident << ") ]"
+                        << std::endl;
+              write(1, client_msg, curr_event->data);
+              close(curr_event->ident);
+              ChangeEvents(config.change_list_, curr_event->ident, 0, EV_DELETE,
+                           0, 0, NULL);
+              // DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
+              config.change_list_.clear();
+              delete[] client_msg;
+              switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
+                case GET_READY: {
+                  break;
+                }
+                case POST_READY: {
+                  break;
+                }
+                case DELETE_READY: {
+                  break;
+                }
+                default: {
+                  break;
+                }
               }
-              s_server_type* server = static_cast<s_server_type*>(ft_filter);
-              s_client_type* client =
-                  static_cast<s_client_type*>(server->CreateClient(client_fd));
-              ChangeEvents(config.change_list_, client_fd, EVFILT_READ,
-                           EV_ADD | EV_EOF, 0, 0, client);
-              ChangeEvents(config.change_list_, client_fd, EVFILT_WRITE,
-                           EV_ADD | EV_DISABLE, 0, 0, client);
-              int timer =
-                  atoi(client->GetConfig().main_config_.at("timeout").c_str());
-              ChangeEvents(config.change_list_, client_fd, EVFILT_TIMER, EV_ADD,
-                           NOTE_SECONDS, timer, client);
-              //   std::cout << "time setting" << timer << std::endl;
-              // TODO: socket option setting;
+              // TODO: 작업 END시 처리해줘야 할 것들은 다음과 같다.
+              // TODO: client udata ~ file udata 까지 찾아들어가서 delete 를
+              // 진행하면 될듯
+            } else if (curr_event->filter == EVFILT_WRITE) {
+              std::cout << " client Write step" << std::endl;
+            } else if (curr_event->filter == EVFILT_TIMER) {
+              // TODO: time out 상태, 적절한 closing 필요
             }
-            break;
+            // eof 로 확인하기는 불확실한 방법으로 판단됨
+            //   else if (curr_event->flags == EV_EOF) {
+            //     // 임시 삭제
+            //     std::cout << "EOF Error, ID 삭제" << std::endl;
+            //     delete ft_filter;
+            //     ChangeEvents(config.change_list_, curr_event->ident,
+            //                  EVFILT_READ, EV_DELETE, 0, 0, NULL);
+            //   }
+          } break;
+          default: {  // Server case
+            // struct sockaddr_in client_addrinfo[500];
+            // int client_fd(accept(curr_event->ident,
+            //                      reinterpret_cast<sockaddr*>(client_addrinfo),
+            //                      NULL));
+
+            // char ip_str[INET_ADDRSTRLEN];
+
+            // inet_ntop(AF_INET, &(client_addrinfo->sin_addr), ip_str,
+            //           INET_ADDRSTRLEN);
+            // std::cout << ip_str << std::endl;
+            // TODO: logging socket ip 가져오기
+            int client_fd(accept(curr_event->ident, NULL, NULL));
+            if (client_fd == -1) { /* error handling*/
+                                   // TODO:
+            }
+            s_server_type* server = static_cast<s_server_type*>(ft_filter);
+            s_client_type* client =
+                static_cast<s_client_type*>(server->CreateClient(client_fd));
+            ChangeEvents(config.change_list_, client_fd, EVFILT_READ,
+                         EV_ADD | EV_EOF, 0, 0, client);
+            ChangeEvents(config.change_list_, client_fd, EVFILT_WRITE,
+                         EV_ADD | EV_DISABLE, 0, 0, client);
+            int timer =
+                atoi(client->GetConfig().main_config_.at("timeout").c_str());
+            ChangeEvents(config.change_list_, client_fd, EVFILT_TIMER, EV_ADD,
+                         NOTE_SECONDS, timer, client);
+            //   std::cout << "time setting" << timer << std::endl;
+            // TODO: socket option setting;
+          } break;
         }
       }
       CheckError(&config, curr_event);

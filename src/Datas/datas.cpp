@@ -40,6 +40,7 @@ s_client_type::s_client_type(t_server* config, int client_fd,
   temp << rand();
   cookie_id_ = temp.str();
   temp.clear();
+  this->time_data_[0] = std::time(NULL);
   this->SetType(CLIENT);
   this->config_ptr_ = config;
   this->loc_config_ptr_ = NULL;

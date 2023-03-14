@@ -132,21 +132,24 @@ class s_server_type : public s_base_type {
 class s_client_type : public s_base_type {
  private:
   std::string cookie_id_;  // 접속한 클라이언트에 대해 부여하는 고유한 넘버
+  std::time_t time_data_[2];  // 0 - access time, 1 - stage change time
+                              // TODO: logger
 
   t_server* config_ptr_;  // 클라이언트에서 사용해야 하는 서버 설정
   t_loc* loc_config_ptr_;  // 클라이언트의 uri가 소속된 로케이션 설정
 
-  t_http request_msg_;   // request 메시지
-  t_http response_msg_;  // response 메시지
+  std::string origin_uri_;  // TODO: logger
+  t_http request_msg_;      // request 메시지
+  t_http response_msg_;     // response 메시지
   size_t sent_size_;  // chunked encoding 상황에서 얼마나 전달했는지를 체크함
 
   s_base_type* parent_ptr_;  // server 클래스 포인터
   s_base_type* data_ptr_;  // work type으로 작업을 하는 영역의 클래스 포인터
 
-  t_stage stage_;           // 현재의 작업 단계를 확인용
-  t_error status_code_;     // HTTP status를 확인하는 용
-  std::string err_custom_;  // custom msg 보관용
-  int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다.
+  t_stage stage_;        // 현재의 작업 단계를 확인용 //TODO: logger
+  t_error status_code_;  // HTTP status를 확인하는 용 //TODO: logger
+  std::string err_custom_;  // custom msg 보관용 //TODO: logger
+  int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다. //TODO: logger
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);

@@ -1,6 +1,12 @@
 9.34.68 - - [20/Feb/2021:07:29:54 + 0000] "GET <PATH> HTTP/1.1" 200 222 "http://?????"
 
 
+ACCESS LOG FORMMAT 
+	IP, 접속날짜, Init Line, 처리날짜, HTTP status, 치환된 uri
+
+ERROR LOG FORMMAT
+	IP, 접속날짜, Init Line, Error발생 시각, HTTP Status, Error Num, Error Cunstom Msg
+
 
 2021/02/20 22:43:22 [crit] 32709#32709 *1379 SSL_do_handshake() failed (SSL: error: 어쩌고 저쩌고)
 
