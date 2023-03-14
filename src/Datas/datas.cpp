@@ -21,6 +21,19 @@ s_server_type::s_server_type(ServerConfig& config_list, int server_number,
     : s_base_type(server_fd) {
   this->self_config_ =
       const_cast<t_server*>(&config_list.GetServerList(server_number));
+  int l_fd;
+  int e_fd;
+
+  l_fd = open(self_config_->main_config_.at("access_log").c_str(),
+              O_WRONLY | O_APPEND | O_NONBLOCK, 0644);
+  e_fd = open(self_config_->main_config_.at("error_log").c_str(),
+              O_WRONLY | O_APPEND | O_NONBLOCK, 0644);
+
+  this->logger_.SetFDs(l_fd, e_fd);
+  ChangeEvents(config_list.change_list_, l_fd, EVFILT_WRITE,
+               EV_ADD | EV_DISABLE, 0, NULL, &(this->logger_));
+  ChangeEvents(config_list.change_list_, e_fd, EVFILT_WRITE,
+               EV_ADD | EV_DISABLE, 0, NULL, &(this->logger_));
 }
 
 s_server_type::~s_server_type() {}
@@ -44,7 +57,7 @@ s_client_type::s_client_type(t_server* config, int client_fd,
   this->SetType(CLIENT);
   this->config_ptr_ = config;
   this->loc_config_ptr_ = NULL;
-  parent_ptr_ = mother;
+  parent_ptr_ = static_cast<s_base_type*>(mother);
   data_ptr_ = NULL;
   sent_size_ = 0;
   stage_ = DEF;
@@ -165,10 +178,13 @@ const std::string& s_client_type::GetIP(void) { return this->ip_; }
 void s_client_type::PrintClientStatus(void) {
   char msg[40];
   const std::time_t* time = this->GetTimeData();
-  std::strftime(msg, 40, "%a, %d, %b, %Y %H:%M:%S", std::localtime(&time[0]));
+  std::strftime(msg, 30, "%d/%b/%Y:%H:%M:%S + 0900", std::localtime(&time[0]));
 
   std::cout << "==================================" << std::endl;
   std::cout << "Client Information" << std::endl;
+  std::cout << "Accessed Host : ["
+            << this->config_ptr_->main_config_.at("server_name") << "("
+            << this->config_ptr_->port_ << ")]" << std::endl;
   std::cout << "ID : " << this->GetCookieId() << std::endl;
   std::cout << "Client IP : " << this->GetIP() << std::endl;
   std::cout << "FD : " << this->GetFD() << std::endl;
@@ -176,6 +192,108 @@ void s_client_type::PrintClientStatus(void) {
   std::cout << "Stage : " << this->GetStage() << std::endl;
   std::cout << "HTTP status : " << this->GetErrorCode() << std::endl;
   std::cout << "==================================" << std::endl;
+}
+
+void s_client_type::SendLogs(void) {
+  std::string logging_data;
+  const std::time_t* time = this->GetTimeData();
+  char msg1[30];
+  char msg2[30];
+  std::strftime(msg1, 30, "%d/%b/%Y:%H:%M:%S + 0900", std::localtime(&time[0]));
+  std::strftime(msg2, 30, "%d/%b/%Y:%H:%M:%S + 0900", std::localtime(&time[1]));
+  s_logger_type* temp =
+      &(static_cast<s_server_type*>(parent_ptr_))->GetLogger();
+  std::vector<struct kevent> temp_event;
+
+  if (this->GetErrorCode() == OK || this->GetErrorCode() == MOV_PERMAN) {
+    ChangeEvents(temp_event, temp->GetLoggingFd(), EVFILT_WRITE, EV_ENABLE, 0,
+                 NULL, &temp);
+    logging_data.append(this->GetIP());
+    logging_data.append(" [");
+    logging_data.append(msg1);
+    logging_data.append("] ");
+    logging_data.append(this->response_msg_.init_line_.at("METHOD"));
+    logging_data.append(" ");
+    logging_data.append(this->origin_uri_);
+    logging_data.append(" ");
+    logging_data.append(this->response_msg_.init_line_.at("HTTP"));
+    t_error temp = this->GetErrorCode();
+    switch (temp) {
+      case OK: {
+        logging_data.append("200 Ok");
+        break;
+      }
+      case MOV_PERMAN: {
+        logging_data.append("308 Permanent Redirect");
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+    logging_data.append(" [Path : ");
+    logging_data.append(this->response_msg_.init_line_.at("URI"));
+    logging_data.append("]");
+  } else {
+    ChangeEvents(temp_event, temp->GetErrorFd(), EVFILT_WRITE, EV_ENABLE, 0,
+                 NULL, &temp);
+    logging_data.append("ERR : ");
+    logging_data.append(this->GetIP());
+    logging_data.append(" [");
+    logging_data.append(msg1);
+    logging_data.append("] ");
+    logging_data.append(this->response_msg_.init_line_.at("METHOD"));
+    logging_data.append(" ");
+    logging_data.append(this->response_msg_.init_line_.at("URI"));
+    logging_data.append(" ");
+    logging_data.append(this->response_msg_.init_line_.at("HTTP"));
+    logging_data.append(" [ERR_TIME ");
+    logging_data.append(msg2);
+    logging_data.append("] [");
+    t_error temp = this->GetErrorCode();
+    switch (temp) {
+      case BAD_REQ: {
+        logging_data.append("400 BadRequest");
+        break;
+      }
+      case FORBID: {
+        logging_data.append("403 Forbidden");
+        break;
+      }
+      case NOT_FOUND: {
+        logging_data.append("404 Not Found");
+        break;
+      }
+      case NOT_IMPLE: {
+        logging_data.append("501 Not Implemented");
+        break;
+      }
+      case OLD_HTTP: {
+        logging_data.append("505 HTTP version Not Supported");
+        break;
+      }
+      case SYS_ERR: {
+        logging_data.append("500 Interneal Server Error");
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+    logging_data.append("] [");
+    std::ostringstream error_code;
+    error_code << this->errno_;
+    logging_data.append(error_code.str());
+    logging_data.append(" : ");
+    logging_data.append(strerror(errno_));
+    logging_data.append("] [");
+    logging_data.append("msg : ");
+    logging_data.append(this->err_custom_);
+    logging_data.append("]");
+  }
+  logging_data.append("\n");
+  temp->GetData(logging_data);
+  return;
 }
 
 /****************** Work Type ********************/
@@ -204,7 +322,6 @@ void s_work_type::ChangeClientEvent(int16_t filter, uint16_t flags,
                                     void* udata) {
   int fd = this->client_ptr_->GetFD();
   std::vector<struct kevent> templist;
-  // TODO: 임시 변수 집어넣어도 상관 없는지 확인할 것
   ChangeEvents(templist, fd, filter, flags, fflags, data, udata);
 }
 

@@ -164,6 +164,11 @@ void ServerRun(ServerConfig& config) {
             //                  EVFILT_READ, EV_DELETE, 0, 0, NULL);
             //   }
           } break;
+          case LOGGER: {
+            s_logger_type* logger = static_cast<s_logger_type*>(ft_filter);
+            logger->PushData();
+            break;
+          }
           default: {  // Server case
             sockaddr_in* addr_info = config.GetServerAddress();
             socklen_t addrlen = sizeof(addr_info);
@@ -190,7 +195,8 @@ void ServerRun(ServerConfig& config) {
                          NOTE_SECONDS, timer, client);
             //   std::cout << "time setting" << timer << std::endl;
             // TODO: socket option setting;
-            client->PrintClientStatus();
+            // client->PrintClientStatus();
+            // server->GetLogger().PrintLogger();
           } break;
         }
       }
