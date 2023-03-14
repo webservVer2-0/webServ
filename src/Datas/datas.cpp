@@ -86,7 +86,10 @@ t_http& s_client_type::GetRequest(void) { return this->request_msg_; }
 t_http& s_client_type::GetResponse(void) { return this->response_msg_; }
 
 const t_stage& s_client_type::GetStage(void) { return this->stage_; }
-void s_client_type::SetStage(t_stage val) { this->stage_ = val; }
+void s_client_type::SetStage(t_stage val) {
+  time_data_[1] = std::time(NULL);
+  this->stage_ = val;
+}
 
 const t_error& s_client_type::GetErrorCode(void) { return this->status_code_; }
 void s_client_type::SetErrorCode(t_error val) { this->status_code_ = val; }
@@ -332,5 +335,6 @@ t_stage s_work_type::GetClientStage(void) {
 
 void s_work_type::SetClientStage(t_stage val) {
   s_client_type* my_mother = static_cast<s_client_type*>(this->client_ptr_);
+  my_mother->GetTimeData()[1] = std::time(NULL);
   my_mother->SetStage(val);
 }
