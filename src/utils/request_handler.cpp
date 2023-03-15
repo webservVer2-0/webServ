@@ -88,7 +88,7 @@ t_error init_line_parser(t_http* http, t_elem* e) {
   return (NO_ERROR);
 }
 
-t_error malloc_entity(t_http* http, t_elem* e, unsigned char* client_msg) {
+t_error malloc_entity(t_http* http, t_elem* e, char* client_msg) {
   ssize_t entity_len;
   try {
     entity_len = std::stol(http->header_["Content-Length"]);
@@ -102,7 +102,7 @@ t_error malloc_entity(t_http* http, t_elem* e, unsigned char* client_msg) {
   try {
     size_t entity_start = e->_header_crlf + DOUBLE_CRLF_LEN;
 
-    http->entity_ = new unsigned char[entity_len + 1];
+    http->entity_ = new char[entity_len + 1];
     memcpy(http->entity_, client_msg + entity_start, entity_len);
     http->entity_[entity_len + 1] = '\0';
     return (NO_ERROR);
@@ -165,12 +165,12 @@ t_error elem_initializer(t_elem* e, std::string line) {
   return (NO_ERROR);
 }
 
-t_error request_handler(void* udata, unsigned char* msg) {
+t_error request_handler(void* udata, char* msg) {
   s_client_type* client_type = static_cast<s_client_type*>(udata);
   client_type->SetStage(REQ_READY);
 
   if (!msg) {
-    return (request_error(client_type, BAD_REQ));  // error
+    return (request_error(client_type, BAD_REQ));
   }
 
   t_http* http = &client_type->GetRequest();
