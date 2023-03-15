@@ -309,7 +309,7 @@ void s_client_type::SendLogs(void) {
   return;
 }
 
-void s_client_type::SetError(int errno, std::string custom_msg) {
+void s_client_type::SetError(int custom_errno, std::string custom_msg) {
   this->errno_ = errno;
   this->err_custom_ = custom_msg;
 }

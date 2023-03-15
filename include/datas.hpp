@@ -285,7 +285,7 @@ class s_client_type : public s_base_type {
 
   void PrintClientStatus(void);
 
-  void SetError(int errno, std::string custom_msg);
+  void SetError(int custom_errno, std::string custom_msg);
   bool SetMimeType(std::string converted_uri);
   std::string& GetMimeType(void);
 };

@@ -32,7 +32,10 @@ std::string to_string(const T& value) {
  * @param err_code 발생한 에러 코드
  * @return t_error 발생한 에러
  */
-static t_error request_error(s_client_type* client_type, t_error err_code) {
+static t_error request_error(s_client_type* client_type, t_error err_code,
+                             std::string msg) {
+  int errno_ = errno;
+  client_type->SetError(errno_, msg);
   client_type->SetErrorCode(err_code);
   client_type->SetStage(ERR_READY);
   return (err_code);
@@ -113,6 +116,13 @@ t_error alloc_entity(t_http* http, t_elem* e, char* client_msg) {
   }
 }
 
+/**
+ * @brief
+ *
+ * @param http
+ * @param e
+ * @return t_error
+ */
 t_error fill_header(t_http* http, t_elem* e) {
   size_t pos = 0;
   size_t end_pos;
@@ -185,7 +195,7 @@ t_error request_handler(void* udata, char* msg) {
   client_type->SetStage(REQ_READY);
 
   if (!msg) {
-    return (request_error(client_type, BAD_REQ));
+    return (request_error(client_type, BAD_REQ, "message is null"));
   }
 
   t_http* http = &client_type->GetRequest();
@@ -195,16 +205,18 @@ t_error request_handler(void* udata, char* msg) {
 
   try {
     if (err_code = elem_initializer(&e, line)) {
-      return (request_error(client_type, err_code));
+      return (
+          request_error(client_type, err_code, "rq_hdl : elem_initializer()"));
     }
     if (e._method == GET && line.size() > e._header_crlf + DOUBLE_CRLF_LEN) {
-      return (request_error(client_type, BAD_REQ));
+      return (request_error(client_type, BAD_REQ,
+                            "GET인데 entity가 있다?ㅋㅋ 절대 안 되지"));
     }
     if ((err_code = init_line_parser(http, &e))) {
-      return (request_error(client_type, err_code));
+      return (request_error(client_type, err_code, "rq_hdlr: "));
     }
     if (fill_header(http, &e)) {
-      return (request_error(client_type, BAD_REQ));
+      return (request_error(client_type, BAD_REQ, ));
     }
     if (e._exist_cookie) {
       client_type->SetCookieId(http->header_["COOKIE"]);
