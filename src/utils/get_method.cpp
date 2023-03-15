@@ -1,9 +1,7 @@
 #include "../../include/webserv.hpp"
 
-// TODO : err_custom_ getter, setter 만들까?
-// TODO : error 발생시 err_custom_ 지정해줘야함 > 어느 함수, 어디에서 났는지
-// 적기
-// TODO : 예외처리 더 ?
+// error 발생시 err_custom_ 지정해줘야함 > 어느 함수, 어디에서 났는지 적기
+// TODO : 예외처리 더 ? ex) new, fcntl, 등
 // TODO : 하류님이 errno_, err_custom_ setter 만드신다 함
 /**
  * @brief
@@ -25,6 +23,7 @@ void ClientGet(struct kevent* event) {
   config_map config = client->GetLocationConfig().main_config_;
   if (config.find("redirection") != config.end()) {
     // redir;
+    // TODO : redir도 나중에
   }
   MethodGetReady(client);
 }
@@ -67,23 +66,23 @@ void WorkGet(struct kevent* event) {
       client->GetConfig().main_config_.find(BODY)->second.size());
   client->SetErrorCode(NO_ERROR);
 
-  work->GetResponseMsg().entity_length_ = event->data;  // TODO : 형변환?
-  // event filter마다 data 다름
+  work->GetResponseMsg().entity_length_ = event->data;
+  // size_t에 intptr_t 형변환 필요없음
+  //  event filter마다 data 다름
   size_t tmp_entity_len = work->GetResponseMsg().entity_length_;
-  work->GetResponseMsg().entity_ =
-      new char[tmp_entity_len];  // TODO : new error시
+  work->GetResponseMsg().entity_ = new char[tmp_entity_len];
   size_t read_ret = 0;
   int req_fd = work->GetFD();
   read_ret = read(req_fd, work->GetResponseMsg().entity_, tmp_entity_len);
   if ((read_ret != tmp_entity_len) || read_ret == size_t(-1)) {
-    // TODO: client->errno setting;
+    // client->errno setting;
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
     return;
   }
   client->SetErrorCode(OK);
   work->ChangeClientEvent(EVFILT_READ, EV_DISABLE | EV_DELETE, 0, 0, work);
-  // TODO : mime set
+  // mime set
   if (tmp_entity_len > chunk_size) {
     work->SetClientStage(GET_CHUNK);
   } else {
@@ -91,10 +90,10 @@ void WorkGet(struct kevent* event) {
     work->SetClientStage(GET_FIN);
   }
   if (close(req_fd) == -1) {
-    // TODO: client->errno setting;
+    // client->errno setting;
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
-    // TODO : (j)delete close 관계 더 찾아보기
+    // delete close 관계 더 찾아보기 > EV_DELETE 를 설정해야지 자동으로 삭제됨
   }
 
   return;
