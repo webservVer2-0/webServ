@@ -180,11 +180,11 @@ t_error request_handler(void* udata, char* msg) {
 
   try {
     err_code = elem_initializer(&e, line);
-
     if (err_code) {
       return (request_error(client_type, err_code));
     }
-    if ((err_code = init_line_parser(http, &e))) {
+    err_code = init_line_parser(http, &e);
+    if (err_code) {
       return (request_error(client_type, err_code));
     }
     if (fill_header(http, &e)) {
