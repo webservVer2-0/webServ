@@ -143,6 +143,9 @@ void ServerRun(ServerConfig& config) {
                 case DELETE_READY: {
                   break;
                 }
+                case ERR_READY: {
+                  break;
+                }
                 default: {
                   break;
                 }
@@ -195,8 +198,8 @@ void ServerRun(ServerConfig& config) {
                          NOTE_SECONDS, timer, client);
             //   std::cout << "time setting" << timer << std::endl;
             // TODO: socket option setting;
-            // client->PrintClientStatus();
-            // server->GetLogger().PrintLogger();
+            client->PrintClientStatus();
+            server->GetLogger().PrintLogger();
           } break;
         }
       }

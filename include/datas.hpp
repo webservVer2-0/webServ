@@ -27,6 +27,7 @@ typedef enum s_event_type { SERVER, CLIENT, WORK, LOGGER } t_event;
 typedef enum s_stage {
   DEF,
   REQ_READY,
+  ERR_READY,
   GET_READY,
   GET_START,
   GET_CHUNK,
@@ -203,6 +204,7 @@ class s_client_type : public s_base_type {
   t_http request_msg_;      // request 메시지
   t_http response_msg_;     // response 메시지
   size_t sent_size_;  // chunked encoding 상황에서 얼마나 전달했는지를 체크함
+  std::string mime_;  // TODO: 확정 mime type
 
   s_base_type* parent_ptr_;  // server 클래스 포인터
   s_base_type* data_ptr_;  // work type으로 작업을 하는 영역의 클래스 포인터
@@ -211,6 +213,7 @@ class s_client_type : public s_base_type {
   t_error status_code_;  // HTTP status를 확인하는 용 //TODO: logger
   std::string err_custom_;  // custom msg 보관용 //TODO: logger
   int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다. //TODO: logger
+               // TODO: error custom setter 만들기
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);
@@ -264,6 +267,7 @@ class s_client_type : public s_base_type {
 
   void SetOriginURI(std::string path);
   const std::string& GetOriginURI(void);
+  // TODO: GetConvertedURI
 
   void SetWorkFinishTime(void);
   void SetIP(const char* IP);
@@ -274,6 +278,9 @@ class s_client_type : public s_base_type {
   void SendLogs(void);
 
   void PrintClientStatus(void);
+
+  void SetMimeType(std::string converted_uri);  // TODO: Mime type for client
+  std::string& GetMimeType(void);
 };
 
 /**
