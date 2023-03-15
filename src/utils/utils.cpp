@@ -117,6 +117,7 @@ void ChangeEvents(std::vector<struct kevent>& change_list, uintptr_t ident,
   return;
 }
 
+// TODO: delete 방식 수정하기
 void DeleteUdata(s_base_type* data) {
   switch (data->GetType()) {
     case SERVER: {

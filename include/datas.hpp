@@ -27,6 +27,7 @@ typedef enum s_event_type { SERVER, CLIENT, WORK, LOGGER } t_event;
 typedef enum s_stage {
   DEF,
   REQ_READY,
+  ERR_READY,
   GET_READY,
   GET_START,
   GET_CHUNK,
@@ -204,6 +205,7 @@ class s_client_type : public s_base_type {
   t_http request_msg_;      // request 메시지
   t_http response_msg_;     // response 메시지
   size_t sent_size_;  // chunked encoding 상황에서 얼마나 전달했는지를 체크함
+  std::string mime_;  // TODO: 확정 mime type
 
   s_base_type* parent_ptr_;  // server 클래스 포인터
   s_base_type* data_ptr_;  // work type으로 작업을 하는 영역의 클래스 포인터
@@ -271,6 +273,7 @@ class s_client_type : public s_base_type {
 
   void SetOriginURI(std::string path);
   const std::string& GetOriginURI(void);
+  const std::string& GetConvertedURI(void);
 
   void SetWorkFinishTime(void);
   void SetIP(const char* IP);
@@ -281,6 +284,10 @@ class s_client_type : public s_base_type {
   void SendLogs(void);
 
   void PrintClientStatus(void);
+
+  void SetError(int custom_errno, std::string custom_msg);
+  bool SetMimeType(std::string converted_uri);
+  std::string& GetMimeType(void);
 };
 
 /**
