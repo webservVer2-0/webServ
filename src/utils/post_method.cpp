@@ -8,7 +8,7 @@ t_error ClientPost(struct kevent* event) {
   // 현재는 init_line애 있는지 header에 있는지 알수 없음.
   // 일단 작성은 init_line으로 하고 있다고 간주함.
   //   const char* dir =
-  //   client->GetRequest().init_line_.find("uri")->first.c_str();
+  // client->GetRequest().init_line_.find("uri")->second.c_str();
   char* dir = "./index.html";
 
   int save_file_fd = open(dir, O_RDWR | O_CREAT);
@@ -18,14 +18,14 @@ t_error ClientPost(struct kevent* event) {
     // return error_code;
   }
   std::vector<struct kevent> tmp;
-  client->SetStage(
-      POST_READY);  // TODO: new_work의 stage 변경을 어떻게 해줄지 결정하기
-  s_base_type* new_work = client->CreateWork(
-      reinterpret_cast<std::string*>(dir), save_file_fd, file);
+  s_base_type* new_work =
+      client->CreateWork(&(std::string(dir)), save_file_fd, file);
   ChangeEvents(tmp, client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0, client);
   ChangeEvents(tmp, save_file_fd, EVFILT_READ, EV_ADD, 0, 0, new_work);
+  client->SetStage(POST_READY);
 
-  return error_code;
+  // TODO: return 값을 void로 수정하고, client->GetErrorCode()만 바꿔주기;
+  return error_code;  // return client->GetErrorCode();
 }
 
 t_error WorkPost(struct kevent* event) {
@@ -43,12 +43,13 @@ t_error WorkPost(struct kevent* event) {
   }
   std::vector<struct kevent> tmp;
 
-  close(to_do->GetFD());
   ChangeEvents(tmp, to_do->GetFD(), EV_DELETE, EV_ADD | EV_EOF, 0, 0, NULL);
   client->SetStage(
       POST_FIN);  // TODO: POST 파일 저장 후 검사가 필요한지 확인하기
-  to_do->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0,
-                           client);  // TODO: 이 syntax 맞는지 확인하기;
+  to_do->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
+  close(to_do->GetFD());
+
+  // TODO: 캐시페이지 추가?
 
   return error_code;
 }
