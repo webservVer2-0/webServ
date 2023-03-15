@@ -117,22 +117,25 @@ void ServerRun(ServerConfig& config) {
           } break;
           case CLIENT: {
             if (curr_event->filter == EVFILT_READ) {
-              std::cout << "client Read step" << std::endl;
-              char* client_msg = new char[curr_event->data];
-              int ret =
-                  recv(curr_event->ident, client_msg, curr_event->data, 0);
-              if (ret == -1) {
-                // TODO : error handling
+              {
+                std::cout << "client Read step" << std::endl;
+                char* client_msg = new char[curr_event->data];
+                int ret =
+                    recv(curr_event->ident, client_msg, curr_event->data, 0);
+                if (ret == -1) {
+                  // 임시
+                }
+                std::cout << "[ client (" << curr_event->ident << ") ]"
+                          << std::endl;
+                write(1, client_msg, curr_event->data);
+                close(curr_event->ident);
+                ChangeEvents(config.change_list_, curr_event->ident, 0,
+                             EV_DELETE, 0, 0, NULL);
+
+                // DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
+                config.change_list_.clear();
+                delete[] client_msg;
               }
-              std::cout << "[ client (" << curr_event->ident << ") ]"
-                        << std::endl;
-              write(1, client_msg, curr_event->data);
-              close(curr_event->ident);
-              ChangeEvents(config.change_list_, curr_event->ident, 0, EV_DELETE,
-                           0, 0, NULL);
-              // DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
-              config.change_list_.clear();
-              delete[] client_msg;
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
                 case GET_READY: {
                   break;
@@ -150,9 +153,6 @@ void ServerRun(ServerConfig& config) {
                   break;
                 }
               }
-              // TODO: 작업 END시 처리해줘야 할 것들은 다음과 같다.
-              // TODO: client udata ~ file udata 까지 찾아들어가서 delete 를
-              // 진행하면 될듯
             } else if (curr_event->filter == EVFILT_WRITE) {
               s_client_type* client = static_cast<s_client_type*>(ft_filter);
               std::cout << " client Write step" << std::endl;
@@ -189,27 +189,6 @@ void ServerRun(ServerConfig& config) {
                 }
               }
             }
-
-            else if (curr_event->filter == EVFILT_TIMER) {
-              // TODO: time out 상태, 적절한 closing 필요
-            }
-            // TODO: 작업 END시 처리해줘야 할 것들은 다음과 같다.
-            // TODO: client udata ~ file udata 까지 찾아들어가서 delete 를
-            // 진행하면 될듯
-
-            else if (curr_event->filter == EVFILT_WRITE) {
-              std::cout << " client Write step" << std::endl;
-            } else if (curr_event->filter == EVFILT_TIMER) {
-              // TODO: time out 상태, 적절한 closing 필요
-            }
-            // eof 로 확인하기는 불확실한 방법으로 판단됨
-            //   else if (curr_event->flags == EV_EOF) {
-            //     // 임시 삭제
-            //     std::cout << "EOF Error, ID 삭제" << std::endl;
-            //     delete ft_filter;
-            //     ChangeEvents(config.change_list_, curr_event->ident,
-            //                  EVFILT_READ, EV_DELETE, 0, 0, NULL);
-            break;
           }
           case LOGGER: {
             s_logger_type* logger = static_cast<s_logger_type*>(ft_filter);
@@ -222,12 +201,11 @@ void ServerRun(ServerConfig& config) {
             int client_fd(accept(curr_event->ident,
                                  reinterpret_cast<sockaddr*>(addr_info),
                                  &addrlen));
-
+            if (client_fd == -1) {
+              PrintError(3, WEBSERV, CRITICAL, strerror(errno));
+            }
             char ip_str[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, &(addr_info->sin_addr), ip_str, INET_ADDRSTRLEN);
-            if (client_fd == -1) { /* error handling*/
-                                   // TODO:
-            }
             s_server_type* server = static_cast<s_server_type*>(ft_filter);
             s_client_type* client =
                 static_cast<s_client_type*>(server->CreateClient(client_fd));
@@ -240,8 +218,6 @@ void ServerRun(ServerConfig& config) {
                 atoi(client->GetConfig().main_config_.at("timeout").c_str());
             ChangeEvents(config.change_list_, client_fd, EVFILT_TIMER, EV_ADD,
                          NOTE_SECONDS, timer, client);
-            //   std::cout << "time setting" << timer << std::endl;
-            // TODO: socket option setting;
             client->PrintClientStatus();
             server->GetLogger().PrintLogger();
           } break;

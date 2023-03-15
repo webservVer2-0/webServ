@@ -9,11 +9,11 @@ void SetMime(t_mime& storage, std::string filepath) {
 
   char* raw = new char[file_size];
   if (raw == NULL) {
-    // TODO: error handling
+    PrintError(3, WEBSERV, CRITICAL, "HEAP ASSIGNMENT");
   }
   int rc = read(fd, raw, file_size);
-  if (rc <= 0) {
-    // TODO: error handling
+  if (rc < 0) {
+    PrintError(3, WEBSERV, CRITICAL, "READ ERROR");
   }
   raw[file_size - 1] = '\0';
 

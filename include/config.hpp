@@ -80,10 +80,10 @@ typedef struct s_server {
   location_list location_configs_;  // location structure
   int server_fd_;                   // server fd
   e_autoindex index_mode_;          // index mode 여부 확인
-                                    // TODO: cache setting 넣기
-  t_cache static_pages_;            // TODO: static cache 페이지들 저장용
-  t_cache error_pages_;             // TODO: error cache 페이지들 저장용
-  t_mime mime_;                     // TODO: mime 작성하기
+
+  t_cache static_pages_;  // cache static pages
+  t_cache error_pages_;   // error pages
+  t_mime mime_;
 
 } t_server;
 

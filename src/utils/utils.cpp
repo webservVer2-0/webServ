@@ -140,7 +140,8 @@ void DeleteUdata(s_base_type* data) {
       break;
     }
     case LOGGER: {
-      ;
+      s_logger_type* temp = static_cast<s_logger_type*>(data);
+      break;
     }
   }
 }
