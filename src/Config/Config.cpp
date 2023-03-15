@@ -391,13 +391,15 @@ bool ServerConfig::ValidConfigFilePath(conf_iterator& target) {
   temp_path.append(target.operator->()->second);
   if (stat(temp_path.c_str(), &s) == 0) {
     if ((s.st_mode & S_IFDIR) == false) {
-      (4, WEBSERV, "Location Config Error", target.operator->()->first.c_str(),
-       target.operator->()->second.c_str());
+      PrintError(4, WEBSERV, "Location Config Error",
+                 target.operator->()->first.c_str(),
+                 target.operator->()->second.c_str());
       return (false);
     }
   } else {
-    (4, WEBSERV, "Location Config Error", target.operator->()->first.c_str(),
-     target.operator->()->second.c_str());
+    PrintError(4, WEBSERV, "Location Config Error",
+               target.operator->()->first.c_str(),
+               target.operator->()->second.c_str());
     return (false);
   }
   return (true);
@@ -410,13 +412,15 @@ bool ServerConfig::ValidConfigFile(conf_iterator& target) {
   temp_path.append(target.operator->()->second);
   if (stat(temp_path.c_str(), &s) == 0) {
     if ((s.st_mode & S_IFDIR) == true) {
-      (4, WEBSERV, "Location Config Error", target.operator->()->first.c_str(),
-       target.operator->()->second.c_str());
+      PrintError(4, WEBSERV, "Location Config Error",
+                 target.operator->()->first.c_str(),
+                 target.operator->()->second.c_str());
       return (false);
     }
   } else {
-    (4, WEBSERV, "Location Config Error", target.operator->()->first.c_str(),
-     target.operator->()->second.c_str());
+    PrintError(4, WEBSERV, "Location Config Error",
+               target.operator->()->first.c_str(),
+               target.operator->()->second.c_str());
     return (false);
   }
   return (true);
@@ -433,13 +437,15 @@ bool ServerConfig::ValidConfigCGIFile(conf_iterator& target,
   temp_path.append(target.operator->()->second);
   if (stat(temp_path.c_str(), &s) == 0) {
     if ((s.st_mode & S_IFDIR) == true) {
-      (4, WEBSERV, "Location Config Error", target.operator->()->first.c_str(),
-       target.operator->()->second.c_str());
+      PrintError(4, WEBSERV, "Location Config Error",
+                 target.operator->()->first.c_str(),
+                 target.operator->()->second.c_str());
       return (false);
     }
   } else {
-    (4, WEBSERV, "Location Config Error", target.operator->()->first.c_str(),
-     target.operator->()->second.c_str());
+    PrintError(4, WEBSERV, "Location Config Error",
+               target.operator->()->first.c_str(),
+               target.operator->()->second.c_str());
     return (false);
   }
   (void)error_log;
@@ -457,9 +463,9 @@ bool ServerConfig::ValidConfigStr(conf_iterator& target) {
         i++;
         continue;
       } else {
-        (4, WEBSERV, "Location Config Error",
-         target.operator->()->first.c_str(),
-         target.operator->()->second.c_str());
+        PrintError(4, WEBSERV, "Location Config Error",
+                   target.operator->()->first.c_str(),
+                   target.operator->()->second.c_str());
         return (false);
       }
     }
@@ -481,14 +487,15 @@ bool ServerConfig::ValidConfigHTML(conf_iterator& target) {
           return (true);
         }
       } else {
-        (4, WEBSERV, "Location Config Error",
-         target.operator->()->first.c_str(),
-         target.operator->()->second.c_str());
+        PrintError(4, WEBSERV, "Location Config Error",
+                   target.operator->()->first.c_str(),
+                   target.operator->()->second.c_str());
         return (false);
       }
     } else {
-      (4, WEBSERV, "Location Config Error", target.operator->()->first.c_str(),
-       target.operator->()->second.c_str());
+      PrintError(4, WEBSERV, "Location Config Error",
+                 target.operator->()->first.c_str(),
+                 target.operator->()->second.c_str());
       return (false);
     }
   }
@@ -508,13 +515,15 @@ bool ServerConfig::ValidConfigAutoindex(conf_iterator& target,
       server_list_.at(server_number)->index_mode_ = off;
     }
   } else {
-    (4, WEBSERV, "Location Config Error", target.operator->()->first.c_str(),
-     target.operator->()->second.c_str());
+    PrintError(4, WEBSERV, "Location Config Error",
+               target.operator->()->first.c_str(),
+               target.operator->()->second.c_str());
     return (false);
   }
   if (server_list_.at(server_number)->index_mode_ == autodef) {
-    (4, WEBSERV, "Location Config Error", target.operator->()->first.c_str(),
-     target.operator->()->second.c_str());
+    PrintError(4, WEBSERV, "Location Config Error",
+               target.operator->()->first.c_str(),
+               target.operator->()->second.c_str());
     return (false);
   }
   return (true);
@@ -533,13 +542,15 @@ bool ServerConfig::ValidConfigAutoindexLocation(conf_iterator& target,
       location.index_mode_ = off;
     }
   } else {
-    (4, WEBSERV, "Location Config Error", target.operator->()->first.c_str(),
-     target.operator->()->second.c_str());
+    PrintError(4, WEBSERV, "Location Config Error",
+               target.operator->()->first.c_str(),
+               target.operator->()->second.c_str());
     return (false);
   }
   if (location.index_mode_ == autodef) {
-    (4, WEBSERV, "Location Config Error", target.operator->()->first.c_str(),
-     target.operator->()->second.c_str());
+    PrintError(4, WEBSERV, "Location Config Error",
+               target.operator->()->first.c_str(),
+               target.operator->()->second.c_str());
     return (false);
   }
   (void)error_log;
@@ -561,9 +572,9 @@ bool ServerConfig::ValidConfigError(conf_iterator& target) {
       if (temp.at(i) == ' ') {
         int errnum = atoi(value.c_str());
         if (errnum < 100 || errnum >= 600) {
-          (4, WEBSERV, "Location Config Error",
-           target.operator->()->first.c_str(),
-           target.operator->()->second.c_str());
+          PrintError(4, WEBSERV, "Location Config Error",
+                     target.operator->()->first.c_str(),
+                     target.operator->()->second.c_str());
           return (false);
         }
       } else {
