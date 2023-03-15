@@ -1,6 +1,7 @@
 #include "../../include/datas.hpp"
 
 #include <sstream>
+#include <string>
 
 typedef std::map<std::string, std::string> config_map;
 
@@ -177,6 +178,10 @@ const std::string& s_client_type::GetOriginURI(void) {
   return this->origin_uri_;
 }
 
+const std::string& s_client_type::GetConvertedURI(void) {
+  return this->request_msg_.init_line_.at("URI");
+}
+
 void s_client_type::SetWorkFinishTime(void) {
   this->time_data_[1] = std::time(NULL);
 }
@@ -304,14 +309,36 @@ void s_client_type::SendLogs(void) {
   return;
 }
 
+void s_client_type::SetError(int custom_errno, std::string custom_msg) {
+  this->errno_ = custom_errno;
+  this->err_custom_ = custom_msg;
+}
+bool s_client_type::SetMimeType(std::string converted_uri) {
+  std::string key;
+
+  size_t limit = converted_uri.size();
+  size_t size = limit;
+
+  while (--size != 0) {
+    if (converted_uri[size] == '.') break;
+  }
+  key = converted_uri.substr(size + 1, converted_uri.size() - 1);
+  if (config_ptr_->mime_.find(key) == config_ptr_->mime_.end()) {
+    return (false);
+  }
+  this->mime_ = config_ptr_->mime_.find(key).operator->()->second;
+  return (true);
+}
+std::string& s_client_type::GetMimeType(void) { return this->mime_; }
+
 /****************** Work Type ********************/
 
 s_work_type::s_work_type(std::string& path, int fd, s_chore work_type,
-                         t_http& resoponse_msg)
+                         t_http& response_msg)
     : s_base_type(fd),
       uri_(path),
       work_type_(work_type),
-      response_msg_(resoponse_msg) {}
+      response_msg_(response_msg) {}
 
 s_work_type::~s_work_type() {}
 

@@ -110,9 +110,10 @@ void ServerRun(ServerConfig& config) {
         switch (ft_filter->GetType()) {
           case WORK: {
             s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
-            if (work_type->GetWorkType() == file)
+            if (work_type->GetWorkType() == file) {
               std::cout << "file steps" << std::endl;
-            else if (work_type->GetWorkType() == cgi)
+              WorkGet(curr_event);
+            } else if (work_type->GetWorkType() == cgi)
               std::cout << "cgi steps" << std::endl;
           } break;
           case CLIENT: {
@@ -135,6 +136,7 @@ void ServerRun(ServerConfig& config) {
               delete[] client_msg;
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
                 case GET_READY: {
+                  ClientGet(curr_event);
                   break;
                 }
                 case POST_READY: {
@@ -143,66 +145,61 @@ void ServerRun(ServerConfig& config) {
                 case DELETE_READY: {
                   break;
                 }
+                case ERR_READY: {
+                  break;
+                }
                 default: {
                   break;
                 }
-
-                std::cout << "[ client (" << curr_event->ident << ") ]"
-                          << std::endl;
-                write(1, client_msg, curr_event->data);
-                close(curr_event->ident);
-                ChangeEvents(config.change_list_, curr_event->ident, 0,
-                             EV_DELETE, 0, 0, NULL);
-                // DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
-                config.change_list_.clear();
-                delete[] client_msg;
-                // TODO: 작업 END시 처리해줘야 할 것들은 다음과 같다.
-                // TODO: client udata ~ file udata 까지 찾아들어가서 delete 를
-                // 진행하면 될듯
-              } else if (curr_event->filter == EVFILT_WRITE) {
-                s_client_type* client = static_cast<s_client_type*>(ft_filter);
-                std::cout << " client Write step" << std::endl;
-                client->SetResponse();
-                char* msg_top = MaketopMessage(client);
-                char* send_msg = MakeSendMessage(client, msg_top);
-                size_t send_msg_len;
-                delete msg_top;
-                if (client->GetStage() == RES_CHUNK) {
-                  send_msg_len =
-                      static_cast<size_t>(client->GetConfig()
-                                              .main_config_.find(BODY)
-                                              ->second.size());
-                } else if (client->GetStage() == RES_CHUNK &&
-                           client->GetChunkSize() >
-                               client->GetResponse().entity_length_) {
-                  send_msg_len = client->GetChunkSize() %
-                                 client->GetResponse().entity_length_;
-                } else if (client->GetStage() == RES_FIN) {
-                  send_msg_len = 5;
-                } else
-                  send_msg_len = client->GetMessageLength();
-                send(curr_event->ident, send_msg, send_msg_len, 0);
-                DeleteSendMessage(send_msg, send_msg_len);
-                if (!client->GetChunked() || client->GetStage() != RES_CHUNK) {
-                  DeleteUdata(ft_filter);
-                  if (client->GetStage() == END) {
-                    ChangeEvents(config.change_list_, curr_event->ident,
-                                 EVFILT_WRITE, EV_DELETE, 0, 0, 0);
-                  } else {
-                    ChangeEvents(config.change_list_, curr_event->ident,
-                                 EVFILT_WRITE, EV_DISABLE, 0, 0, 0);
-                    ChangeEvents(config.change_list_, curr_event->ident,
-                                 EVFILT_TIMER, EV_ADD, NOTE_SECONDS, 5, 0);
-                    client->SetStage(RES_FIN);
-                  }
-                }
-              } else if (curr_event->filter == EVFILT_TIMER) {
-                // TODO: time out 상태, 적절한 closing 필요
               }
               // TODO: 작업 END시 처리해줘야 할 것들은 다음과 같다.
               // TODO: client udata ~ file udata 까지 찾아들어가서 delete 를
               // 진행하면 될듯
             } else if (curr_event->filter == EVFILT_WRITE) {
+              s_client_type* client = static_cast<s_client_type*>(ft_filter);
+              std::cout << " client Write step" << std::endl;
+              client->SetResponse();
+              char* msg_top = MaketopMessage(client);
+              char* send_msg = MakeSendMessage(client, msg_top);
+              size_t send_msg_len;
+              delete msg_top;
+              if (client->GetStage() == RES_CHUNK) {
+                send_msg_len = static_cast<size_t>(
+                    client->GetConfig().main_config_.find(BODY)->second.size());
+              } else if (client->GetStage() == RES_CHUNK &&
+                         client->GetChunkSize() >
+                             client->GetResponse().entity_length_) {
+                send_msg_len = client->GetChunkSize() %
+                               client->GetResponse().entity_length_;
+              } else if (client->GetStage() == RES_FIN) {
+                send_msg_len = 5;
+              } else
+                send_msg_len = client->GetMessageLength();
+              send(curr_event->ident, send_msg, send_msg_len, 0);
+              DeleteSendMessage(send_msg, send_msg_len);
+              if (!client->GetChunked() || client->GetStage() != RES_CHUNK) {
+                DeleteUdata(ft_filter);
+                if (client->GetStage() == END) {
+                  ChangeEvents(config.change_list_, curr_event->ident,
+                               EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+                } else {
+                  ChangeEvents(config.change_list_, curr_event->ident,
+                               EVFILT_WRITE, EV_DISABLE, 0, 0, 0);
+                  ChangeEvents(config.change_list_, curr_event->ident,
+                               EVFILT_TIMER, EV_ADD, NOTE_SECONDS, 5, 0);
+                  client->SetStage(RES_FIN);
+                }
+              }
+            }
+
+            else if (curr_event->filter == EVFILT_TIMER) {
+              // TODO: time out 상태, 적절한 closing 필요
+            }
+            // TODO: 작업 END시 처리해줘야 할 것들은 다음과 같다.
+            // TODO: client udata ~ file udata 까지 찾아들어가서 delete 를
+            // 진행하면 될듯
+
+            else if (curr_event->filter == EVFILT_WRITE) {
               std::cout << " client Write step" << std::endl;
             } else if (curr_event->filter == EVFILT_TIMER) {
               // TODO: time out 상태, 적절한 closing 필요
@@ -214,8 +211,8 @@ void ServerRun(ServerConfig& config) {
             //     delete ft_filter;
             //     ChangeEvents(config.change_list_, curr_event->ident,
             //                  EVFILT_READ, EV_DELETE, 0, 0, NULL);
-            //   }
-          } break;
+            break;
+          }
           case LOGGER: {
             s_logger_type* logger = static_cast<s_logger_type*>(ft_filter);
             logger->PushData();
@@ -247,8 +244,8 @@ void ServerRun(ServerConfig& config) {
                          NOTE_SECONDS, timer, client);
             //   std::cout << "time setting" << timer << std::endl;
             // TODO: socket option setting;
-            // client->PrintClientStatus();
-            // server->GetLogger().PrintLogger();
+            client->PrintClientStatus();
+            server->GetLogger().PrintLogger();
           } break;
         }
       }

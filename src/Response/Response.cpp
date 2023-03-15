@@ -40,7 +40,7 @@ std::string MakeContentType(s_client_type* client) {
 static std::string stToString(size_t size) {
   size_t num = size;
   char buf[1024];
-  std::sprintf(buf, "%lu", num);
+  std::snprintf(buf, 1024, "%lu", num);
   std::string str_num = std::string(buf);
   return str_num;
 }
@@ -57,7 +57,7 @@ static std::string to_hex_string(size_t value) {
 
 inline char* ChunkMsgFirst(char* send_size, std::string hex_size, t_http& res,
                            size_t chunk_size) {
-  sprintf(send_size, "%s\r\n", hex_size.c_str());
+  snprintf(send_size, 1024, "%s\r\n", hex_size.c_str());
   size_t len = sizeof(send_size);
   char* buf = new char[len + chunk_size + 2];
   std::memcpy(buf, send_size, len);
@@ -68,7 +68,7 @@ inline char* ChunkMsgFirst(char* send_size, std::string hex_size, t_http& res,
 
 inline char* ChunkMsgMain(char* send_size, std::string hex_size, t_http& res,
                           size_t chunk_size) {
-  sprintf(send_size, "%s\r\n", hex_size.c_str());
+  snprintf(send_size, 1024, "%s\r\n", hex_size.c_str());
   size_t len = sizeof(send_size);
   char* buf = new char[len + chunk_size + 2];
   std::memcpy(buf, send_size, len);
@@ -79,7 +79,7 @@ inline char* ChunkMsgMain(char* send_size, std::string hex_size, t_http& res,
 
 inline char* ChunkMsgEnd(char* send_size, std::string last_size, t_http& res,
                          size_t chunk_size, s_client_type* client) {
-  sprintf(send_size, "%s\r\n", last_size.c_str());
+  snprintf(send_size, 1024, "%s\r\n", last_size.c_str());
   size_t len = sizeof(send_size);
   char* buf = new char[len + chunk_size + 4];
   std::memcpy(buf, send_size, len);
@@ -110,7 +110,7 @@ static char* ChunkMsg(s_client_type* client, char* msg) {
       return (ChunkMsgEnd(send_size, hex_size, res, chunk_size, client));
     }
   }
-  sprintf(send_size, "0\r\n\r\n");
+  snprintf(send_size, 1024, "0\r\n\r\n");
   char* buf = new char[5];
   std::memcpy(buf, send_size, 5);
   return buf;
@@ -132,7 +132,7 @@ t_http MakeResponseMessages(s_client_type* client) {
   msg.header_.insert(
       std::make_pair(std::string("Server :"), std::string("serv1")));
   std::string cookie_id = client->GetCookieId();
-  std::sprintf(buf, "my_cookie=%s; HttpOnly;", cookie_id.c_str());
+  std::snprintf(buf, 1024, "my_cookie=%s; HttpOnly;", cookie_id.c_str());
   std::string set_cookie = std::string(buf);
   msg.header_.insert(std::make_pair(std::string("Set-Cookie :"), set_cookie));
   if (client->GetChunked()) {
