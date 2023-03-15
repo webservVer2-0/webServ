@@ -32,6 +32,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -42,6 +43,7 @@
 #include "config.hpp"
 #include "datas.hpp"
 #include "errorchecker.hpp"
+#include "method.hpp"
 #include "mime.hpp"
 #include "response.hpp"
 #include "server.hpp"
