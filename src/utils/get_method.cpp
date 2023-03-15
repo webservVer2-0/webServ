@@ -4,7 +4,7 @@
 // TODO : error 발생시 err_custom_ 지정해줘야함 > 어느 함수, 어디에서 났는지
 // 적기
 // TODO : 예외처리 더 ?
-
+// TODO : 하류님이 errno_, err_custom_ setter 만드신다 함
 /**
  * @brief
  *
@@ -30,9 +30,6 @@ void ClientGet(struct kevent* event) {
 }
 
 void MethodGetReady(s_client_type*& client) {
-  // void ClientGet(struct kevent* event) {
-  // s_client_type* client = static_cast<s_client_type*>(event->udata);
-  // client->SetErrorCode(NO_ERROR);
   const char* dir = client->GetRequest().init_line_.find("URI")->second.c_str();
   std::string uri = client->GetLocationConfig().location_;
   t_http& response = client->GetResponse();
@@ -40,13 +37,16 @@ void MethodGetReady(s_client_type*& client) {
   {
     // SetMime(client->GetConfig().mime_, uri); //SetMime()은 server의 mime
     // TODO : mime set 해줘야함. client에 haryu님이 넣으실 예정
+    client->SetErrorCode(OK);
     client->SetStage(GET_FIN);
     return;
   } else  // 일반파일인경우
   {
     int req_fd = open(dir, O_RDONLY);
     if (req_fd == -1) {
+      // TODO: client->errno setting;
       client->SetErrorCode(SYS_ERR);
+      client->SetStage(ERR_FIN);
       return;
     }
     fcntl(req_fd, F_SETFL, O_NONBLOCK);
@@ -54,6 +54,7 @@ void MethodGetReady(s_client_type*& client) {
     s_base_type* work = client->CreateWork(&uri, req_fd, file);
     std::vector<struct kevent> tmp;
     ChangeEvents(tmp, req_fd, EVFILT_READ, EV_ADD, 0, 0, work);
+    client->SetErrorCode(OK);
     client->SetStage(GET_START);
   }
   return;
@@ -75,23 +76,25 @@ void WorkGet(struct kevent* event) {
   int req_fd = work->GetFD();
   read_ret = read(req_fd, work->GetResponseMsg().entity_, tmp_entity_len);
   if ((read_ret != tmp_entity_len) || read_ret == size_t(-1)) {
+    // TODO: client->errno setting;
     client->SetErrorCode(SYS_ERR);
-    return;
-  }
-  work->ChangeClientEvent(EVFILT_WRITE, EV_ADD, 0, 0, client);
-  work->ChangeClientEvent(EVFILT_READ, EV_DISABLE | EV_DELETE, 0, 0, work);
-  if (close(req_fd) == -1) {
-    client->SetErrorCode(SYS_ERR);
-    // TODO : delete close 관계 더 찾아보기
+    client->SetStage(ERR_FIN);
     return;
   }
   client->SetErrorCode(OK);
+  work->ChangeClientEvent(EVFILT_READ, EV_DISABLE | EV_DELETE, 0, 0, work);
   // TODO : mime set
-  if (tmp_entity_len > chunk_size)
+  if (tmp_entity_len > chunk_size) {
     work->SetClientStage(GET_CHUNK);
-  else {
-    // TODO : write 활성
+  } else {
+    work->ChangeClientEvent(EVFILT_WRITE, EV_ADD, 0, 0, client);
     work->SetClientStage(GET_FIN);
+  }
+  if (close(req_fd) == -1) {
+    // TODO: client->errno setting;
+    client->SetErrorCode(SYS_ERR);
+    client->SetStage(ERR_FIN);
+    // TODO : (j)delete close 관계 더 찾아보기
   }
 
   return;
