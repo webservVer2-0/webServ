@@ -112,9 +112,14 @@ void ServerRun(ServerConfig& config) {
             s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
             if (work_type->GetWorkType() == file) {
               std::cout << "file steps" << std::endl;
-              WorkGet(curr_event);
-            } else if (work_type->GetWorkType() == cgi)
+              if (work_type->GetClientStage() == GET_START)
+                WorkGet(curr_event);
+              else if (work_type->GetClientStage() == POST_START)
+                WorkFilePost(curr_event);
+            } else if (work_type->GetWorkType() == cgi) {
               std::cout << "cgi steps" << std::endl;
+              WorkCGIPost(curr_event);
+            }
           } break;
           case CLIENT: {
             if (curr_event->filter == EVFILT_READ) {
@@ -140,6 +145,11 @@ void ServerRun(ServerConfig& config) {
                   break;
                 }
                 case POST_READY: {
+                  if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
+                      file)
+                    ClientFilePost(curr_event);
+                  else
+                    ClientCGIPost(curr_event);
                   break;
                 }
                 case DELETE_READY: {
