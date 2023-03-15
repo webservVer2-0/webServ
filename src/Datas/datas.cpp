@@ -309,8 +309,8 @@ void s_client_type::SendLogs(void) {
   return;
 }
 
-void s_client_type::SetError(int errno, std::string custom_msg) {
-  this->errno_ = errno;
+void s_client_type::SetError(int custom_errno, std::string custom_msg) {
+  this->errno_ = custom_errno;
   this->err_custom_ = custom_msg;
 }
 bool s_client_type::SetMimeType(std::string converted_uri) {
