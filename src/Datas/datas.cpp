@@ -84,7 +84,12 @@ void s_client_type::SetCookieId(std::string prev_id) {
 
 t_http& s_client_type::GetRequest(void) { return this->request_msg_; }
 t_http& s_client_type::GetResponse(void) { return this->response_msg_; }
+void s_client_type::SetResponse(void) {
+  this->response_msg_ = MakeResponseMessages(this);
+}
 
+size_t& s_client_type::GetMessageLength(void) { return this->msg_length; }
+void s_client_type::SetMessageLength(size_t size) { this->msg_length = size; }
 const t_stage& s_client_type::GetStage(void) { return this->stage_; }
 void s_client_type::SetStage(t_stage val) {
   time_data_[1] = std::time(NULL);
