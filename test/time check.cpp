@@ -54,7 +54,7 @@ int main() {
 
   // format the current time as an HTTP date string
   char http_date[30];
-  std::strftime(http_date, 30, "%a, %d %b %Y %H:%M:%S GMT", std::gmtime(&now));
+  std::strftime(http_date, 30, "%a, %d %b %Y %H:%M:%S", std::localtime(&now));
 
   std::cout << "HTTP date: " << http_date << std::endl;
 

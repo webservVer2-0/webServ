@@ -14,6 +14,7 @@ typedef struct s_elem {
   size_t _header_crlf; /* "asd\r\n" */
   e_method _method;
   bool _exist_content_length;
+  bool _exist_cookie;
 } t_elem;
 
 template <typename T>
@@ -33,7 +34,7 @@ std::string to_string(const T& value) {
  */
 static t_error request_error(s_client_type* client_type, t_error err_code) {
   client_type->SetErrorCode(err_code);
-  client_type->SetStage(REQ_FIN);
+  client_type->SetStage(ERR_READY);
   return (err_code);
 }
 
@@ -128,6 +129,9 @@ t_error fill_header(t_http* http, t_elem* e) {
       if (key == "Content-Length") {
         e->_exist_content_length = true;
       }
+      if (key == "Cookie") {
+        e->_exist_cookie = true;
+      }
       http->header_[key] = value;
     } else if (pos == end_pos) {
       break;
@@ -149,6 +153,13 @@ void set_status(s_client_type* client, t_elem* e) {
   return;
 }
 
+/**
+ * @brief elem의 멤버 초기화 및 간단한 에러 체크
+ *
+ * @param e    쓸 정보 담기
+ * @param line recv()로 받은 메시지를 string으로 치환
+ * @return t_error
+ */
 t_error elem_initializer(t_elem* e, std::string line) {
   memset(&e, 0, sizeof(t_elem));
 
@@ -182,9 +193,6 @@ t_error request_handler(void* udata, char* msg) {
   t_error err_code = NO_ERROR;
   std::string line(msg);
 
-  /*
-    쿠키
-  */
   try {
     if (err_code = elem_initializer(&e, line)) {
       return (request_error(client_type, err_code));
@@ -198,6 +206,9 @@ t_error request_handler(void* udata, char* msg) {
     if (fill_header(http, &e)) {
       return (request_error(client_type, BAD_REQ));
     }
+    if (e._exist_cookie) {
+      client_type->SetCookieId(http->header_["COOKIE"]);
+    }
     if (e._method == POST) {
       if ((err_code = alloc_entity(http, &e, msg))) {
         return (request_error(client_type, err_code));
@@ -206,9 +217,5 @@ t_error request_handler(void* udata, char* msg) {
   } catch (std::exception& e) {
     return (request_error(client_type, BAD_REQ));
   }
-  set_status(client_type, &e);
-  /*
-    jinypark님 파트
-  */
   return (NO_ERROR);
 }

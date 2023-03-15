@@ -44,6 +44,7 @@
 #include "datas.hpp"
 #include "errorchecker.hpp"
 #include "mime.hpp"
+#include "response.hpp"
 #include "server.hpp"
 #include "utils.hpp"
 

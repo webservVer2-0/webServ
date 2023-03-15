@@ -9,20 +9,27 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   char* config_data = NULL;
   config_data = GetFile(confpath);
 
+  // Parssing Config data
   ParssingServer(config_data);
   delete[] config_data;
-  //   PrintServerConfig();
+
+  // Valid Checker for Config Validation
   ValidCheckMain();
+
+  // Server Config Mime type setting
   for (int i = 0; i < server_number_; i++) {
     SetMime(GetServerMimeByNumber(i),
             GetServerConfigByNumber(i)->main_config_.at(INC));
   }
+
+  // Server Config Cache setting
   for (int i = 0; i < server_number_; i++) {
     SetCache(*server_list_.at(i), server_list_.at(i)->static_pages_,
              server_list_.at(i)->error_pages_);
     GetCacheList(server_list_.at(i)->static_pages_,
                  server_list_.at(i)->error_pages_);
   }
+
   ServerAddressInit();
   ServerSocketInit();
   ServerEventInit();
@@ -473,7 +480,7 @@ bool ServerConfig::ValidConfigHTML(conf_iterator& target) {
   int i = 0;
   int limit = temp.size();
   while (i < limit) {
-    if (isalnum(temp.at(i))) {
+    if (isalnum(temp.at(i)) || temp.at(i) == '_') {
       i++;
     } else if (temp.at(i) == '.') {
       if (temp.find("html", i) != std::string::npos) {
@@ -731,9 +738,9 @@ bool ServerConfig::ValidCheckLocation(int server_number,
         return (false);
       }
     } else if (temp.compare(REDIR) == 0) {
-      if (!ValidConfigFilePath(target)) {
-        return (false);
-      }
+      //   if (!ValidConfigFilePath(target)) {
+      //     return (false);
+      //   }
       target_location->loc_type_[1] = T_REDIR;
     } else if (temp.compare(CGIFILE) == 0) {
       if (!ValidConfigCGIFile(target, error_log, *target_location)) {
@@ -852,4 +859,8 @@ const t_server& ServerConfig::GetServerList(int number) {
 
 t_mime& ServerConfig::GetServerMimeByNumber(int number) {
   return this->server_list_.at(number)->mime_;
+}
+
+struct sockaddr_in* ServerConfig::GetSockaddr(void) {
+  return this->server_addr_;
 }
