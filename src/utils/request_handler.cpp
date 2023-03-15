@@ -213,21 +213,22 @@ t_error request_handler(void* udata, char* msg) {
                             "GET인데 entity가 있다?ㅋㅋ 절대 안 되지"));
     }
     if ((err_code = init_line_parser(http, &e))) {
-      return (request_error(client_type, err_code, "rq_hdlr: "));
+      return (
+          request_error(client_type, err_code, "rq_hdlr: init_line_parser()"));
     }
     if (fill_header(http, &e)) {
-      return (request_error(client_type, BAD_REQ, ));
+      return (request_error(client_type, BAD_REQ, "fill_header()"));
     }
     if (e._exist_cookie) {
       client_type->SetCookieId(http->header_["COOKIE"]);
     }
     if (e._method == POST) {
       if ((err_code = alloc_entity(http, &e, msg))) {
-        return (request_error(client_type, err_code));
+        return (request_error(client_type, err_code, "alloc()"));
       }
     }
   } catch (std::exception& e) {
-    return (request_error(client_type, BAD_REQ));
+    return (request_error(client_type, BAD_REQ, "exception occur"));
   }
   return (NO_ERROR);
 }
