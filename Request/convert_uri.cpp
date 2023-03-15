@@ -49,6 +49,10 @@ t_error convert_uri(std::string rq_uri,
   if (rq_path.size() == 1)
     rq_path.push_back((*loc_it).second->main_config_[DEFFILE]);
 
+  if ((*loc_it).second->main_config_[METHOD].find(client.GetRequest().init_line_["METHOD"]) == std::string().npos)
+  {
+    return FORBID;
+  }
   client.SetConfigPtr((*loc_it).second);
   client.GetRequest().init_line_["URI"] = make_uri_path(rq_path);
   print_vector_path(rq_path);
