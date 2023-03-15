@@ -16,7 +16,12 @@ s_logger_type::~s_logger_type() {
 //   this->error_fd_ = target.error_fd_;
 // }
 
-void s_logger_type::GetData(std::string log) { logs_.push_back(log); }
+void s_logger_type::GetData(std::string log) {
+  logs_.push_back(log);
+  std::vector<struct kevent> temp;
+  ChangeEvents(temp, this->error_fd_, EVFILT_WRITE, EV_ENABLE, 0, NULL, this);
+  ChangeEvents(temp, this->logging_fd_, EVFILT_WRITE, EV_ENABLE, 0, NULL, this);
+}
 void s_logger_type::PushData(void) {
   size_t limit = logs_.size();
   if (limit == 0) return;

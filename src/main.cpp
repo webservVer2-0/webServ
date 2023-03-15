@@ -22,12 +22,6 @@ int main(int ac, char** av, char** en) {
   ServerRun(webserv);
 
   (void)en;
-  // #if DG
-  //   SOUT << "debug mode" << SEND;
-  //   system("leaks webserv");
-  // #else
-  //   SOUT << "Not debug mode" << SEND;
-  // #endif
   return (0);
 }
 
