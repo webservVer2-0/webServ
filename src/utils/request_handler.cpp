@@ -32,7 +32,7 @@ std::string to_string(const T& value) {
  */
 static t_error request_error(s_client_type* client_type, t_error err_code) {
   client_type->SetErrorCode(err_code);
-  client_type->SetStage(REQ_FIN);
+  client_type->SetStage(ERR_READY);
   return (err_code);
 }
 
@@ -146,7 +146,7 @@ void set_status(s_client_type* client, t_elem* e) {
 }
 
 t_error elem_initializer(t_elem* e, std::string line) {
-  memset(&e, 0, sizeof(t_elem));
+  memset(e, 0, sizeof(t_elem));
 
   if (line.empty()) {
     return (BAD_REQ);
@@ -179,7 +179,9 @@ t_error request_handler(void* udata, char* msg) {
   std::string line((char*)msg);
 
   try {
-    if (err_code = elem_initializer(&e, line)) {
+    err_code = elem_initializer(&e, line);
+
+    if (err_code) {
       return (request_error(client_type, err_code));
     }
     if ((err_code = init_line_parser(http, &e))) {
