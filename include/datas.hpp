@@ -39,6 +39,7 @@ typedef enum s_stage {
   DELETE_START,
   DELETE_FIN,
   ERR_FIN,  // error case로 page를 전달해야 할 때 체크해야할 enum
+  RES_CHUNK,
   RES_FIN,
   END
 } t_stage;
@@ -211,6 +212,7 @@ class s_client_type : public s_base_type {
   t_error status_code_;  // HTTP status를 확인하는 용 //TODO: logger
   std::string err_custom_;  // custom msg 보관용 //TODO: logger
   int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다. //TODO: logger
+  size_t msg_length;
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);
@@ -234,6 +236,10 @@ class s_client_type : public s_base_type {
   void SetCookieId(std::string prev_id);
   t_http& GetRequest(void);
   t_http& GetResponse(void);
+  void SetResponse(void);
+
+  size_t& GetMessageLength(void);
+  void SetMessageLength(size_t);
 
   const t_stage& GetStage(void);
   void SetStage(t_stage val);
@@ -252,6 +258,7 @@ class s_client_type : public s_base_type {
 
   bool GetChunked(void);
   size_t GetChunkSize(void);
+
   /**
    * @brief 전달한 사이즈만큼과 실제 전체 entity_length_를 비교하여 값을
    * 다보낸 경우 true, 아닌 경우 false를 보낸다.
