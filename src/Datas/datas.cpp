@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+typedef std::map<std::string, std::string> config_map;
+
 /****************** Base Type ********************/
 
 s_base_type::s_base_type(int fd) : type_(SERVER), fd_(fd) {}
@@ -34,11 +36,16 @@ s_base_type* s_server_type::CreateClient(int client_fd) {
 s_client_type::s_client_type(t_server* config, int client_fd,
                              s_server_type* mother)
     : s_base_type(client_fd) {
-  cookie_id_ = rand();
+  std::ostringstream temp;
+  temp << rand();
+  cookie_id_ = temp.str();
+  temp.clear();
   this->SetType(CLIENT);
   this->config_ptr_ = config;
+  this->loc_config_ptr_ = NULL;
   parent_ptr_ = mother;
   data_ptr_ = NULL;
+  sent_size_ = 0;
   stage_ = DEF;
   status_code_ = NO_ERROR;
 }
@@ -56,11 +63,19 @@ s_base_type* s_client_type::CreateWork(std::string* path, int file_fd,
   return (work);
 }
 
-int s_client_type::GetCookieId(void) { return this->cookie_id_; }
+std::string s_client_type::GetCookieId(void) { return this->cookie_id_; }
+void s_client_type::SetCookieId(std::string prev_id) {
+  this->cookie_id_ = prev_id;
+}
 
 t_http& s_client_type::GetRequest(void) { return this->request_msg_; }
 t_http& s_client_type::GetResponse(void) { return this->response_msg_; }
+void s_client_type::SetResponse(void) {
+  this->response_msg_ = MakeResponseMessages(this);
+}
 
+size_t& s_client_type::GetMessageLength(void) { return this->msg_length; }
+void s_client_type::SetMessageLength(size_t size) { this->msg_length = size; }
 const t_stage& s_client_type::GetStage(void) { return this->stage_; }
 void s_client_type::SetStage(t_stage val) { this->stage_ = val; }
 
@@ -71,6 +86,11 @@ const t_server& s_client_type::GetConfig(void) { return *this->config_ptr_; }
 const s_server_type& s_client_type::GetParentServer(void) {
   return *(dynamic_cast<s_server_type*>(parent_ptr_));
 }
+const t_loc& s_client_type::GetLocationConfig(void) {
+  return *this->loc_config_ptr_;
+}
+void s_client_type::SetConfigPtr(t_loc* ptr) { this->loc_config_ptr_ = ptr; }
+
 s_work_type* s_client_type::GetChildWork(void) {
   return (dynamic_cast<s_work_type*>(data_ptr_));
 }
@@ -120,6 +140,17 @@ bool s_client_type::GetCacheError(t_error code, t_http& response) {
   response.entity_[response.entity_length_] = '\0';
   temp_str.clear();
   return (true);
+}
+
+bool s_client_type::GetChunked(void) { return (this->GetStage() == GET_CHUNK); }
+size_t s_client_type::GetChunkSize(void) { return this->sent_size_; }
+bool s_client_type::IncreaseChunked(size_t sent_size) {
+  size_t sent_unit = sent_size;
+  sent_size_ += sent_unit;
+  if (sent_size_ < this->response_msg_.entity_length_)
+    return false;
+  else
+    return true;
 }
 
 /****************** Work Type ********************/

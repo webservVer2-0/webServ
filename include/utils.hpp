@@ -4,9 +4,11 @@
 #include <cstdarg>
 
 #include "webserv.hpp"
+#include "datas.hpp"
 
 typedef unsigned long pos_t;
 class s_base_type;
+typedef struct s_http t_http;
 
 /**
  * @brief Error handling function with variable parameters.
@@ -106,5 +108,13 @@ void SetSockoptReuseaddr(int* socket_fd, int socket_length);
 /* debug tools */
 
 void PrintLine(std::string& target, pos_t pos);
+
+/* DELETE page 제작용 */
+
+void MakeDeleteHead(t_http& response);
+
+void MakeDeleteBody(std::string directory_path, t_http& response);
+
+void MakeDeleteFooter(t_http& response);
 
 #endif

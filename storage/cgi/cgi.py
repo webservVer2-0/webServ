@@ -1,5 +1,25 @@
-import asciigen
+#!/usr/bin/env python
+import cgi
+import io
+from PIL import Image
+import pytesseract
 
-value = asciigen.from_filename("/Users/haryu/workspace/webserv_2.0/team_webserv/storage/cgi/test_apple.png", width=100)
+print("Content-Type: text/plain")
+print()
 
-print(value)
+form = cgi.FieldStorage()
+if "image" not in form:
+    print("Error: No image uploaded")
+else:
+    # read the image file
+    fileitem = form["image"]
+    imgfile = io.BytesIO(fileitem.file.read())
+    
+    # open the image using PIL
+    img = Image.open(imgfile)
+    
+    # extract text from the image using Tesseract OCR
+    text = pytesseract.image_to_string(img)
+    
+    # print the extracted text
+    print(text)

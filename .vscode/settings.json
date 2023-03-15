@@ -73,5 +73,15 @@
 		"utility": "cpp"
 	},
 	"C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
+<<<<<<< HEAD
+	"C_Cpp.intelliSenseEngineFallback": "disabled",
+    "liveServer.settings.proxy": {
+    "enable": true,
+    "baseUri": "/cgi",
+    "proxyUri": "http://localhost:5500/storage/static/cgi"
+  }
+}
+=======
 	"C_Cpp.intelliSenseEngineFallback": "disabled"
 }
+>>>>>>> 10-chpark-response-msg
