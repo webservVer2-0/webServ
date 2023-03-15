@@ -5,9 +5,11 @@
 #include "webserv.hpp"
 
 class ServerConfig;
-class s_server_type;
-class s_client_type;
-class s_work_type;
+// class s_base_type;
+// class s_server_type;
+// class s_client_type;
+// class s_work_type;
+// class s_logger_type;
 
 typedef struct s_server t_server;
 typedef struct s_loc t_loc;
@@ -16,7 +18,7 @@ typedef struct s_loc t_loc;
  * @brief 이벤트 type을 정의하기 위한 enum
  *
  */
-typedef enum s_event_type { SERVER, CLIENT, WORK } t_event;
+typedef enum s_event_type { SERVER, CLIENT, WORK, LOGGER } t_event;
 
 /**
  * @brief client 이벤트의 진행상황을 확인하기 위한(kevent 분기를 고려하여) enum
@@ -103,9 +105,66 @@ class s_base_type {
  *
  */
 
+class s_work_type : public s_base_type {
+ private:
+  const std::string uri_;
+  s_base_type* client_ptr_;
+  s_chore work_type_;
+  t_http& response_msg_;
+
+  s_work_type(const s_work_type& target);
+  s_work_type& operator=(const s_work_type& target);
+
+ public:
+  s_work_type(std::string& path, int fd, s_chore work_type,
+              t_http& response_msg);
+  ~s_work_type();
+  void SetClientPtr(s_base_type* ptr);
+  s_base_type* GetClientPtr(void);
+  const std::string& GetUri(void);
+
+  s_chore GetWorkType(void);
+  t_http& GetResponseMsg(void);
+  /**
+   * @brief File fd에서 해당 작업이 끝나고 나면, client 처리를 위해 사용하는
+   * 함수입니다. 설정에 필요한 fliter~udata까지 집어 넣으시면 됩니다. 신규
+   * 등록이 아니니 udata는 NULL 로 넣어 됩니다.
+   *
+   * @param filter
+   * @param flags
+   * @param fflags
+   * @param data
+   * @param udata
+   */
+  void ChangeClientEvent(int16_t filter, uint16_t flags, uint16_t fflags,
+                         intptr_t data, void* udata);
+
+  t_stage GetClientStage(void);
+  void SetClientStage(t_stage val);
+};
+
+class s_logger_type : public s_base_type {
+ private:
+  int logging_fd_;
+  int error_fd_;
+  std::vector<std::string> logs_;
+
+ public:
+  s_logger_type();
+  ~s_logger_type();
+  //   s_logger_type& operator=(const s_logger_type& target);
+  void SetFDs(int log_fd, int err_fd);
+  int GetLoggingFd(void);
+  int GetErrorFd(void);
+  void GetData(std::string);
+  void PushData(void);
+  void PrintLogger(void);
+};
+
 class s_server_type : public s_base_type {
  private:
   t_server* self_config_;
+  s_logger_type logger_;
 
   s_server_type(const s_server_type& target);
   s_server_type& operator=(const s_server_type& target);
@@ -121,6 +180,7 @@ class s_server_type : public s_base_type {
    * @return s_base_type*
    */
   s_base_type* CreateClient(int client_fd);
+  s_logger_type& GetLogger(void) { return this->logger_; }
 };
 
 /**
@@ -133,22 +193,26 @@ class s_server_type : public s_base_type {
 class s_client_type : public s_base_type {
  private:
   std::string cookie_id_;  // 접속한 클라이언트에 대해 부여하는 고유한 넘버
+  std::string ip_;            // TODO: logger
+  std::time_t time_data_[2];  // 0 - access time, 1 - stage change time
+                              // TODO: logger
 
   t_server* config_ptr_;  // 클라이언트에서 사용해야 하는 서버 설정
   t_loc* loc_config_ptr_;  // 클라이언트의 uri가 소속된 로케이션 설정
 
-  t_http request_msg_;   // request 메시지
-  t_http response_msg_;  // response 메시지
+  std::string origin_uri_;  // TODO: logger
+  t_http request_msg_;      // request 메시지
+  t_http response_msg_;     // response 메시지
   size_t sent_size_;  // chunked encoding 상황에서 얼마나 전달했는지를 체크함
 
   s_base_type* parent_ptr_;  // server 클래스 포인터
   s_base_type* data_ptr_;  // work type으로 작업을 하는 영역의 클래스 포인터
 
-  t_stage stage_;        // 현재의 작업 단계를 확인용
-  t_error status_code_;  // HTTP status를 확인하는 용
+  t_stage stage_;        // 현재의 작업 단계를 확인용 //TODO: logger
+  t_error status_code_;  // HTTP status를 확인하는 용 //TODO: logger
+  std::string err_custom_;  // custom msg 보관용 //TODO: logger
+  int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다. //TODO: logger
   size_t msg_length;
-  std::string err_custom_;  // custom msg 보관용
-  int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다.
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);
@@ -196,14 +260,27 @@ class s_client_type : public s_base_type {
   size_t GetChunkSize(void);
 
   /**
-   * @brief 전달한 사이즈만큼과 실제 전체 entity_length_를 비교하여 값을 다보낸
-   * 경우 true, 아닌 경우 false를 보낸다.
+   * @brief 전달한 사이즈만큼과 실제 전체 entity_length_를 비교하여 값을
+   * 다보낸 경우 true, 아닌 경우 false를 보낸다.
    *
    * @param set_size
    * @return true
    * @return false
    */
   bool IncreaseChunked(size_t set_size);
+
+  void SetOriginURI(std::string path);
+  const std::string& GetOriginURI(void);
+
+  void SetWorkFinishTime(void);
+  void SetIP(const char* IP);
+  const std::string& GetIP(void);
+
+  std::time_t* GetTimeData(void);
+
+  void SendLogs(void);
+
+  void PrintClientStatus(void);
 };
 
 /**
@@ -211,42 +288,5 @@ class s_client_type : public s_base_type {
  * 때 생성되는 클래스로, 그 이벤트를 위한 udata 용으로 활용한다.
  *
  */
-class s_work_type : public s_base_type {
- private:
-  const std::string uri_;
-  s_base_type* client_ptr_;
-  s_chore work_type_;
-  t_http& response_msg_;
-
-  s_work_type(const s_work_type& target);
-  s_work_type& operator=(const s_work_type& target);
-
- public:
-  s_work_type(std::string& path, int fd, s_chore work_type,
-              t_http& response_msg);
-  ~s_work_type();
-  void SetClientPtr(s_base_type* ptr);
-  s_base_type* GetClientPtr(void);
-  const std::string& GetUri(void);
-
-  s_chore GetWorkType(void);
-  t_http& GetResponseMsg(void);
-  /**
-   * @brief File fd에서 해당 작업이 끝나고 나면, client 처리를 위해 사용하는
-   * 함수입니다. 설정에 필요한 fliter~udata까지 집어 넣으시면 됩니다. 신규
-   * 등록이 아니니 udata는 NULL 로 넣어 됩니다.
-   *
-   * @param filter
-   * @param flags
-   * @param fflags
-   * @param data
-   * @param udata
-   */
-  void ChangeClientEvent(int16_t filter, uint16_t flags, uint16_t fflags,
-                         intptr_t data, void* udata);
-
-  t_stage GetClientStage(void);
-  void SetClientStage(t_stage val);
-};
 
 #endif

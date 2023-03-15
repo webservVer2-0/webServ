@@ -128,6 +128,8 @@ class ServerConfig {
   void ServerSocketInit(void);
   void ServerEventInit(void);
 
+  struct sockaddr_in* GetSockaddr(void);
+
  public:
   std::vector<struct kevent> change_list_;
   struct kevent* event_list_;

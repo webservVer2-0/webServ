@@ -138,6 +138,9 @@ void DeleteUdata(s_base_type* data) {
       delete file;
       break;
     }
+    case LOGGER: {
+      ;
+    }
   }
 }
 
