@@ -214,7 +214,6 @@ class s_client_type : public s_base_type {
   t_error status_code_;  // HTTP status를 확인하는 용 //TODO: logger
   std::string err_custom_;  // custom msg 보관용 //TODO: logger
   int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다. //TODO: logger
-               // TODO: error custom setter 만들기
   size_t msg_length;
 
   s_client_type(const s_client_type& target, const t_server& master_config);
@@ -274,7 +273,7 @@ class s_client_type : public s_base_type {
 
   void SetOriginURI(std::string path);
   const std::string& GetOriginURI(void);
-  // TODO: GetConvertedURI
+  const std::string& GetConvertedURI(void);
 
   void SetWorkFinishTime(void);
   void SetIP(const char* IP);
@@ -286,7 +285,8 @@ class s_client_type : public s_base_type {
 
   void PrintClientStatus(void);
 
-  void SetMimeType(std::string converted_uri);  // TODO: Mime type for client
+  void SetError(int errno, std::string custom_msg);
+  bool SetMimeType(std::string converted_uri);
   std::string& GetMimeType(void);
 };
 
