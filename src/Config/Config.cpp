@@ -9,20 +9,27 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   char* config_data = NULL;
   config_data = GetFile(confpath);
 
+  // Parssing Config data
   ParssingServer(config_data);
   delete[] config_data;
-  //   PrintServerConfig();
+
+  // Valid Checker for Config Validation
   ValidCheckMain();
+
+  // Server Config Mime type setting
   for (int i = 0; i < server_number_; i++) {
     SetMime(GetServerMimeByNumber(i),
             GetServerConfigByNumber(i)->main_config_.at(INC));
   }
+
+  // Server Config Cache setting
   for (int i = 0; i < server_number_; i++) {
     SetCache(*server_list_.at(i), server_list_.at(i)->static_pages_,
              server_list_.at(i)->error_pages_);
     GetCacheList(server_list_.at(i)->static_pages_,
                  server_list_.at(i)->error_pages_);
   }
+
   ServerAddressInit();
   ServerSocketInit();
   ServerEventInit();
@@ -852,4 +859,8 @@ const t_server& ServerConfig::GetServerList(int number) {
 
 t_mime& ServerConfig::GetServerMimeByNumber(int number) {
   return this->server_list_.at(number)->mime_;
+}
+
+struct sockaddr_in* ServerConfig::GetSockaddr(void) {
+  return this->server_addr_;
 }

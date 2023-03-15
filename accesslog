@@ -1,6 +1,12 @@
 9.34.68 - - [20/Feb/2021:07:29:54 + 0000] "GET <PATH> HTTP/1.1" 200 222 "http://?????"
 
 
+ACCESS LOG FORMMAT 
+	IP, 접속날짜, Init Line, 처리날짜, HTTP status, 치환된 uri
+
+ERROR LOG FORMMAT
+	ERR : IP, 접속날짜, Init Line, Error발생 시각, HTTP Status, Error Num, Error Cunstom Msg
+	ERR : 127.0.0.1 [20/Feb/2021:07:29:54 + 0900] "GET <PATH> HTTP/ 1.1" [ERR_TIME 20/Feb/2021:07:29:54 + 0900] [404 Page Not Found] [3 : servname not supported for ai_socktype] [CUSTOM : ~~~]
 
 2021/02/20 22:43:22 [crit] 32709#32709 *1379 SSL_do_handshake() failed (SSL: error: 어쩌고 저쩌고)
 
