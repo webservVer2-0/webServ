@@ -1,7 +1,8 @@
 #include "../../include/webserv.hpp"
 
 // TODO : err_custom_ getter, setter 만들까?
-// TODO : error 발생시 err_custom_ 지정해줘야함
+// TODO : error 발생시 err_custom_ 지정해줘야함 > 어느 함수, 어디에서 났는지
+// 적기
 // TODO : 예외처리 더 ?
 
 /**
@@ -15,21 +16,46 @@
 void ClientGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
   client->SetErrorCode(NO_ERROR);
-  const char* dir; // TODO : (request uri).c_str(const char*)
-  std::string uri = client->GetLocationConfig().location_;
 
-  int req_fd = open(dir, O_RDONLY);
-  if (req_fd == -1) {
-    client->SetErrorCode(SYS_ERR);
-    return;
+  if (client->GetConfig().index_mode_ != off &&
+      client->GetLocationConfig().index_mode_ != off) {
+    // auto index;
   }
-  fcntl(req_fd, F_SETFL, O_NONBLOCK);
+  // TODO : auto index는 나중에. haryu님이 구현하시는 중. delete랑 거의 비슷해서
+  config_map config = client->GetLocationConfig().main_config_;
+  if (config.find("redirection") != config.end()) {
+    // redir;
+  }
+  MethodGetReady(client);
+}
 
-  s_base_type* work = client->CreateWork(requesturi(&uri), req_fd, file);
-  std::vector<struct kevent> tmp;
-  ChangeEvents(tmp, req_fd, EVFILT_READ, EV_ADD, 0, 0, work);
-  client->SetStage(GET_START);
+void MethodGetReady(s_client_type*& client) {
+  // void ClientGet(struct kevent* event) {
+  // s_client_type* client = static_cast<s_client_type*>(event->udata);
+  // client->SetErrorCode(NO_ERROR);
+  const char* dir = client->GetRequest().init_line_.find("URI")->second.c_str();
+  std::string uri = client->GetLocationConfig().location_;
+  t_http& response = client->GetResponse();
+  if (client->GetCachePage(uri, response))  // 캐시파일인경우
+  {
+    // SetMime(client->GetConfig().mime_, uri); //SetMime()은 server의 mime
+    // TODO : mime set 해줘야함. client에 haryu님이 넣으실 예정
+    client->SetStage(GET_FIN);
+    return;
+  } else  // 일반파일인경우
+  {
+    int req_fd = open(dir, O_RDONLY);
+    if (req_fd == -1) {
+      client->SetErrorCode(SYS_ERR);
+      return;
+    }
+    fcntl(req_fd, F_SETFL, O_NONBLOCK);
 
+    s_base_type* work = client->CreateWork(&uri, req_fd, file);
+    std::vector<struct kevent> tmp;
+    ChangeEvents(tmp, req_fd, EVFILT_READ, EV_ADD, 0, 0, work);
+    client->SetStage(GET_START);
+  }
   return;
 }
 
@@ -40,9 +66,11 @@ void WorkGet(struct kevent* event) {
       client->GetConfig().main_config_.find(BODY)->second.size());
   client->SetErrorCode(NO_ERROR);
 
-  work->GetResponseMsg().entity_length_ = event->data;
+  work->GetResponseMsg().entity_length_ = event->data;  // TODO : 형변환?
+  // event filter마다 data 다름
   size_t tmp_entity_len = work->GetResponseMsg().entity_length_;
-  work->GetResponseMsg().entity_ = new char[tmp_entity_len]; // TODO : new error시
+  work->GetResponseMsg().entity_ =
+      new char[tmp_entity_len];  // TODO : new error시
   size_t read_ret = 0;
   int req_fd = work->GetFD();
   read_ret = read(req_fd, work->GetResponseMsg().entity_, tmp_entity_len);
@@ -58,11 +86,13 @@ void WorkGet(struct kevent* event) {
     return;
   }
   client->SetErrorCode(OK);
-  
+  // TODO : mime set
   if (tmp_entity_len > chunk_size)
     work->SetClientStage(GET_CHUNK);
-  else
+  else {
+    // TODO : write 활성
     work->SetClientStage(GET_FIN);
+  }
 
   return;
 }
