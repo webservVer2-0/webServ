@@ -10,23 +10,6 @@
  *
  */
 
-void ClientGet(struct kevent* event) {
-  s_client_type* client = static_cast<s_client_type*>(event->udata);
-  client->SetErrorCode(NO_ERROR);
-
-  if (client->GetConfig().index_mode_ != off &&
-      client->GetLocationConfig().index_mode_ != off) {
-    // auto index;
-  }
-  // TODO : auto index는 나중에. haryu님이 구현하시는 중. delete랑 거의 비슷해서
-  config_map config = client->GetLocationConfig().main_config_;
-  if (config.find("redirection") != config.end()) {
-    // redir;
-    // TODO : redir도 나중에
-  }
-  MethodGetReady(client);
-}
-
 void MethodGetReady(s_client_type*& client) {
   const char* dir = client->GetRequest().init_line_.find("URI")->second.c_str();
   std::string uri = client->GetLocationConfig().location_;
@@ -55,6 +38,23 @@ void MethodGetReady(s_client_type*& client) {
     client->SetStage(GET_START);
   }
   return;
+}
+
+void ClientGet(struct kevent* event) {
+  s_client_type* client = static_cast<s_client_type*>(event->udata);
+  client->SetErrorCode(NO_ERROR);
+
+  if (client->GetConfig().index_mode_ != off &&
+      client->GetLocationConfig().index_mode_ != off) {
+    // auto index;
+  }
+  // TODO : auto index는 나중에. haryu님이 구현하시는 중. delete랑 거의 비슷해서
+  config_map config = client->GetLocationConfig().main_config_;
+  if (config.find("redirection") != config.end()) {
+    // redir;
+    // TODO : redir도 나중에
+  }
+  MethodGetReady(client);
 }
 
 void WorkGet(struct kevent* event) {

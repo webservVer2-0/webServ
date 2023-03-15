@@ -110,9 +110,10 @@ void ServerRun(ServerConfig& config) {
         switch (ft_filter->GetType()) {
           case WORK: {
             s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
-            if (work_type->GetWorkType() == file)
+            if (work_type->GetWorkType() == file) {
               std::cout << "file steps" << std::endl;
-            else if (work_type->GetWorkType() == cgi)
+              WorkGet(curr_event);
+            } else if (work_type->GetWorkType() == cgi)
               std::cout << "cgi steps" << std::endl;
           } break;
           case CLIENT: {
@@ -135,6 +136,7 @@ void ServerRun(ServerConfig& config) {
               delete[] client_msg;
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
                 case GET_READY: {
+                  ClientGet(curr_event);
                   break;
                 }
                 case POST_READY: {
