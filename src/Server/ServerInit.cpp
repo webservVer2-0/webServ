@@ -110,9 +110,10 @@ void ServerRun(ServerConfig& config) {
         switch (ft_filter->GetType()) {
           case WORK: {
             s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
-            if (work_type->GetWorkType() == file)
+            if (work_type->GetWorkType() == file) {
               std::cout << "file steps" << std::endl;
-            else if (work_type->GetWorkType() == cgi)
+              WorkGet(curr_event);
+            } else if (work_type->GetWorkType() == cgi)
               std::cout << "cgi steps" << std::endl;
           } break;
           case CLIENT: {
@@ -135,6 +136,7 @@ void ServerRun(ServerConfig& config) {
               delete[] client_msg;
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
                 case GET_READY: {
+                  ClientGet(curr_event);
                   break;
                 }
                 case POST_READY: {
@@ -150,15 +152,6 @@ void ServerRun(ServerConfig& config) {
                   break;
                 }
               }
-              std::cout << "[ client (" << curr_event->ident << ") ]"
-                        << std::endl;
-              write(1, client_msg, curr_event->data);
-              close(curr_event->ident);
-              ChangeEvents(config.change_list_, curr_event->ident, 0, EV_DELETE,
-                           0, 0, NULL);
-              // DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
-              config.change_list_.clear();
-              delete[] client_msg;
               // TODO: 작업 END시 처리해줘야 할 것들은 다음과 같다.
               // TODO: client udata ~ file udata 까지 찾아들어가서 delete 를
               // 진행하면 될듯

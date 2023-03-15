@@ -1,4 +1,4 @@
-#include "../include/webserv.hpp"
+#include "../../include/webserv.hpp"
 
 #define CRLF "\r\n"
 #define DOUBLE_CRLF "\r\n\r\n"
@@ -171,7 +171,7 @@ void set_status(s_client_type* client, t_elem* e) {
  * @return t_error
  */
 t_error elem_initializer(t_elem* e, std::string line) {
-  memset(&e, 0, sizeof(t_elem));
+  memset(e, 0, sizeof(t_elem));
 
   if (line.empty()) {
     return (BAD_REQ);
@@ -204,17 +204,13 @@ t_error request_handler(void* udata, char* msg) {
   std::string line(msg);
 
   try {
-    if (err_code = elem_initializer(&e, line)) {
-      return (
-          request_error(client_type, err_code, "rq_hdl : elem_initializer()"));
+    err_code = elem_initializer(&e, line);
+    if (err_code) {
+      return (request_error(client_type, err_code, "elem_initializer()"));
     }
-    if (e._method == GET && line.size() > e._header_crlf + DOUBLE_CRLF_LEN) {
-      return (request_error(client_type, BAD_REQ,
-                            "GET인데 entity가 있다?ㅋㅋ 절대 안 되지"));
-    }
-    if ((err_code = init_line_parser(http, &e))) {
-      return (
-          request_error(client_type, err_code, "rq_hdlr: init_line_parser()"));
+    err_code = init_line_parser(http, &e);
+    if (err_code) {
+      return (request_error(client_type, err_code, "init_line_parser()"));
     }
     if (fill_header(http, &e)) {
       return (request_error(client_type, BAD_REQ, "fill_header()"));
