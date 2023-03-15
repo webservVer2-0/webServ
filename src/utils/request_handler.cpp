@@ -10,9 +10,10 @@ typedef enum t_method { GET, POST, DELETE } e_method;
 typedef struct s_elem {
   std::string _init_line;
   std::string _header_line;
-  e_method _method;
   size_t _content_length;
   size_t _header_crlf; /* "asd\r\n" */
+  e_method _method;
+  bool _exist_content_length;
 } t_elem;
 
 template <typename T>
@@ -88,7 +89,7 @@ t_error init_line_parser(t_http* http, t_elem* e) {
   return (NO_ERROR);
 }
 
-t_error malloc_entity(t_http* http, t_elem* e, char* client_msg) {
+t_error alloc_entity(t_http* http, t_elem* e, char* client_msg) {
   ssize_t entity_len;
   try {
     entity_len = std::stol(http->header_["Content-Length"]);
@@ -124,6 +125,9 @@ t_error fill_header(t_http* http, t_elem* e) {
     if (colon_pos != std::string::npos) {
       key = line.substr(0, colon_pos);
       value = line.substr(colon_pos + CRLF_LEN);
+      if (key == "Content-Length") {
+        e->_exist_content_length = true;
+      }
       http->header_[key] = value;
     } else if (pos == end_pos) {
       break;
@@ -176,11 +180,17 @@ t_error request_handler(void* udata, char* msg) {
   t_http* http = &client_type->GetRequest();
   t_elem e;
   t_error err_code = NO_ERROR;
-  std::string line((char*)msg);
+  std::string line(msg);
 
+  /*
+    쿠키
+  */
   try {
     if (err_code = elem_initializer(&e, line)) {
       return (request_error(client_type, err_code));
+    }
+    if (e._method == GET && line.size() > e._header_crlf + DOUBLE_CRLF_LEN) {
+      return (request_error(client_type, BAD_REQ));
     }
     if ((err_code = init_line_parser(http, &e))) {
       return (request_error(client_type, err_code));
@@ -189,7 +199,7 @@ t_error request_handler(void* udata, char* msg) {
       return (request_error(client_type, BAD_REQ));
     }
     if (e._method == POST) {
-      if ((err_code = malloc_entity(http, &e, msg))) {
+      if ((err_code = alloc_entity(http, &e, msg))) {
         return (request_error(client_type, err_code));
       }
     }
