@@ -1,5 +1,12 @@
 #include "../../include/webserv.hpp"
 
+// TODO: makefilename()의 img일 경우, 처리 작업 분기, 추가;
+// TODO: ClientPost()의 errno 저장단계 추가
+// TODO: Makefile...() 이름 변경
+// TODO: request_entity delete를 method에서 하는지 확인
+// TODO: POST mime type 결정하는지 확인
+// TODO: CGI 관련 사항 질문
+
 std::string MakeFileName(s_client_type* client) {
   std::string upload_path =
       client->GetConfig().main_config_.find("upload_path")->second;
@@ -56,7 +63,7 @@ void WorkFilePost(struct kevent* event) {
   client->SetErrorCode(NO_ERROR);
   size_t write_result = 0;
 
-  write_result = write(to_do->GetFD(), client->GetResponse().entity_,
+  write_result = write(to_do->GetFD(), client->GetRequest().entity_,
                        client->GetRequest().entity_length_);
   if (write_result != client->GetRequest().entity_length_) {
     client->SetErrorCode(SYS_ERR);
