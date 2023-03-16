@@ -10,9 +10,11 @@ typedef enum t_method { GET, POST, DELETE } e_method;
 typedef struct s_elem {
   std::string _init_line;
   std::string _header_line;
-  e_method _method;
   size_t _content_length;
   size_t _header_crlf; /* "asd\r\n" */
+  e_method _method;
+  bool _exist_content_length;
+  bool _exist_cookie;
 } t_elem;
 
 template <typename T>
@@ -30,16 +32,19 @@ std::string to_string(const T& value) {
  * @param err_code 발생한 에러 코드
  * @return t_error 발생한 에러
  */
-static t_error request_error(s_client_type* client_type, t_error err_code) {
+static t_error request_error(s_client_type* client_type, t_error err_code,
+                             std::string msg) {
+  int errno_ = errno;
+  client_type->SetError(errno_, msg);
   client_type->SetErrorCode(err_code);
   client_type->SetStage(ERR_READY);
   return (err_code);
 }
 
 int method_parser(t_elem* e) {
-  const std::string requisite[3] = {"GET", "POST", "DELETE"};
+  const std::string requisite[2] = {"GET", "POST"};
 
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 2; ++i) {
     if (e->_init_line.find(requisite[i]) != std::string::npos) {
       e->_method = static_cast<e_method>(i);
       return (0);
@@ -66,9 +71,18 @@ t_error init_line_parser(t_http* http, t_elem* e) {
   if (second_space == std::string::npos) {
     return (BAD_REQ);
   }
+  /*
+    1. t_http의 init_line_["URI"] 초기화
+    2. URI에 /delete?가 있으면, init_line_["METHOD"]와 e->_method를 DELETE로
+  */
   try {
     http->init_line_["URI"] =
         e->_init_line.substr(first_space + 1, second_space - first_space - 1);
+    if (e->_method == GET &&
+        http->init_line_["URI"].find("/delete?") != std::string::npos) {
+      http->init_line_["METHOD"] = "DELETE";
+      e->_method = DELETE;
+    }
   } catch (std::exception) {
     return (SYS_ERR);
   }
@@ -88,7 +102,7 @@ t_error init_line_parser(t_http* http, t_elem* e) {
   return (NO_ERROR);
 }
 
-t_error malloc_entity(t_http* http, t_elem* e, char* client_msg) {
+t_error alloc_entity(t_http* http, t_elem* e, char* client_msg) {
   ssize_t entity_len;
   try {
     entity_len = std::stol(http->header_["Content-Length"]);
@@ -111,6 +125,13 @@ t_error malloc_entity(t_http* http, t_elem* e, char* client_msg) {
   }
 }
 
+/**
+ * @brief
+ *
+ * @param http
+ * @param e
+ * @return t_error
+ */
 t_error fill_header(t_http* http, t_elem* e) {
   size_t pos = 0;
   size_t end_pos;
@@ -124,6 +145,12 @@ t_error fill_header(t_http* http, t_elem* e) {
     if (colon_pos != std::string::npos) {
       key = line.substr(0, colon_pos);
       value = line.substr(colon_pos + CRLF_LEN);
+      if (key == "Content-Length") {
+        e->_exist_content_length = true;
+      }
+      if (key == "Cookie") {
+        e->_exist_cookie = true;
+      }
       http->header_[key] = value;
     } else if (pos == end_pos) {
       break;
@@ -145,6 +172,13 @@ void set_status(s_client_type* client, t_elem* e) {
   return;
 }
 
+/**
+ * @brief elem의 멤버 초기화 및 간단한 에러 체크
+ *
+ * @param e    쓸 정보 담기
+ * @param line recv()로 받은 메시지를 string으로 치환
+ * @return t_error
+ */
 t_error elem_initializer(t_elem* e, std::string line) {
   memset(e, 0, sizeof(t_elem));
 
@@ -170,37 +204,37 @@ t_error request_handler(void* udata, char* msg) {
   client_type->SetStage(REQ_READY);
 
   if (!msg) {
-    return (request_error(client_type, BAD_REQ));
+    return (request_error(client_type, BAD_REQ, "message is null"));
   }
 
   t_http* http = &client_type->GetRequest();
   t_elem e;
   t_error err_code = NO_ERROR;
-  std::string line((char*)msg);
+  std::string line(msg);
 
   try {
     err_code = elem_initializer(&e, line);
     if (err_code) {
-      return (request_error(client_type, err_code));
+      return (request_error(client_type, err_code, "elem_initializer()"));
     }
     err_code = init_line_parser(http, &e);
     if (err_code) {
-      return (request_error(client_type, err_code));
+      return (request_error(client_type, err_code, "init_line_parser()"));
     }
     if (fill_header(http, &e)) {
-      return (request_error(client_type, BAD_REQ));
+      return (request_error(client_type, BAD_REQ, "fill_header()"));
+    }
+    if (e._exist_cookie) {
+      client_type->SetCookieId(http->header_["COOKIE"]);
     }
     if (e._method == POST) {
-      if ((err_code = malloc_entity(http, &e, msg))) {
-        return (request_error(client_type, err_code));
+      if ((err_code = alloc_entity(http, &e, msg))) {
+        return (request_error(client_type, err_code, "alloc()"));
       }
     }
   } catch (std::exception& e) {
-    return (request_error(client_type, BAD_REQ));
+    return (request_error(client_type, BAD_REQ,
+                          "request_handler() exception occur"));
   }
-  set_status(client_type, &e);
-  /*
-    jinypark님 파트
-  */
   return (NO_ERROR);
 }
