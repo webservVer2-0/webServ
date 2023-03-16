@@ -181,8 +181,8 @@ input[type="submit"]:hover {
 
 #home {
 	position:fixed;
-	top:95%;
-	left:95%;
+	top:93%; 
+	left:96%;
 	display: inline-block;
 	width:64px;
 	height:64px;
@@ -262,3 +262,27 @@ table {
 	background-color: #08131a;
 	color:white;
 }
+
+
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-gap: 20px;
+  }
+  
+  .grid-item {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    padding: 10px;
+  }
+  
+  .grid-item img {
+    margin-right: 10px;
+  }
+  
+  .grid-item button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }

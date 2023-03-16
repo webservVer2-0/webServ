@@ -11,11 +11,6 @@ s_logger_type::~s_logger_type() {
   close(error_fd_);
 }
 
-// s_logger_type& s_logger_type::operator=(const s_logger_type& target) {
-//   this->logging_fd_ = target.logging_fd_;
-//   this->error_fd_ = target.error_fd_;
-// }
-
 void s_logger_type::GetData(std::string log) {
   logs_.push_back(log);
   std::vector<struct kevent> temp;

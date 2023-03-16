@@ -127,7 +127,8 @@ bool s_client_type::GetCachePage(const std::string& uri, t_http& response) {
 
   response.entity_ = new char[response.entity_length_ + 1];
   if (response.entity_ != NULL) {
-    // TODO: error handling
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT",
+               "(GetCachePage New Error)");
   }
   temp_str.copy(response.entity_, response.entity_length_, 0);
   response.entity_[response.entity_length_] = '\0';
@@ -152,7 +153,7 @@ bool s_client_type::GetCacheError(t_error code, t_http& response) {
 
   response.entity_ = new char[response.entity_length_ + 1];
   if (response.entity_ != NULL) {
-    // TODO: error handling
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(GetCacheError)");
   }
   temp_str.copy(response.entity_, response.entity_length_, 0);
   response.entity_[response.entity_length_] = '\0';

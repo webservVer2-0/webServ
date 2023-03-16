@@ -77,8 +77,7 @@ void ServerConfig::ParssingServer(const char* config_data) {
     i++;
   }
   if (server_number_ > 9) {
-    PrintError(2, WEBSERV,
-               "Multi-servers can be configured with less than 10 servers");
+    PrintError(2, WEBSERV, "Multi-servers can be launch less than 10 servers");
   }
 }
 

@@ -3,12 +3,13 @@
 
 #include <cstdarg>
 
-#include "webserv.hpp"
 #include "datas.hpp"
+#include "webserv.hpp"
 
 typedef unsigned long pos_t;
 class s_base_type;
 typedef struct s_http t_http;
+class s_client_type;
 
 /**
  * @brief Error handling function with variable parameters.
@@ -109,12 +110,19 @@ void SetSockoptReuseaddr(int* socket_fd, int socket_length);
 
 void PrintLine(std::string& target, pos_t pos);
 
-/* DELETE page 제작용 */
+/* page 제작용 */
+void MakeHead(t_http& response);
+void MakeFooter(t_http& response);
 
-void MakeDeleteHead(t_http& response);
+void MakeDeletePage(s_client_type* client, t_http& response,
+                    std::string directory_path);
+void MakeDeleteBody(s_client_type* client, std::string directory_path,
+                    t_http& response);
 
-void MakeDeleteBody(std::string directory_path, t_http& response);
+void MakeAutoindexPage(t_http& response, std::string directory_path);
+void MakeAutoindexBody(t_http& response, std::string directory_path);
 
-void MakeDeleteFooter(t_http& response);
-
+std::string MakeNameWithoutID(std::string cookie_id, std::string file_name);
+bool IsFile(struct dirent* target);
+bool IsDirectory(struct dirent* target);
 #endif
