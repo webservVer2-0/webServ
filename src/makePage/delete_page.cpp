@@ -28,7 +28,8 @@ void MakeDeleteBody(s_client_type* client, std::string directory_path,
     while (ent != NULL) {
       if (IsDirectory(ent)) {
         continue;
-      } else if (IsFile(ent)) {
+      } else if (IsFile(ent) &&
+                 (std::string(ent->d_name).find(client->GetCookieId()) == 0)) {
         entity.append("  <div class=\"grid-item\">");
         entity.append(
             "<img src = \"./asset/folder.png\" alt = \"아이콘\" width=\"32\" "
