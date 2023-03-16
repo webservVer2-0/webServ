@@ -42,9 +42,9 @@ static t_error request_error(s_client_type* client_type, t_error err_code,
 }
 
 int method_parser(t_elem* e) {
-  const std::string requisite[3] = {"GET", "POST", "DELETE"};
+  const std::string requisite[2] = {"GET", "POST"};
 
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 2; ++i) {
     if (e->_init_line.find(requisite[i]) != std::string::npos) {
       e->_method = static_cast<e_method>(i);
       return (0);
@@ -71,9 +71,18 @@ t_error init_line_parser(t_http* http, t_elem* e) {
   if (second_space == std::string::npos) {
     return (BAD_REQ);
   }
+  /*
+    1. t_http의 init_line_["URI"] 초기화
+    2. URI에 /delete?가 있으면, init_line_["METHOD"]와 e->_method를 DELETE로
+  */
   try {
     http->init_line_["URI"] =
         e->_init_line.substr(first_space + 1, second_space - first_space - 1);
+    if (e->_method == GET &&
+        http->init_line_["URI"].find("/delete?") != std::string::npos) {
+      http->init_line_["METHOD"] = "DELETE";
+      e->_method = DELETE;
+    }
   } catch (std::exception) {
     return (SYS_ERR);
   }
@@ -224,7 +233,8 @@ t_error request_handler(void* udata, char* msg) {
       }
     }
   } catch (std::exception& e) {
-    return (request_error(client_type, BAD_REQ, "exception occur"));
+    return (request_error(client_type, BAD_REQ,
+                          "request_handler() exception occur"));
   }
   return (NO_ERROR);
 }
