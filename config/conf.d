@@ -1,5 +1,5 @@
 server  {
-	listen 8080;
+	listen 80;
 	body_size 10000000;
 	max_connect 100;
 	root storage/static/;
@@ -68,6 +68,14 @@ server  {
 		default_file test_delete.html;
 		method GET DELETE;
 		auto_index off;
+	}
+
+	# AutoIndex 기능용 
+	location /auto_index {
+		root storage/static;
+		default_file test_auto_index.html;
+		method GET;
+		auto_index on;
 	}
 
 	# cgi 용 

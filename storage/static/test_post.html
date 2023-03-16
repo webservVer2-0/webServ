@@ -21,7 +21,7 @@
 		</a>
 	</div>
 	<h1>POST Method Test</h1>
-	<form method="POST" action="http://localhost:80/post" name="person_info">
+	<form method="POST" action="/post" name="person_info" accept-charset="ASCII" enctype="application/x-www-form-urlencoded">
 		<fieldset style="width:400px">
 			<label for="name">이름 :</label>
 			<input type="text" id="name" name="name"  style="margin-bottom: 10px;">
@@ -35,15 +35,14 @@
 			<button type="submit">제출</button>
 		</fieldset>
 	</form>
-	<form method="POST" action="http://localhost:80/post" name="file_upload">
+	<form method="POST" action="/post" name="file_upload" enctype="multipart/form-data">
 		<fieldset style="width:400px;">
-		<label for="file" style="margin:10px 0px 10px 0px;">업로드할 사진을 선택하세요(png, jpg)</label>
-		<input type="file" id="file" style="margin:10px 0px 10px 0px;"><br>
-		<button type="submit" >업로드</button>
+		<label for="file" style="margin:10px 0px 10px 0px;">업로드할 사진을 선택하세요(png)</label>
+	  	<input type="file" id="file" style="margin:10px 0px 10px 0px;" accept=".png">
+		<input type="submit" value="upload">
 		</fieldset>
 	</form>
 
-	
 	<a href="./index.html"><img src="./asset/home.png" id="home"></img></a>
 </body>
 </html>

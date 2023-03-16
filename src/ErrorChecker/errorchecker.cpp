@@ -15,7 +15,6 @@ void CheckError(ServerConfig* config, struct kevent* curr_event) {
     if (target->GetErrorCode() == OK || target->GetErrorCode() == NO_ERROR ||
         target->GetErrorCode() == MOV_PERMAN)
       return;
-    target->SetStage(ERR_FIN);
     PutErrorPage(target);
     // ChangeEvents(config->change_list_, curr_event->ident, 0, EV_DELETE, 0, 0,
     //              NULL);
@@ -28,8 +27,8 @@ void CheckError(ServerConfig* config, struct kevent* curr_event) {
 }
 
 void PutErrorPage(s_client_type* client) {
-  if (client->GetResponse().entity_ != NULL)
-    delete[] client->GetResponse().entity_;
-  client->GetCacheError(client->GetErrorCode(), client->GetResponse());
+  if (client->GetRequest().entity_ != NULL)
+    delete[] client->GetRequest().entity_;
+  client->GetCacheError(client->GetErrorCode(), client->GetRequest());
   return;
 }
