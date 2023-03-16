@@ -1,15 +1,13 @@
 #include "../../include/webserv.hpp"
 
-// TODO : seterrorcode, setstage 묶는 함수 만들까 고민
+// TODO : seterrorcode, setstage 묶는 함수 / error 처리 과정 묶 함수 만들까 고민
 
 /**
- * @brief
+ * @brief GET_READY일때 캐시파일인지 여부 확인, 일반 파일인 경우 open()하고,
+ * read event 등록.
  *
- * @param event
- * @return t_error
- *
+ * @param client : udata를 s_client_type*&로 형변환한것
  */
-
 void MethodGetReady(s_client_type*& client) {
   const char* dir = client->GetRequest().init_line_.find("URI")->second.c_str();
   std::string uri = client->GetLocationConfig().location_;
@@ -53,9 +51,9 @@ void ClientGet(struct kevent* event) {
   //     client->GetLocationConfig().index_mode_ != off) {
   //   // auto index;
   // }
-  // // TODO : auto index는 나중에. haryu님이 구현하시는 중. delete랑 거의 비슷해서
-  // config_map config = client->GetLocationConfig().main_config_;
-  // if (config.find("redirection") != config.end()) {
+  // // TODO : auto index는 나중에. haryu님이 구현하시는 중. delete랑 거의
+  // 비슷해서 config_map config = client->GetLocationConfig().main_config_; if
+  // (config.find("redirection") != config.end()) {
   //   // redir;
   //   // TODO : redir도 나중에
   // }
