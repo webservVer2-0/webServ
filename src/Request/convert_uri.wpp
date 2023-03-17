@@ -1,5 +1,6 @@
 #include "../../include/config.hpp"
 #include "../../include/webserv.hpp"
+#include "../../include/request_handler.hpp"
 
 /**
  * @brief 테스트용 출력함수
