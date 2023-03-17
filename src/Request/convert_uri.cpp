@@ -1,24 +1,26 @@
-#include "../../include/request_handler.hpp"
+#include "../../include/config.hpp"
+#include "../../include/webserv.hpp"
+
 /**
  * @brief 테스트용 출력함수
  *
  * @param vec
  */
-void print_vector_path(std::vector<std::string> &vec) {
-  std::cout << ".";
-  for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end();
-       ++it) {
-    std::cout << "/" + *it;
-  }
-  std::cout << std::endl;
-}
+// void print_vector_path(std::vector<std::string> &vec) {
+//   std::cout << ".";
+//   for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end();
+//        ++it) {
+//     std::cout << "/" + *it;
+//   }
+//   std::cout << std::endl;
+// }
 
-/**
- * @brief 토큰화된 string을 제대로된 경로로 만들어주는 함수
- *
- * @param vec 토큰화된 string 벡터
- * @return std::string
- */
+// /**/src/Method
+//  * @brief 토큰화된 string을 제대로된 경로로 만들어주는 함수
+//  *
+//  * @param vec 토큰화된 string 벡터
+//  * @return std::string
+//  */
 std::string make_uri_path(std::vector<std::string> &vec) {
   std::string ret;
 
@@ -27,6 +29,7 @@ std::string make_uri_path(std::vector<std::string> &vec) {
        ++it) {
     ret.append("/" + *it);
   }
+  return ret;
 }
 
 t_error convert_uri(std::string rq_uri,
@@ -54,6 +57,6 @@ t_error convert_uri(std::string rq_uri,
   }
   client.SetConfigPtr((*loc_it).second);
   client.GetRequest().init_line_["URI"] = make_uri_path(rq_path);
-  print_vector_path(rq_path);
+  // print_vector_path(rq_path);
   return OK;
 }

@@ -78,20 +78,13 @@ const char* AppendNumSuffix(std::string& uri) {
 
 void ClientFilePost(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
-  client->SetErrorCode(NO_ERROR);
 
   std::string file_path = MakeFilePath(client);
   const char* path_char = AppendNumSuffix(file_path);
 
-  int save_file_fd = open(path_char, O_RDWR | O_CREAT);
+  int save_file_fd = open(path_char, O_RDWR | O_CREAT | O_NONBLOCK);
   if (save_file_fd == -1) {
     client->SetError(errno, "POST method open()");
-    client->SetErrorCode(SYS_ERR);
-    client->SetStage(ERR_FIN);
-    return;
-  }
-  if (fcntl(save_file_fd, F_SETFL, O_NONBLOCK) == -1) {
-    client->SetError(errno, "POST method fcntl()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
     return;
@@ -99,7 +92,7 @@ void ClientFilePost(struct kevent* event) {
   std::vector<struct kevent> tmp;
   s_base_type* new_work = client->CreateWork(&(file_path), save_file_fd, file);
   ChangeEvents(tmp, client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0, client);
-  ChangeEvents(tmp, save_file_fd, EVFILT_READ, EV_ADD, 0, 0, new_work);
+  ChangeEvents(tmp, save_file_fd, EVFILT_WRITE, EV_ADD, 0, 0, new_work);
   client->SetErrorCode(OK);
   client->SetStage(POST_START);
 
@@ -114,7 +107,6 @@ void ClientCGIPost(struct kevent* event) {
 void WorkFilePost(struct kevent* event) {
   s_work_type* work = static_cast<s_work_type*>(event->udata);
   s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
-  client->SetErrorCode(NO_ERROR);
   size_t write_result = 0;
 
   write_result = write(work->GetFD(), client->GetRequest().entity_,
@@ -127,9 +119,9 @@ void WorkFilePost(struct kevent* event) {
   }
 
   std::vector<struct kevent> tmp;
-  ChangeEvents(tmp, work->GetFD(), EV_DELETE, EV_ADD | EV_EOF, 0, 0, NULL);
+  ChangeEvents(tmp, work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
   work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
-  if (close(work->GetFD())) {
+  if (close(work->GetFD()) == -1) {
     client->SetError(errno, "POST method close()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
@@ -139,6 +131,7 @@ void WorkFilePost(struct kevent* event) {
   client->SetErrorCode(OK);
   client->SetStage(POST_FIN);
   // TODO: POST 파일 저장 후 검사가 필요한지 확인하기
+  // TODO: DeleteUdata()로 work에서 사용이 끝난 udata 삭제
   return;
 }
 

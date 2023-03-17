@@ -26,17 +26,6 @@ std::string enumToString(t_error code) {
   }
 }
 
-std::string MakeContentType(s_client_type* client) {
-  t_http type = client->GetRequest();
-  std::string path = client->GetLocationConfig().location_;
-  const t_mime* mime = &client->GetConfig().mime_;
-  std::string::size_type extension_pos = path.find_last_of(".");
-  std::string extension = path.substr(extension_pos + 1);
-  std::transform(extension.begin(), extension.end(), extension.begin(),
-                 ::tolower);
-  return (mime->at(extension));
-}
-
 static std::string stToString(size_t size) {
   size_t num = size;
   char buf[1024];
@@ -130,28 +119,30 @@ t_http MakeResponseMessages(s_client_type* client) {
   msg.init_line_.insert(std::make_pair(std::string("code"), str_code));
   msg.header_.insert(std::make_pair(std::string("Date :"), date_str));
   msg.header_.insert(
-      std::make_pair(std::string("Server :"), std::string("serv1")));
+      std::make_pair(std::string("Server :"),
+                     client->GetConfig().main_config_.at("server_name")));
   std::string cookie_id = client->GetCookieId();
-  std::snprintf(buf, 1024, "my_cookie=%s; HttpOnly;", cookie_id.c_str());
+  std::snprintf(buf, 1024, "id=%s; HttpOnly;", cookie_id.c_str());
   std::string set_cookie = std::string(buf);
   msg.header_.insert(std::make_pair(std::string("Set-Cookie :"), set_cookie));
   if (client->GetChunked()) {
     msg.header_.insert(
-        std::make_pair(std::string("Content-Type :"), MakeContentType(client)));
+        std::make_pair(std::string("Content-Type :"), client->GetMimeType()));
     msg.header_.insert((std::make_pair(std::string("Transfer-Encoding :"),
                                        std::string("chunked"))));
     return (msg);
   }
   if (code == MOV_PERMAN) {
-    msg.header_.insert(
-        std::make_pair(std::string("location :"), std::string("uri")));
+    msg.header_.insert(std::make_pair(
+        std::string("location :"),
+        client->GetLocationConfig().main_config_.at("redirection")));
     msg.header_.insert(
         std::make_pair(std::string("Connection :"), std::string("Closed")));
     return (msg);
   }
   if (client->GetResponse().entity_) {
     msg.header_.insert(
-        std::make_pair(std::string("Content-Type :"), MakeContentType(client)));
+        std::make_pair(std::string("Content-Type :"), client->GetMimeType()));
     std::string size = stToString(client->GetResponse().entity_length_);
     msg.header_.insert(std::make_pair(std::string("Content-length :"), size));
   }
@@ -203,11 +194,4 @@ char* MakeSendMessage(s_client_type* client, char* msg) {
   std::memcpy(result + len, client->GetResponse().entity_, entity_length);
   client->SetMessageLength(len + entity_length);
   return (result);
-}
-
-void DeleteSendMessage(char* msg, size_t size) {
-  for (std::size_t i = 0; i < size; ++i) {
-    std::cout << msg[i] << " ";
-  }
-  delete[] msg;
 }

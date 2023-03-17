@@ -113,9 +113,13 @@ void ServerRun(ServerConfig& config) {
             s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
             if (work_type->GetWorkType() == file) {
               //   std::cout << "file steps" << std::endl;
-              WorkGet(curr_event);
+              if (work_type->GetClientStage() == GET_START)
+                WorkGet(curr_event);
+              else if (work_type->GetClientStage() == POST_START)
+                WorkFilePost(curr_event);
             } else if (work_type->GetWorkType() == cgi)
-              std::cout << "cgi steps" << std::endl;
+              WorkCGIPost(curr_event);
+            // std::cout << "cgi steps" << std::endl;
           } break;
           case CLIENT: {
             if (curr_event->filter == EVFILT_READ) {
@@ -136,6 +140,11 @@ void ServerRun(ServerConfig& config) {
                   break;
                 }
                 case POST_READY: {
+                  if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
+                      file)
+                    ClientFilePost(curr_event);
+                  else
+                    ClientCGIPost(curr_event);
                   break;
                 }
                 case DELETE_READY: {
@@ -169,20 +178,34 @@ void ServerRun(ServerConfig& config) {
               } else
                 send_msg_len = client->GetMessageLength();
               send(curr_event->ident, send_msg, send_msg_len, 0);
-              DeleteSendMessage(send_msg, send_msg_len);
+              delete send_msg;
               if (!client->GetChunked() || client->GetStage() != RES_CHUNK) {
-                DeleteUdata(ft_filter);
+                client->SendLogs();
                 if (client->GetStage() == END) {
                   ChangeEvents(config.change_list_, curr_event->ident,
                                EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+                  //   ChangeEvents(config.change_list_, curr_event->ident,
+                  //                EVFILT_READ, EV_DELETE, 0, 0, 0);
+                  close(curr_event->ident);
+                  DeleteUdata(ft_filter);
                 } else {
                   ChangeEvents(config.change_list_, curr_event->ident,
                                EVFILT_WRITE, EV_DISABLE, 0, 0, 0);
                   ChangeEvents(config.change_list_, curr_event->ident,
-                               EVFILT_TIMER, EV_ADD, NOTE_SECONDS, 5, 0);
+                               EVFILT_READ, EV_ENABLE, 0, 0, ft_filter);
+                  DeleteUdata(ft_filter);
                   client->SetStage(RES_FIN);
                 }
               }
+            } else if (curr_event->filter == EVFILT_TIMER) {
+              DeleteUdata(ft_filter);
+              ChangeEvents(config.change_list_, curr_event->ident, EVFILT_WRITE,
+                           EV_DELETE, 0, 0, 0);
+              ChangeEvents(config.change_list_, curr_event->ident, EVFILT_READ,
+                           EV_DELETE, 0, 0, 0);
+              ChangeEvents(config.change_list_, curr_event->ident, EVFILT_TIMER,
+                           EV_DELETE, 0, 0, 0);
+              close(curr_event->ident);
             }
           }
           case LOGGER: {

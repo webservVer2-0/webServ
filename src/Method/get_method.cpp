@@ -38,7 +38,6 @@ void MethodGetReady(s_client_type*& client) {
 
 void ClientGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
-  client->SetErrorCode(NO_ERROR);
 
   // if (client->GetConfig().index_mode_ != off &&
   //     client->GetLocationConfig().index_mode_ != off) {
@@ -58,7 +57,6 @@ void WorkGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
   size_t chunk_size = static_cast<size_t>(
       client->GetConfig().main_config_.find(BODY)->second.size());
-  client->SetErrorCode(NO_ERROR);
 
   work->GetResponseMsg().entity_length_ = event->data;
   size_t tmp_entity_len = work->GetResponseMsg().entity_length_;

@@ -1,6 +1,8 @@
 #ifndef REQUEST_HANDLER_HPP_
 #define REQUEST_HANDLER_HPP_
 
+#include "config.hpp"
+#include "datas.hpp"
 #include "webserv.hpp"
 
 t_error request_handler(void* udata, char* msg);

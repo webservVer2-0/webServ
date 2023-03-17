@@ -1,4 +1,5 @@
-#include "../../include/request_handler.hpp"
+#include "../../include/config.hpp"
+#include "../../include/webserv.hpp"
 
 #define CRLF "\r\n"
 #define DOUBLE_CRLF "\r\n\r\n"

@@ -130,6 +130,14 @@ void DeleteUdata(s_base_type* data) {
       if (file != NULL) {
         delete file;
       }
+      delete[] temp->GetRequest().entity_;
+      temp->GetRequest().entity_length_ = 0;
+      temp->GetRequest().header_.clear();
+      temp->GetRequest().init_line_.clear();
+      delete[] temp->GetResponse().entity_;
+      temp->GetResponse().entity_length_ = 0;
+      temp->GetResponse().header_.clear();
+      temp->GetResponse().init_line_.clear();
       delete temp;
       break;
     }
