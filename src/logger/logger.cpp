@@ -1,6 +1,9 @@
 #include "../../include/datas.hpp"
 
-s_logger_type::s_logger_type() : s_base_type(-1) { this->SetType(LOGGER); }
+s_logger_type::s_logger_type() : s_base_type(-1) {
+  this->SetType(LOGGER);
+  this->logs_.clear();
+}
 
 s_logger_type::~s_logger_type() {
   logs_.clear();
@@ -12,6 +15,7 @@ s_logger_type::~s_logger_type() {
 }
 
 void s_logger_type::GetData(std::string log) {
+  std::cout << log << std::endl;
   logs_.push_back(log);
   std::vector<struct kevent> temp;
   ChangeEvents(temp, this->error_fd_, EVFILT_WRITE, EV_ENABLE, 0, NULL, this);
@@ -20,6 +24,7 @@ void s_logger_type::GetData(std::string log) {
 void s_logger_type::PushData(void) {
   size_t limit = logs_.size();
   if (limit == 0) return;
+  std::cout << "Log vector size : " << limit << std::endl;
   for (size_t i = 0; i < limit; i++) {
     if (logs_.at(i).find("ERR") == 0) {
       write(error_fd_, logs_.at(i).c_str(), logs_.at(i).size());

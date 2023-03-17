@@ -26,9 +26,9 @@ s_server_type::s_server_type(ServerConfig& config_list, int server_number,
   int e_fd;
 
   l_fd = open(self_config_->main_config_.at("access_log").c_str(),
-              O_WRONLY | O_APPEND | O_NONBLOCK, 0644);
+              O_WRONLY | O_APPEND | O_NONBLOCK);
   e_fd = open(self_config_->main_config_.at("error_log").c_str(),
-              O_WRONLY | O_APPEND | O_NONBLOCK, 0644);
+              O_WRONLY | O_APPEND | O_NONBLOCK);
 
   this->logger_.SetFDs(l_fd, e_fd);
   ChangeEvents(config_list.change_list_, l_fd, EVFILT_WRITE,
@@ -114,7 +114,7 @@ s_work_type* s_client_type::GetChildWork(void) {
 bool s_client_type::GetCachePage(const std::string& uri, t_http& response) {
   t_server* rule = this->config_ptr_;
   std::string path;
-  path += "./";
+  //   path += "./";
   path += uri;
 
   if (rule->static_pages_.find(path) == rule->static_pages_.end()) {
@@ -124,7 +124,7 @@ bool s_client_type::GetCachePage(const std::string& uri, t_http& response) {
   response.entity_length_ = temp_str.size();
 
   response.entity_ = new char[response.entity_length_ + 1];
-  if (response.entity_ != NULL) {
+  if (response.entity_ == NULL) {
     PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT",
                "(GetCachePage New Error)");
   }
@@ -304,6 +304,7 @@ void s_client_type::SendLogs(void) {
     logging_data.append("]");
   }
   logging_data.append("\n");
+  std::cout << logging_data << std::endl;
   temp->GetData(logging_data);
   return;
 }

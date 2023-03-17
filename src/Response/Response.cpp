@@ -117,43 +117,43 @@ t_http MakeResponseMessages(s_client_type* client) {
   msg.init_line_.insert(
       std::make_pair(std::string("version"), std::string("HTTP/1.1")));
   msg.init_line_.insert(std::make_pair(std::string("code"), str_code));
-  msg.header_.insert(std::make_pair(std::string("Date :"), date_str));
+  msg.header_.insert(std::make_pair(std::string("Date: "), date_str));
   msg.header_.insert(
-      std::make_pair(std::string("Server :"),
+      std::make_pair(std::string("Server: "),
                      client->GetConfig().main_config_.at("server_name")));
   std::string cookie_id = client->GetCookieId();
   std::snprintf(buf, 1024, "id=%s; HttpOnly;", cookie_id.c_str());
   std::string set_cookie = std::string(buf);
-  msg.header_.insert(std::make_pair(std::string("Set-Cookie :"), set_cookie));
+  msg.header_.insert(std::make_pair(std::string("Set-Cookie: "), set_cookie));
   if (client->GetChunked()) {
     msg.header_.insert(
-        std::make_pair(std::string("Content-Type :"), client->GetMimeType()));
-    msg.header_.insert((std::make_pair(std::string("Transfer-Encoding :"),
+        std::make_pair(std::string("Content-Type: "), client->GetMimeType()));
+    msg.header_.insert((std::make_pair(std::string("Transfer-Encoding: "),
                                        std::string("chunked"))));
     return (msg);
   }
   if (code == MOV_PERMAN) {
     msg.header_.insert(std::make_pair(
-        std::string("location :"),
+        std::string("Location: "),
         client->GetLocationConfig().main_config_.at("redirection")));
     msg.header_.insert(
-        std::make_pair(std::string("Connection :"), std::string("Closed")));
+        std::make_pair(std::string("Connection: "), std::string("Closed")));
     return (msg);
   }
   if (client->GetResponse().entity_) {
     msg.header_.insert(
-        std::make_pair(std::string("Content-Type :"), client->GetMimeType()));
+        std::make_pair(std::string("Content-Type: "), client->GetMimeType()));
     std::string size = stToString(client->GetResponse().entity_length_);
-    msg.header_.insert(std::make_pair(std::string("Content-length :"), size));
+    msg.header_.insert(std::make_pair(std::string("Content-Length: "), size));
   }
-  msg.header_.insert(std::make_pair(std::string("Cache-Control"),
+  msg.header_.insert(std::make_pair(std::string("Cache-Control: "),
                                     std::string("public, max-age=3600")));
   if (client->GetStage() == END) {
     msg.header_.insert(
-        std::make_pair(std::string("Connection :"), std::string("Closed")));
+        std::make_pair(std::string("Connection: "), std::string("Closed")));
   } else {
     msg.header_.insert(
-        std::make_pair(std::string("Connection :"), std::string("Keep-Alive")));
+        std::make_pair(std::string("Connection: "), std::string("Keep-Alive")));
   }
   return (msg);
 }
@@ -162,11 +162,13 @@ char* MaketopMessage(s_client_type* client) {
   t_http msg = client->GetResponse();
   std::string joined_str = "";
   std::string entity = msg.entity_;
-  for (std::map<std::string, std::string>::const_iterator iter =
-           msg.init_line_.begin();
-       iter != msg.init_line_.end(); ++iter) {
-    joined_str += iter->second + " ";
-  }
+  joined_str.append(msg.init_line_.at("version"));
+  joined_str.append(msg.init_line_.at("code"));
+  //   for (std::map<std::string, std::string>::const_iterator iter =
+  //            msg.init_line_.begin();
+  //        iter != msg.init_line_.end(); ++iter) {
+  //     joined_str += iter->second + " ";
+  //   }
   joined_str += "\r\n";
   for (std::map<std::string, std::string>::const_iterator iter =
            msg.header_.begin();

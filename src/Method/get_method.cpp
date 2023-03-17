@@ -10,13 +10,16 @@
  */
 void MethodGetReady(s_client_type*& client) {
   const char* dir = client->GetRequest().init_line_.find("URI")->second.c_str();
-  std::string uri = client->GetLocationConfig().location_;
+  //   std::string uri = client->GetLocationConfig().location_;
   t_http& response = client->GetResponse();
-  if (client->GetCachePage(uri, response))  // 캐시파일인경우
+  if (client->GetCachePage(std::string(dir), response))  // 캐시파일인경우
   {
-    client->SetMimeType(uri);
+    client->SetMimeType(std::string(dir));
     client->SetErrorCode(OK);
     client->SetStage(GET_FIN);
+    std::vector<struct kevent> tmp;
+    ChangeEvents(tmp, client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0, client);
+    ChangeEvents(tmp, client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0, client);
     return;
   } else  // 일반파일인경우
   {
@@ -27,7 +30,8 @@ void MethodGetReady(s_client_type*& client) {
       client->SetStage(ERR_FIN);
       return;
     }
-    s_base_type* work = client->CreateWork(&uri, req_fd, file);
+    std::string* temp = new std::string(dir);
+    s_base_type* work = client->CreateWork(temp, req_fd, file);
     std::vector<struct kevent> tmp;
     ChangeEvents(tmp, req_fd, EVFILT_READ, EV_ADD, 0, 0, work);
     client->SetErrorCode(OK);

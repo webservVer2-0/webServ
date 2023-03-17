@@ -6,6 +6,7 @@ void CheckError(ServerConfig* config, struct kevent* curr_event) {
     return;
   } else {
     s_client_type* target;
+    if (temp->GetType() == LOGGER) return;
     if (temp->GetType() == WORK) {
       target = static_cast<s_client_type*>(
           static_cast<s_work_type*>(temp)->GetClientPtr());
@@ -13,11 +14,14 @@ void CheckError(ServerConfig* config, struct kevent* curr_event) {
       target = static_cast<s_client_type*>(temp);
     }
     if (target->GetErrorCode() == OK || target->GetErrorCode() == NO_ERROR ||
-        target->GetErrorCode() == MOV_PERMAN)
+        target->GetErrorCode() == MOV_PERMAN) {
+      printf("V\n");
       return;
+    }
     PutErrorPage(target);
     // ChangeEvents(config->change_list_, curr_event->ident, 0, EV_DELETE, 0, 0,
     //              NULL);
+    // target->SetStage(ERR_FIN);
     ChangeEvents(config->change_list_, target->GetFD(), EVFILT_READ, EV_DISABLE,
                  0, 0, NULL);
     ChangeEvents(config->change_list_, target->GetFD(), EVFILT_WRITE, EV_ENABLE,

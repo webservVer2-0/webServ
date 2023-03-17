@@ -87,10 +87,6 @@ void ServerRun(ServerConfig& config) {
   int new_event_number = 0;
   int kque = config.GetServerKque();
 
-  //   std::cout << "[ "
-  //             << "WebServ Is Activated"
-  //             << " ]" << std::endl;
-
   while (true) {
     new_event_number =
         kevent(kque, &(config.change_list_[0]), config.change_list_.size(),
@@ -98,7 +94,7 @@ void ServerRun(ServerConfig& config) {
     if (new_event_number == -1) {
       PrintError(2, WEBSERV, "kevent has error");
     }
-
+    std::cout << "event : " << new_event_number << std::endl;
     config.change_list_.clear();
 
     for (int i = 0; i < new_event_number; i++) {
@@ -112,7 +108,7 @@ void ServerRun(ServerConfig& config) {
           case WORK: {
             s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
             if (work_type->GetWorkType() == file) {
-              //   std::cout << "file steps" << std::endl;
+              std::cout << "file steps" << std::endl;
               if (work_type->GetClientStage() == GET_START)
                 WorkGet(curr_event);
               else if (work_type->GetClientStage() == POST_START)
@@ -120,18 +116,24 @@ void ServerRun(ServerConfig& config) {
             } else if (work_type->GetWorkType() == cgi)
               WorkCGIPost(curr_event);
             // std::cout << "cgi steps" << std::endl;
+
           } break;
           case CLIENT: {
+            // printf("%d\n", curr_event->filter);
             if (curr_event->filter == EVFILT_READ) {
               {
                 std::cout << "client Read step" << std::endl;
-                char* client_msg = new char[curr_event->data];
+                char* client_msg = new char[curr_event->data + 1];
                 int ret =
                     recv(curr_event->ident, client_msg, curr_event->data, 0);
                 if (ret == -1) {
                   // 임시
                 }
+                client_msg[curr_event->data] = '\0';
+                // TODO: 이 로직 바꿔여함
+
                 request_handler(ft_filter, client_msg);
+
                 delete[] client_msg;
               }
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
@@ -159,7 +161,7 @@ void ServerRun(ServerConfig& config) {
               }
             } else if (curr_event->filter == EVFILT_WRITE) {
               s_client_type* client = static_cast<s_client_type*>(ft_filter);
-              //   std::cout << " client Write step" << std::endl;
+              std::cout << " client Write step" << std::endl;
               client->SetResponse();
               char* msg_top = MaketopMessage(client);
               char* send_msg = MakeSendMessage(client, msg_top);
@@ -179,7 +181,9 @@ void ServerRun(ServerConfig& config) {
                 send_msg_len = client->GetMessageLength();
               send(curr_event->ident, send_msg, send_msg_len, 0);
               delete send_msg;
+              printf("send ㅠㅠㅠㅠ\n");
               if (!client->GetChunked() || client->GetStage() != RES_CHUNK) {
+                printf("send ㅠㅠㅠㅠ\n");
                 client->SendLogs();
                 if (client->GetStage() == END) {
                   ChangeEvents(config.change_list_, curr_event->ident,
@@ -209,8 +213,10 @@ void ServerRun(ServerConfig& config) {
             }
           }
           case LOGGER: {
-            s_logger_type* logger = static_cast<s_logger_type*>(ft_filter);
-            logger->PushData();
+            if (curr_event->filter == EVFILT_WRITE) {
+              s_logger_type* logger = static_cast<s_logger_type*>(ft_filter);
+              logger->PushData();
+            }
             break;
           }
           default: {  // Server case
@@ -228,10 +234,10 @@ void ServerRun(ServerConfig& config) {
             s_client_type* client =
                 static_cast<s_client_type*>(server->CreateClient(client_fd));
             client->SetIP(ip_str);
-            ChangeEvents(config.change_list_, client_fd, EVFILT_READ,
-                         EV_ADD | EV_EOF, 0, 0, client);
-            ChangeEvents(config.change_list_, client_fd, EVFILT_WRITE,
-                         EV_ADD | EV_DISABLE, 0, 0, client);
+            ChangeEvents(config.change_list_, client_fd, EVFILT_READ, EV_ADD, 0,
+                         0, client);
+            ChangeEvents(config.change_list_, client_fd, EVFILT_WRITE, EV_ADD,
+                         0, 0, client);
             int timer = atoi(client->GetConfig()
                                  .main_config_.at("timeout")
                                  .c_str());  // refactoring

@@ -38,7 +38,7 @@ typedef struct s_elem {
 //  * @param vec 토큰화된 string 벡터
 //  * @return std::string
 //  */
-std::string make_uri_path(std::vector<std::string> &vec) {
+std::string make_uri_path(std::vector<std::string>& vec) {
   std::string ret;
 
   ret.append(".");
@@ -50,11 +50,11 @@ std::string make_uri_path(std::vector<std::string> &vec) {
 }
 
 t_error convert_uri(std::string rq_uri,
-                    std::map<std::string, t_loc *> location_config,
-                    s_client_type &client) {
+                    std::map<std::string, t_loc*> location_config,
+                    s_client_type& client) {
   std::vector<std::string> rq_path(1);
   size_t pos;
-  std::map<std::string, t_loc *>::iterator loc_it;
+  std::map<std::string, t_loc*>::iterator loc_it;
 
   std::string token = rq_uri;
   while ((pos = rq_uri.find('/')) != std::string::npos) {
@@ -77,7 +77,6 @@ t_error convert_uri(std::string rq_uri,
   // print_vector_path(rq_path);
   return OK;
 }
-
 
 template <typename T>
 std::string to_string(const T& value) {
@@ -286,9 +285,9 @@ t_error request_handler(void* udata, char* msg) {
     if (fill_header(http, &e)) {
       return (request_error(client_type, BAD_REQ, "fill_header()"));
     }
-    if (e._exist_cookie) {
-      client_type->SetCookieId(http->header_["COOKIE"]);
-    }
+    // if (e._exist_cookie) {
+    //   client_type->SetCookieId(http->header_["COOKIE"]);
+    // }
     if (e._method == POST) {
       if ((err_code = alloc_entity(http, &e, msg))) {
         return (request_error(client_type, err_code, "alloc()"));
