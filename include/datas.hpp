@@ -183,6 +183,7 @@ class s_server_type : public s_base_type {
    */
   s_base_type* CreateClient(int client_fd);
   s_logger_type& GetLogger(void) { return this->logger_; }
+  t_server& GetServerConfig(void) { return *this->self_config_; }
 };
 
 /**
@@ -250,8 +251,8 @@ class s_client_type : public s_base_type {
   void SetErrorCode(t_error val);
 
   const t_server& GetConfig(void);
-  const s_server_type& GetParentServer(void);
-  const t_loc& GetLocationConfig(void);
+  s_server_type& GetParentServer(void);
+  t_loc& GetLocationConfig(void);
   void SetConfigPtr(t_loc* ptr);
   s_work_type* GetChildWork(void);
 

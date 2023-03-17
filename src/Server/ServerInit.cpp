@@ -3,6 +3,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+#include "../../include/request_handler.hpp"
 #include "../../include/webserv.hpp"
 
 void ServerInit(ServerConfig& config) {
@@ -86,9 +87,9 @@ void ServerRun(ServerConfig& config) {
   int new_event_number = 0;
   int kque = config.GetServerKque();
 
-  std::cout << "[ "
-            << "WebServ Is Activated"
-            << " ]" << std::endl;
+  //   std::cout << "[ "
+  //             << "WebServ Is Activated"
+  //             << " ]" << std::endl;
 
   while (true) {
     new_event_number =
@@ -111,15 +112,10 @@ void ServerRun(ServerConfig& config) {
           case WORK: {
             s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
             if (work_type->GetWorkType() == file) {
-              std::cout << "file steps" << std::endl;
-              if (work_type->GetClientStage() == GET_START)
-                WorkGet(curr_event);
-              else if (work_type->GetClientStage() == POST_START)
-                WorkFilePost(curr_event);
-            } else if (work_type->GetWorkType() == cgi) {
+              //   std::cout << "file steps" << std::endl;
+              WorkGet(curr_event);
+            } else if (work_type->GetWorkType() == cgi)
               std::cout << "cgi steps" << std::endl;
-              WorkCGIPost(curr_event);
-            }
           } break;
           case CLIENT: {
             if (curr_event->filter == EVFILT_READ) {
@@ -131,15 +127,7 @@ void ServerRun(ServerConfig& config) {
                 if (ret == -1) {
                   // 임시
                 }
-                std::cout << "[ client (" << curr_event->ident << ") ]"
-                          << std::endl;
-                write(1, client_msg, curr_event->data);
-                close(curr_event->ident);
-                ChangeEvents(config.change_list_, curr_event->ident, 0,
-                             EV_DELETE, 0, 0, NULL);
-
-                // DeleteUdata(static_cast<s_base_type*>(curr_event->udata));
-                config.change_list_.clear();
+                request_handler(ft_filter, client_msg);
                 delete[] client_msg;
               }
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
@@ -148,11 +136,6 @@ void ServerRun(ServerConfig& config) {
                   break;
                 }
                 case POST_READY: {
-                  if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
-                      file)
-                    ClientFilePost(curr_event);
-                  else
-                    ClientCGIPost(curr_event);
                   break;
                 }
                 case DELETE_READY: {
@@ -167,7 +150,7 @@ void ServerRun(ServerConfig& config) {
               }
             } else if (curr_event->filter == EVFILT_WRITE) {
               s_client_type* client = static_cast<s_client_type*>(ft_filter);
-              std::cout << " client Write step" << std::endl;
+              //   std::cout << " client Write step" << std::endl;
               client->SetResponse();
               char* msg_top = MaketopMessage(client);
               char* send_msg = MakeSendMessage(client, msg_top);
@@ -226,8 +209,9 @@ void ServerRun(ServerConfig& config) {
                          EV_ADD | EV_EOF, 0, 0, client);
             ChangeEvents(config.change_list_, client_fd, EVFILT_WRITE,
                          EV_ADD | EV_DISABLE, 0, 0, client);
-            int timer =
-                atoi(client->GetConfig().main_config_.at("timeout").c_str());
+            int timer = atoi(client->GetConfig()
+                                 .main_config_.at("timeout")
+                                 .c_str());  // refactoring
             ChangeEvents(config.change_list_, client_fd, EVFILT_TIMER, EV_ADD,
                          NOTE_SECONDS, timer, client);
             client->PrintClientStatus();

@@ -101,12 +101,10 @@ const t_error& s_client_type::GetErrorCode(void) { return this->status_code_; }
 void s_client_type::SetErrorCode(t_error val) { this->status_code_ = val; }
 
 const t_server& s_client_type::GetConfig(void) { return *this->config_ptr_; }
-const s_server_type& s_client_type::GetParentServer(void) {
+s_server_type& s_client_type::GetParentServer(void) {
   return *(dynamic_cast<s_server_type*>(parent_ptr_));
 }
-const t_loc& s_client_type::GetLocationConfig(void) {
-  return *this->loc_config_ptr_;
-}
+t_loc& s_client_type::GetLocationConfig(void) { return *this->loc_config_ptr_; }
 void s_client_type::SetConfigPtr(t_loc* ptr) { this->loc_config_ptr_ = ptr; }
 
 s_work_type* s_client_type::GetChildWork(void) {

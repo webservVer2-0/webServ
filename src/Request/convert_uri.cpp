@@ -1,4 +1,4 @@
-#include "../include/webserv.hpp"
+#include "../../include/request_handler.hpp"
 /**
  * @brief 테스트용 출력함수
  *
@@ -20,7 +20,6 @@ void print_vector_path(std::vector<std::string> &vec) {
  * @return std::string
  */
 std::string make_uri_path(std::vector<std::string> &vec) {
-
   std::string ret;
 
   ret.append(".");
@@ -49,8 +48,8 @@ t_error convert_uri(std::string rq_uri,
   if (rq_path.size() == 1)
     rq_path.push_back((*loc_it).second->main_config_[DEFFILE]);
 
-  if ((*loc_it).second->main_config_[METHOD].find(client.GetRequest().init_line_["METHOD"]) == std::string().npos)
-  {
+  if ((*loc_it).second->main_config_[METHOD].find(
+          client.GetRequest().init_line_["METHOD"]) == std::string().npos) {
     return FORBID;
   }
   client.SetConfigPtr((*loc_it).second);

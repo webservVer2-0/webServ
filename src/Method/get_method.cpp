@@ -20,20 +20,13 @@ void MethodGetReady(s_client_type*& client) {
     return;
   } else  // 일반파일인경우
   {
-    int req_fd = open(dir, O_RDONLY);
+    int req_fd = open(dir, O_RDONLY | O_NONBLOCK);
     if (req_fd == -1) {
       client->SetError(errno, "GET method open()");
       client->SetErrorCode(SYS_ERR);
       client->SetStage(ERR_FIN);
       return;
     }
-    if (fcntl(req_fd, F_SETFL, O_NONBLOCK) == -1) {
-      client->SetError(errno, "GET method fcntl()");
-      client->SetErrorCode(SYS_ERR);
-      client->SetStage(ERR_FIN);
-      return;
-    }
-
     s_base_type* work = client->CreateWork(&uri, req_fd, file);
     std::vector<struct kevent> tmp;
     ChangeEvents(tmp, req_fd, EVFILT_READ, EV_ADD, 0, 0, work);
@@ -93,7 +86,7 @@ void WorkGet(struct kevent* event) {
   if (tmp_entity_len > chunk_size) {
     work->SetClientStage(GET_CHUNK);
   } else {
-    work->ChangeClientEvent(EVFILT_WRITE, EV_ADD, 0, 0, client);
+    work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
     work->SetClientStage(GET_FIN);
   }
   if (close(req_fd) == -1) {
