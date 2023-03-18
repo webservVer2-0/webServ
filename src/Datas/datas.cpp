@@ -3,6 +3,8 @@
 #include <sstream>
 #include <string>
 
+#include "../../include/config.hpp"
+
 typedef std::map<std::string, std::string> config_map;
 
 /****************** Base Type ********************/
@@ -31,10 +33,8 @@ s_server_type::s_server_type(ServerConfig& config_list, int server_number,
               O_WRONLY | O_APPEND | O_NONBLOCK);
 
   this->logger_.SetFDs(l_fd, e_fd);
-  ChangeEvents(config_list.change_list_, l_fd, EVFILT_WRITE,
-               EV_ADD | EV_DISABLE, 0, NULL, &(this->logger_));
-  ChangeEvents(config_list.change_list_, e_fd, EVFILT_WRITE,
-               EV_ADD | EV_DISABLE, 0, NULL, &(this->logger_));
+  ServerConfig::ChangeEvents(l_fd, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, NULL,
+                             &(this->logger_));
 }
 
 s_server_type::~s_server_type() {}
@@ -63,6 +63,10 @@ s_client_type::s_client_type(t_server* config, int client_fd,
   sent_size_ = 0;
   stage_ = DEF;
   status_code_ = NO_ERROR;
+  request_msg_.entity_ = NULL;
+  request_msg_.entity_length_ = 0;
+  response_msg_.entity_ = NULL;
+  response_msg_.entity_length_ = 0;
 }
 
 s_client_type::~s_client_type() {}
@@ -150,7 +154,7 @@ bool s_client_type::GetCacheError(t_error code, t_http& response) {
   response.entity_length_ = temp_str.size();
 
   response.entity_ = new char[response.entity_length_ + 1];
-  if (response.entity_ != NULL) {
+  if (response.entity_ == NULL) {
     PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(GetCacheError)");
   }
   temp_str.copy(response.entity_, response.entity_length_, 0);
@@ -215,20 +219,20 @@ void s_client_type::SendLogs(void) {
   std::strftime(msg2, 30, "%d/%b/%Y:%H:%M:%S + 0900", std::localtime(&time[1]));
   s_logger_type* temp =
       &(static_cast<s_server_type*>(parent_ptr_))->GetLogger();
-  std::vector<struct kevent> temp_event;
 
   if (this->GetErrorCode() == OK || this->GetErrorCode() == MOV_PERMAN) {
-    ChangeEvents(temp_event, temp->GetLoggingFd(), EVFILT_WRITE, EV_ENABLE, 0,
-                 NULL, &temp);
+    ServerConfig::ChangeEvents(temp->GetLoggingFd(), EVFILT_WRITE, EV_ENABLE, 0,
+                               NULL, &temp);
     logging_data.append(this->GetIP());
     logging_data.append(" [");
     logging_data.append(msg1);
     logging_data.append("] ");
-    logging_data.append(this->response_msg_.init_line_.at("METHOD"));
+    logging_data.append("HTTP/1.1");
     logging_data.append(" ");
-    logging_data.append(this->origin_uri_);
+    logging_data.append(this->request_msg_.init_line_.at("URI"));
     logging_data.append(" ");
-    logging_data.append(this->response_msg_.init_line_.at("HTTP"));
+    logging_data.append(this->request_msg_.init_line_.at("METHOD"));
+    logging_data.append(" ");
     t_error temp = this->GetErrorCode();
     switch (temp) {
       case OK: {
@@ -243,22 +247,25 @@ void s_client_type::SendLogs(void) {
         break;
       }
     }
+
     logging_data.append(" [Path : ");
-    logging_data.append(this->response_msg_.init_line_.at("URI"));
+    logging_data.append(this->request_msg_.init_line_.at("URI"));
     logging_data.append("]");
   } else {
-    ChangeEvents(temp_event, temp->GetErrorFd(), EVFILT_WRITE, EV_ENABLE, 0,
-                 NULL, &temp);
+    ServerConfig::ChangeEvents(temp->GetLoggingFd(), EVFILT_WRITE, EV_ENABLE, 0,
+                               NULL, &temp);
     logging_data.append("ERR : ");
     logging_data.append(this->GetIP());
     logging_data.append(" [");
     logging_data.append(msg1);
     logging_data.append("] ");
-    logging_data.append(this->response_msg_.init_line_.at("METHOD"));
+
+    // TODO: 항상 METHOD, URI, VER 로 통일하자!
+    logging_data.append(this->response_msg_.init_line_.at("code"));
+    // logging_data.append(" ");
+    // logging_data.append(this->response_msg_.init_line_.at("URI"));
     logging_data.append(" ");
-    logging_data.append(this->response_msg_.init_line_.at("URI"));
-    logging_data.append(" ");
-    logging_data.append(this->response_msg_.init_line_.at("HTTP"));
+    logging_data.append(this->response_msg_.init_line_.at("version"));
     logging_data.append(" [ERR_TIME ");
     logging_data.append(msg2);
     logging_data.append("] [");
@@ -304,7 +311,7 @@ void s_client_type::SendLogs(void) {
     logging_data.append("]");
   }
   logging_data.append("\n");
-  std::cout << logging_data << std::endl;
+  //   std::cout << logging_data << std::endl;
   temp->GetData(logging_data);
   return;
 }
@@ -356,8 +363,8 @@ void s_work_type::ChangeClientEvent(int16_t filter, uint16_t flags,
                                     uint16_t fflags, intptr_t data,
                                     void* udata) {
   int fd = this->client_ptr_->GetFD();
-  std::vector<struct kevent> templist;
-  ChangeEvents(templist, fd, filter, flags, fflags, data, udata);
+
+  ServerConfig::ChangeEvents(fd, filter, flags, fflags, data, udata);
 }
 
 t_stage s_work_type::GetClientStage(void) {

@@ -161,14 +161,12 @@ t_http MakeResponseMessages(s_client_type* client) {
 char* MaketopMessage(s_client_type* client) {
   t_http msg = client->GetResponse();
   std::string joined_str = "";
-  std::string entity = msg.entity_;
+
+  // TODO: 애초에 msg가 안들어옴
+  //    std::string entity = msg.entity_;
+
   joined_str.append(msg.init_line_.at("version"));
   joined_str.append(msg.init_line_.at("code"));
-  //   for (std::map<std::string, std::string>::const_iterator iter =
-  //            msg.init_line_.begin();
-  //        iter != msg.init_line_.end(); ++iter) {
-  //     joined_str += iter->second + " ";
-  //   }
   joined_str += "\r\n";
   for (std::map<std::string, std::string>::const_iterator iter =
            msg.header_.begin();

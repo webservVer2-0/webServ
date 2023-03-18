@@ -131,7 +131,7 @@ class ServerConfig {
   struct sockaddr_in* GetSockaddr(void);
 
  public:
-  std::vector<struct kevent> change_list_;
+  static std::vector<struct kevent> change_list_;
   struct kevent* event_list_;
   int max_connection;
 
@@ -169,6 +169,22 @@ class ServerConfig {
   const t_server* GetServerConfigByPort(const std::string& port);
 
   t_mime& GetServerMimeByNumber(int number);
+
+  /**
+   * @brief EV_SET을 위한 wrapping 함수. 등록시 동일한 패러미터를 그대로
+   * 활용하며, change_list를 통해 등록 후 해당 리스트를 사용합니다.
+   *
+   *
+   * @param change_list
+   * @param ident
+   * @param filter
+   * @param flags
+   * @param fflags
+   * @param data
+   * @param udata
+   */
+  static void ChangeEvents(uintptr_t ident, int16_t filter, uint16_t flags,
+                           uint16_t fflags, intptr_t data, void* udata);
 };
 
 #endif

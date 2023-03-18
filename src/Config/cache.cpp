@@ -1,5 +1,6 @@
 #include "../../include/cache.hpp"
 
+#include "../../include/config.hpp"
 #include "../../include/utils.hpp"
 
 typedef std::string path;

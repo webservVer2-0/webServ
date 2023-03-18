@@ -12,7 +12,7 @@ class ServerConfig;
 class s_client_type;
 typedef struct s_server t_server;
 
-void CheckError(ServerConfig* config, struct kevent* curr_event);
+void CheckError(struct kevent* curr_event);
 void PutErrorPage(s_client_type* client);
 
 #endif

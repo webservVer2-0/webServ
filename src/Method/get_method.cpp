@@ -10,16 +10,17 @@
  */
 void MethodGetReady(s_client_type*& client) {
   const char* dir = client->GetRequest().init_line_.find("URI")->second.c_str();
-  //   std::string uri = client->GetLocationConfig().location_;
   t_http& response = client->GetResponse();
   if (client->GetCachePage(std::string(dir), response))  // 캐시파일인경우
   {
     client->SetMimeType(std::string(dir));
     client->SetErrorCode(OK);
     client->SetStage(GET_FIN);
-    std::vector<struct kevent> tmp;
-    ChangeEvents(tmp, client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0, client);
-    ChangeEvents(tmp, client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0, client);
+
+    ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
+                               client);
+    ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
+                               client);
     return;
   } else  // 일반파일인경우
   {
@@ -30,10 +31,16 @@ void MethodGetReady(s_client_type*& client) {
       client->SetStage(ERR_FIN);
       return;
     }
-    std::string* temp = new std::string(dir);
-    s_base_type* work = client->CreateWork(temp, req_fd, file);
-    std::vector<struct kevent> tmp;
-    ChangeEvents(tmp, req_fd, EVFILT_READ, EV_ADD, 0, 0, work);
+
+    s_base_type* work = client->CreateWork(
+        &client->GetRequest().init_line_.find("URI")->second, req_fd, file);
+
+    ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0,
+                               work);
+    ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
+                               client);
+    ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_DISABLE, 0, 0,
+                               client);
     client->SetErrorCode(OK);
     client->SetStage(GET_START);
   }
@@ -59,8 +66,8 @@ void ClientGet(struct kevent* event) {
 void WorkGet(struct kevent* event) {
   s_work_type* work = static_cast<s_work_type*>(event->udata);
   s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
-  size_t chunk_size = static_cast<size_t>(
-      client->GetConfig().main_config_.find(BODY)->second.size());
+  size_t chunk_size =
+      atoi(client->GetConfig().main_config_.find(BODY)->second.c_str());
 
   work->GetResponseMsg().entity_length_ = event->data;
   size_t tmp_entity_len = work->GetResponseMsg().entity_length_;
@@ -83,13 +90,15 @@ void WorkGet(struct kevent* event) {
     return;
   }
   client->SetErrorCode(OK);
-  work->ChangeClientEvent(EVFILT_READ, EV_DISABLE | EV_DELETE, 0, 0, work);
   client->SetMimeType(work->GetUri());
   if (tmp_entity_len > chunk_size) {
     work->SetClientStage(GET_CHUNK);
   } else {
-    work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
     work->SetClientStage(GET_FIN);
+    work->ChangeClientEvent(EVFILT_READ, EV_DISABLE, 0, 0, client);
+    work->ChangeClientEvent(EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, client);
+    ServerConfig::ChangeEvents(work->GetFD(), EVFILT_READ, EV_DELETE, 0, 0,
+                               NULL);
   }
   if (close(req_fd) == -1) {
     client->SetError(errno, "GET method close()");

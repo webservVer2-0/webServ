@@ -89,10 +89,12 @@ void ClientFilePost(struct kevent* event) {
     client->SetStage(ERR_FIN);
     return;
   }
-  std::vector<struct kevent> tmp;
+
   s_base_type* new_work = client->CreateWork(&(file_path), save_file_fd, file);
-  ChangeEvents(tmp, client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0, client);
-  ChangeEvents(tmp, save_file_fd, EVFILT_WRITE, EV_ADD, 0, 0, new_work);
+  ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
+                             client);
+  ServerConfig::ChangeEvents(save_file_fd, EVFILT_WRITE, EV_ADD, 0, 0,
+                             new_work);
   client->SetErrorCode(OK);
   client->SetStage(POST_START);
 
@@ -118,8 +120,8 @@ void WorkFilePost(struct kevent* event) {
     return;
   }
 
-  std::vector<struct kevent> tmp;
-  ChangeEvents(tmp, work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+  ServerConfig::ChangeEvents(work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0,
+                             NULL);
   work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
   if (close(work->GetFD()) == -1) {
     client->SetError(errno, "POST method close()");

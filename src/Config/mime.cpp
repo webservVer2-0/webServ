@@ -1,5 +1,7 @@
 #include "../../include/mime.hpp"
 
+#include "../../include/config.hpp"
+
 void SetMime(t_mime& storage, std::string filepath) {
   filepath.insert(0, "./");
   int extension[2];

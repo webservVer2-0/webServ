@@ -1,44 +1,39 @@
 #include "../../include/datas.hpp"
 
-s_logger_type::s_logger_type() : s_base_type(-1) {
-  this->SetType(LOGGER);
-  this->logs_.clear();
-}
+s_logger_type::s_logger_type() : s_base_type(-1) { this->SetType(LOGGER); }
 
 s_logger_type::~s_logger_type() {
   logs_.clear();
-  std::vector<struct kevent> temp;
-  ChangeEvents(temp, logging_fd_, EVFILT_WRITE, EV_DELETE, 0, NULL, NULL);
-  ChangeEvents(temp, error_fd_, EVFILT_WRITE, EV_DELETE, 0, NULL, NULL);
+  ServerConfig::ChangeEvents(logging_fd_, EVFILT_WRITE, EV_DELETE, 0, NULL,
+                             NULL);
   close(logging_fd_);
   close(error_fd_);
 }
 
 void s_logger_type::GetData(std::string log) {
-  std::cout << log << std::endl;
-  logs_.push_back(log);
+  std::string* log_ = new std::string(log);
+  logs_.push_back(log_);
   std::vector<struct kevent> temp;
-  ChangeEvents(temp, this->error_fd_, EVFILT_WRITE, EV_ENABLE, 0, NULL, this);
-  ChangeEvents(temp, this->logging_fd_, EVFILT_WRITE, EV_ENABLE, 0, NULL, this);
+  ServerConfig::ChangeEvents(this->logging_fd_, EVFILT_WRITE, EV_ENABLE, 0,
+                             NULL, this);
 }
 void s_logger_type::PushData(void) {
   size_t limit = logs_.size();
+
   if (limit == 0) return;
-  std::cout << "Log vector size : " << limit << std::endl;
+  std::cout << "Limit : " << limit << std::endl;
   for (size_t i = 0; i < limit; i++) {
-    if (logs_.at(i).find("ERR") == 0) {
-      write(error_fd_, logs_.at(i).c_str(), logs_.at(i).size());
-      write(error_fd_, "\n", 1);
+    if (logs_[i]->at(0) == 'E') {
+      write(error_fd_, logs_.at(i)->c_str(), logs_.at(i)->size());
     } else {
-      write(logging_fd_, logs_.at(i).c_str(), logs_.at(i).size());
-      write(logging_fd_, "\n", 1);
+      write(logging_fd_, logs_.at(i)->c_str(), logs_.at(i)->size());
     }
+    delete logs_.at(i);
+    logs_.clear();
   }
-  logs_.clear();
   std::vector<struct kevent> temp;
-  ChangeEvents(temp, this->error_fd_, EVFILT_WRITE, EV_DISABLE, 0, NULL, this);
-  ChangeEvents(temp, this->logging_fd_, EVFILT_WRITE, EV_DISABLE, 0, NULL,
-               this);
+  ServerConfig::ChangeEvents(this->logging_fd_, EVFILT_WRITE, EV_DISABLE, 0,
+                             NULL, this);
 }
 
 void s_logger_type::SetFDs(int log_fd, int err_fd) {

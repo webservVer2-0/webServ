@@ -2,6 +2,8 @@
 
 #include "../../include/utils.hpp"
 
+std::vector<struct kevent> ServerConfig::change_list_;
+
 ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   if (IsExistFile(confpath) == false) {
     PrintError(2, WEBSERV, CANNOTFOUND);
@@ -862,4 +864,14 @@ t_mime& ServerConfig::GetServerMimeByNumber(int number) {
 
 struct sockaddr_in* ServerConfig::GetSockaddr(void) {
   return this->server_addr_;
+}
+
+void ServerConfig::ChangeEvents(uintptr_t ident, int16_t filter, uint16_t flags,
+                                uint16_t fflags, intptr_t data, void* udata) {
+  struct kevent temp;
+
+  EV_SET(&temp, ident, filter, flags, fflags, data, udata);
+  kevent(g_kq, &temp, 1, NULL, 0, NULL);
+  ServerConfig::change_list_.push_back(temp);
+  return;
 }

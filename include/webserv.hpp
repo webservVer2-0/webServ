@@ -57,4 +57,6 @@
 #define CANNOTFOUND "Can not find Config file"
 #define CRITICAL "Issue a critical problem"
 
+extern int g_kq;
+
 #endif

@@ -1,7 +1,8 @@
 #include "../../include/errorchecker.hpp"
 
-void CheckError(ServerConfig* config, struct kevent* curr_event) {
+void CheckError(struct kevent* curr_event) {
   s_base_type* temp = static_cast<s_base_type*>(curr_event->udata);
+  if (temp == NULL) return;
   if (temp->GetType() == SERVER) {
     return;
   } else {
@@ -15,24 +16,20 @@ void CheckError(ServerConfig* config, struct kevent* curr_event) {
     }
     if (target->GetErrorCode() == OK || target->GetErrorCode() == NO_ERROR ||
         target->GetErrorCode() == MOV_PERMAN) {
-      printf("V\n");
       return;
     }
     PutErrorPage(target);
-    // ChangeEvents(config->change_list_, curr_event->ident, 0, EV_DELETE, 0, 0,
-    //              NULL);
-    // target->SetStage(ERR_FIN);
-    ChangeEvents(config->change_list_, target->GetFD(), EVFILT_READ, EV_DISABLE,
-                 0, 0, NULL);
-    ChangeEvents(config->change_list_, target->GetFD(), EVFILT_WRITE, EV_ENABLE,
-                 0, 0, target);
+    ServerConfig::ChangeEvents(target->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
+                               NULL);
+    ServerConfig::ChangeEvents(target->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
+                               target);
     return;
   }
 }
 
 void PutErrorPage(s_client_type* client) {
-  if (client->GetRequest().entity_ != NULL)
-    delete[] client->GetRequest().entity_;
-  client->GetCacheError(client->GetErrorCode(), client->GetRequest());
+  if (client->GetResponse().entity_length_ != 0)
+    delete[] client->GetResponse().entity_;
+  client->GetCacheError(client->GetErrorCode(), client->GetResponse());
   return;
 }

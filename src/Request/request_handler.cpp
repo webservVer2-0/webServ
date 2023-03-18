@@ -260,7 +260,7 @@ t_error elem_initializer(t_elem* e, std::string line) {
   return (NO_ERROR);
 }
 
-t_error request_handler(void* udata, char* msg) {
+t_error request_handler(size_t msg_len, void* udata, char* msg) {
   s_client_type* client_type = static_cast<s_client_type*>(udata);
   client_type->SetStage(REQ_READY);
 
@@ -271,7 +271,16 @@ t_error request_handler(void* udata, char* msg) {
   t_http* http = &client_type->GetRequest();
   t_elem e;
   t_error err_code = NO_ERROR;
-  std::string line(msg);
+  std::string line;
+
+  for (size_t i = 0; i < msg_len; i += 2) {
+    line.push_back(msg[i]);
+    if (i + 1 < msg_len) {
+      line.push_back(msg[i + 1]);
+    }
+  }
+
+  // TODO: msg 길이에 널이 안들어감!!!!
 
   try {
     err_code = elem_initializer(&e, line);
@@ -285,9 +294,9 @@ t_error request_handler(void* udata, char* msg) {
     if (fill_header(http, &e)) {
       return (request_error(client_type, BAD_REQ, "fill_header()"));
     }
-    // if (e._exist_cookie) {
-    //   client_type->SetCookieId(http->header_["COOKIE"]);
-    // }
+    if (e._exist_cookie) {
+      client_type->SetCookieId(http->header_["COOKIE"]);
+    }
     if (e._method == POST) {
       if ((err_code = alloc_entity(http, &e, msg))) {
         return (request_error(client_type, err_code, "alloc()"));

@@ -3,6 +3,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+#include "../../include/config.hpp"
 #include "../../include/request_handler.hpp"
 #include "../../include/webserv.hpp"
 
@@ -71,8 +72,8 @@ void ServerKinit(ServerConfig& config) {
 
   for (int i = 0; i < server_number; i++) {
     s_server_type* udata = new s_server_type(config, i, server_socket[i]);
-    ChangeEvents(config.change_list_, server_socket[i], EVFILT_READ,
-                 EV_ADD | EV_ENABLE, 0, 0, udata);
+    ServerConfig::ChangeEvents(server_socket[i], EVFILT_READ,
+                               EV_ADD | EV_ENABLE, 0, 0, udata);
     std::cout << "[ Server(" << GREEN << std::setw(10) << std::right
               << config.GetServerList(i).main_config_.at("server_name") << RESET
               << ") : " << std::setw(30) << std::right << "Port is activated ]"
@@ -86,29 +87,30 @@ void ServerRun(ServerConfig& config) {
   int max_event = config.max_connection;
   int new_event_number = 0;
   int kque = config.GetServerKque();
+  g_kq = kque;
 
   while (true) {
     new_event_number =
-        kevent(kque, &(config.change_list_[0]), config.change_list_.size(),
+        kevent(kque, &config.change_list_[0], config.change_list_.size(),
                config.event_list_, max_event, nullptr);
     if (new_event_number == -1) {
       PrintError(2, WEBSERV, "kevent has error");
     }
-    std::cout << "event : " << new_event_number << std::endl;
-    config.change_list_.clear();
+    ServerConfig::change_list_.clear();
 
     for (int i = 0; i < new_event_number; i++) {
       curr_event = &config.event_list_[i];
       if (curr_event->flags & EV_ERROR) {
-        printf("%s\n", gai_strerror(curr_event->data));
-        PrintError(3, WEBSERV, CRITICAL, "kevent running error");
+        // PrintError(3, WEBSERV, CRITICAL, "kevent running error");
+        ;
       } else {
         s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
         switch (ft_filter->GetType()) {
           case WORK: {
             s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
             if (work_type->GetWorkType() == file) {
-              std::cout << "file steps" << std::endl;
+              std::cout << "FILE steps"
+                        << " / Task FD : " << ft_filter->GetFD() << std::endl;
               if (work_type->GetClientStage() == GET_START)
                 WorkGet(curr_event);
               else if (work_type->GetClientStage() == POST_START)
@@ -119,21 +121,21 @@ void ServerRun(ServerConfig& config) {
 
           } break;
           case CLIENT: {
-            // printf("%d\n", curr_event->filter);
             if (curr_event->filter == EVFILT_READ) {
               {
-                std::cout << "client Read step" << std::endl;
-                char* client_msg = new char[curr_event->data + 1];
+                std::cout << "READ steps"
+                          << " / Task FD : " << ft_filter->GetFD() << std::endl;
+                char* client_msg = new char[curr_event->data];
                 int ret =
                     recv(curr_event->ident, client_msg, curr_event->data, 0);
                 if (ret == -1) {
                   // 임시
                 }
-                client_msg[curr_event->data] = '\0';
+                // client_msg[curr_event->data] = '\0';
                 // TODO: 이 로직 바꿔여함
 
-                request_handler(ft_filter, client_msg);
-
+                request_handler(curr_event->data, curr_event->udata,
+                                client_msg);
                 delete[] client_msg;
               }
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
@@ -161,7 +163,8 @@ void ServerRun(ServerConfig& config) {
               }
             } else if (curr_event->filter == EVFILT_WRITE) {
               s_client_type* client = static_cast<s_client_type*>(ft_filter);
-              std::cout << " client Write step" << std::endl;
+              std::cout << "WRITE steps"
+                        << " / Task FD : " << ft_filter->GetFD() << std::endl;
               client->SetResponse();
               char* msg_top = MaketopMessage(client);
               char* send_msg = MakeSendMessage(client, msg_top);
@@ -181,46 +184,45 @@ void ServerRun(ServerConfig& config) {
                 send_msg_len = client->GetMessageLength();
               send(curr_event->ident, send_msg, send_msg_len, 0);
               delete send_msg;
-              printf("send ㅠㅠㅠㅠ\n");
               if (!client->GetChunked() || client->GetStage() != RES_CHUNK) {
-                printf("send ㅠㅠㅠㅠ\n");
                 client->SendLogs();
                 if (client->GetStage() == END) {
-                  ChangeEvents(config.change_list_, curr_event->ident,
-                               EVFILT_WRITE, EV_DELETE, 0, 0, 0);
-                  //   ChangeEvents(config.change_list_, curr_event->ident,
-                  //                EVFILT_READ, EV_DELETE, 0, 0, 0);
+                  ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
+                                             EV_DELETE, 0, 0, 0);
                   close(curr_event->ident);
                   DeleteUdata(ft_filter);
                 } else {
-                  ChangeEvents(config.change_list_, curr_event->ident,
-                               EVFILT_WRITE, EV_DISABLE, 0, 0, 0);
-                  ChangeEvents(config.change_list_, curr_event->ident,
-                               EVFILT_READ, EV_ENABLE, 0, 0, ft_filter);
+                  ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
+                                             EV_DISABLE, 0, 0, 0);
+                  ServerConfig::ChangeEvents(curr_event->ident, EVFILT_READ,
+                                             EV_DISABLE, 0, 0, ft_filter);
                   DeleteUdata(ft_filter);
-                  client->SetStage(RES_FIN);
+
+                  // TODO: 스테이지 초기화가 필요하다.
+                  client->SetStage(DEF);
                 }
               }
             } else if (curr_event->filter == EVFILT_TIMER) {
               DeleteUdata(ft_filter);
-              ChangeEvents(config.change_list_, curr_event->ident, EVFILT_WRITE,
-                           EV_DELETE, 0, 0, 0);
-              ChangeEvents(config.change_list_, curr_event->ident, EVFILT_READ,
-                           EV_DELETE, 0, 0, 0);
-              ChangeEvents(config.change_list_, curr_event->ident, EVFILT_TIMER,
-                           EV_DELETE, 0, 0, 0);
+              ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
+                                         EV_DELETE, 0, 0, 0);
+              ServerConfig::ChangeEvents(curr_event->ident, EVFILT_READ,
+                                         EV_DELETE, 0, 0, 0);
+              ServerConfig::ChangeEvents(curr_event->ident, EVFILT_TIMER,
+                                         EV_DELETE, 0, 0, 0);
               close(curr_event->ident);
             }
           }
           case LOGGER: {
             if (curr_event->filter == EVFILT_WRITE) {
-              s_logger_type* logger = static_cast<s_logger_type*>(ft_filter);
-              logger->PushData();
+              static_cast<s_logger_type*>(ft_filter)->PushData();
             }
             break;
           }
           default: {  // Server case
             sockaddr_in* addr_info = config.GetServerAddress();
+            std::cout << "SERVER steps"
+                      << " / Task FD : " << ft_filter->GetFD() << std::endl;
             socklen_t addrlen = sizeof(addr_info);
             int client_fd(accept(curr_event->ident,
                                  reinterpret_cast<sockaddr*>(addr_info),
@@ -234,21 +236,22 @@ void ServerRun(ServerConfig& config) {
             s_client_type* client =
                 static_cast<s_client_type*>(server->CreateClient(client_fd));
             client->SetIP(ip_str);
-            ChangeEvents(config.change_list_, client_fd, EVFILT_READ, EV_ADD, 0,
-                         0, client);
-            ChangeEvents(config.change_list_, client_fd, EVFILT_WRITE, EV_ADD,
-                         0, 0, client);
+            ServerConfig::ChangeEvents(client_fd, EVFILT_READ, EV_ADD, 0, 0,
+                                       client);
+
+            ServerConfig::ChangeEvents(client_fd, EVFILT_WRITE,
+                                       EV_ADD | EV_DISABLE, 0, 0, client);
             int timer = atoi(client->GetConfig()
                                  .main_config_.at("timeout")
                                  .c_str());  // refactoring
-            ChangeEvents(config.change_list_, client_fd, EVFILT_TIMER, EV_ADD,
-                         NOTE_SECONDS, timer, client);
-            client->PrintClientStatus();
-            server->GetLogger().PrintLogger();
+            ServerConfig::ChangeEvents(client_fd, EVFILT_TIMER, EV_ADD,
+                                       NOTE_SECONDS, timer, client);
+            // client->PrintClientStatus();
+            // server->GetLogger().PrintLogger();
           } break;
         }
       }
-      CheckError(&config, curr_event);
+      CheckError(curr_event);
     }
   }
   return;

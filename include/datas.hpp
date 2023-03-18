@@ -149,7 +149,7 @@ class s_logger_type : public s_base_type {
  private:
   int logging_fd_;
   int error_fd_;
-  std::vector<std::string> logs_;
+  std::vector<std::string*> logs_;
 
  public:
   s_logger_type();

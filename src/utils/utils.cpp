@@ -1,5 +1,7 @@
 #include "../../include/utils.hpp"
 
+#include "../../include/config.hpp"
+
 void PrintError(int size, const char* first, ...) {
   char* val = NULL;
   va_list list;
@@ -107,16 +109,6 @@ pos_t FindValueLength(std::string& str, pos_t& pos) {
   return (ret);
 }
 
-void ChangeEvents(std::vector<struct kevent>& change_list, uintptr_t ident,
-                  int16_t filter, uint16_t flags, uint16_t fflags,
-                  intptr_t data, void* udata) {
-  struct kevent temp_event;
-
-  EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
-  change_list.push_back(temp_event);
-  return;
-}
-
 void DeleteUdata(s_base_type* data) {
   switch (data->GetType()) {
     case SERVER: {
@@ -126,19 +118,23 @@ void DeleteUdata(s_base_type* data) {
     }
     case CLIENT: {
       s_client_type* temp = static_cast<s_client_type*>(data);
-      s_work_type* file = temp->GetChildWork();
-      if (file != NULL) {
-        delete file;
+      if (temp->GetChildWork() != NULL) {
+        s_work_type* file = temp->GetChildWork();
+        if (file != NULL) {
+          delete file;
+        }
       }
-      delete[] temp->GetRequest().entity_;
+
+      if (temp->GetRequest().entity_length_ != 0)
+        delete[] temp->GetRequest().entity_;
       temp->GetRequest().entity_length_ = 0;
       temp->GetRequest().header_.clear();
       temp->GetRequest().init_line_.clear();
-      delete[] temp->GetResponse().entity_;
+      if (temp->GetResponse().entity_length_ != 0)
+        delete[] temp->GetResponse().entity_;
       temp->GetResponse().entity_length_ = 0;
       temp->GetResponse().header_.clear();
       temp->GetResponse().init_line_.clear();
-      delete temp;
       break;
     }
     case WORK: {
