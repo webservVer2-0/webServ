@@ -9,22 +9,23 @@
  * @param client : udata를 s_client_type*&로 형변환한것
  */
 void MethodGetReady(s_client_type*& client) {
-  const char* dir = client->GetRequest().init_line_.find("URI")->second.c_str();
+  std::string uri = client->GetRequest().init_line_.find("URI")->second;
   t_http& response = client->GetResponse();
-  if (client->GetCachePage(std::string(dir), response))  // 캐시파일인경우
-  {
-    client->SetMimeType(std::string(dir));
-    client->SetErrorCode(OK);
-    client->SetStage(GET_FIN);
 
+  if (client->GetCachePage(uri, response))  // 캐시파일인경우
+  {
+    client->SetMimeType(uri);
+    client->SetErrorCode(OK);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
                                client);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
                                client);
+    client->SetStage(GET_FIN);
+
     return;
   } else  // 일반파일인경우
   {
-    int req_fd = open(dir, O_RDONLY | O_NONBLOCK);
+    int req_fd = open(uri.c_str(), O_RDONLY | O_NONBLOCK);
     if (req_fd == -1) {
       client->SetError(errno, "GET method open()");
       client->SetErrorCode(SYS_ERR);
@@ -32,18 +33,16 @@ void MethodGetReady(s_client_type*& client) {
       return;
     }
 
-    s_base_type* work = client->CreateWork(
-        &client->GetRequest().init_line_.find("URI")->second, req_fd, file);
-
-    ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0,
+    s_base_type* work = client->CreateWork(&uri, req_fd, file);
+    ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_ADD, 0, 0, work);
+    ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_DISABLE, 0, 0,
                                work);
-    ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
-                               client);
-    ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_DISABLE, 0, 0,
-                               client);
+    ServerConfig::ChangeEvents(req_fd, EVFILT_WRITE, EV_DISABLE, 0, 0,
+                               work);
     client->SetErrorCode(OK);
     client->SetStage(GET_START);
   }
+  
   return;
 }
 
@@ -61,6 +60,8 @@ void ClientGet(struct kevent* event) {
   //   // TODO : redir도 나중에
   // }
   MethodGetReady(client);
+  // std::cout << "GetFileSize : " << GetFileSize((client->GetRequest().init_line_.find("URI")->second).c_str()) << std::endl;
+  // std::cout << "entity_len : " << event->data << std::endl;
 }
 
 void WorkGet(struct kevent* event) {
@@ -68,12 +69,15 @@ void WorkGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
   size_t chunk_size =
       atoi(client->GetConfig().main_config_.find(BODY)->second.c_str());
-
   work->GetResponseMsg().entity_length_ = event->data;
-  size_t tmp_entity_len = work->GetResponseMsg().entity_length_;
-
+  // TODO : 그냥 애초에 GetFileSize() 하면 안됨?
+  // client->GetResponse().entity_length_ = event->data;
+  size_t entity_len = work->GetResponseMsg().entity_length_;
+  // std::cout << "entity_len : " << entity_len << std::endl;
+  // std::cout << "GetFileSize : " << GetFileSize((client->GetRequest().init_line_.find("URI")->second).c_str()) << std::endl;
+// 왜 다르지?
   try {
-    work->GetResponseMsg().entity_ = new char[tmp_entity_len];
+    work->GetResponseMsg().entity_ = new char[entity_len];
   } catch (const std::exception& e) {
     client->SetError(errno, "GET method new()");
     client->SetErrorCode(SYS_ERR);
@@ -82,8 +86,8 @@ void WorkGet(struct kevent* event) {
 
   size_t read_ret = 0;
   int req_fd = work->GetFD();
-  read_ret = read(req_fd, work->GetResponseMsg().entity_, tmp_entity_len);
-  if ((read_ret != tmp_entity_len) || read_ret == size_t(-1)) {
+  read_ret = read(req_fd, work->GetResponseMsg().entity_, entity_len);
+  if ((read_ret != entity_len) || read_ret == size_t(-1)) {
     client->SetError(errno, "GET method read()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
@@ -91,14 +95,12 @@ void WorkGet(struct kevent* event) {
   }
   client->SetErrorCode(OK);
   client->SetMimeType(work->GetUri());
-  if (tmp_entity_len > chunk_size) {
+  if (entity_len > chunk_size) {
     work->SetClientStage(GET_CHUNK);
   } else {
+    ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_DISABLE | EV_DELETE, 0, 0, client);
+    ServerConfig::ChangeEvents(req_fd, EVFILT_WRITE, EV_ENABLE, 0, 0, client);
     work->SetClientStage(GET_FIN);
-    work->ChangeClientEvent(EVFILT_READ, EV_DISABLE, 0, 0, client);
-    work->ChangeClientEvent(EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, client);
-    ServerConfig::ChangeEvents(work->GetFD(), EVFILT_READ, EV_DELETE, 0, 0,
-                               NULL);
   }
   if (close(req_fd) == -1) {
     client->SetError(errno, "GET method close()");
