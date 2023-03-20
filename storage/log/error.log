@@ -1,0 +1,5 @@
+ERR : 127.0.0.1 [20/Mar/2023:19:44:43 + 0900] 400 BAD_REQ HTTP/1.1  [ERR_TIME 20/Mar/2023:19:44:43 + 0900] [400 BadRequest] [9 : Bad file descriptor] [msg : elem_initializer()]
+ERR : 127.0.0.1 [20/Mar/2023:19:45:15 + 0900] 400 BAD_REQ HTTP/1.1  [ERR_TIME 20/Mar/2023:19:45:15 + 0900] [400 BadRequest] [9 : Bad file descriptor] [msg : elem_initializer()]
+ERR : 127.0.0.1 [20/Mar/2023:19:49:36 + 0900] 400 BAD_REQ HTTP/1.1  [ERR_TIME 20/Mar/2023:19:49:36 + 0900] [400 BadRequest] [9 : Bad file descriptor] [msg : elem_initializer()]
+ERR : 127.0.0.1 [20/Mar/2023:19:51:44 + 0900] 400 BAD_REQ HTTP/1.1  [ERR_TIME 20/Mar/2023:19:51:44 + 0900] [400 BadRequest] [9 : Bad file descriptor] [msg : elem_initializer()]
+ERR : 127.0.0.1 [20/Mar/2023:19:52:54 + 0900] 400 BAD_REQ HTTP/1.1  [ERR_TIME 20/Mar/2023:19:53:00 + 0900] [400 BadRequest] [9 : Bad file descriptor] [msg : elem_initializer()]

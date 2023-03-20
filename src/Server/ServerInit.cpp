@@ -229,7 +229,7 @@ void ServerRun(ServerConfig& config) {
               s_client_type* client = static_cast<s_client_type*>(ft_filter);
               std::cout << "WRITE steps"
                         << " / Task FD : " << ft_filter->GetFD() << std::endl;
-              char msg_top[1024] = "";
+              char* msg_top;
 
               if (client->GetStage() == RES_SEND) {
                 SendProcess(curr_event, client, client->GetBuf(),
@@ -237,15 +237,18 @@ void ServerRun(ServerConfig& config) {
               } else if (client->GetStage() != RES_FIN) {
                 if (client->GetStage() != RES_CHUNK) {
                   client->SetResponse();
-                  char* msg_top = MaketopMessage(client);
-                }
+                  msg_top = MaketopMessage(client);
+                } else
+                  msg_top = strdup("");
                 client->SetBuf(MakeSendMessage(client, msg_top));
                 delete msg_top;
                 size_t send_msg_len = ChunkEncoding(client);
                 SendProcess(curr_event, client, client->GetBuf(), send_msg_len);
               }
-              if (client->GetStage() == RES_SEND) break;
-              if (!client->GetChunked() || client->GetStage() != RES_CHUNK) {
+              if (client->GetStage() == RES_SEND)
+                ;
+              else if (!client->GetChunked() ||
+                       client->GetStage() != RES_CHUNK) {
                 client->SendLogs();
                 if (client->GetStage() == END) {
                   ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
@@ -257,7 +260,7 @@ void ServerRun(ServerConfig& config) {
                   ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
                                              EV_DISABLE, 0, 0, 0);
                   ServerConfig::ChangeEvents(curr_event->ident, EVFILT_READ,
-                                             EV_DISABLE, 0, 0, ft_filter);
+                                             EV_ENABLE, 0, 0, ft_filter);
                   ResetConnection(
                       static_cast<s_client_type*>(curr_event->udata));
                 }
