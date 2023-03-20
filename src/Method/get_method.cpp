@@ -26,7 +26,7 @@ void MethodGetReady(s_client_type*& client) {
   {
     int req_fd = open(dir, O_RDONLY | O_NONBLOCK);
     if (req_fd == -1) {
-      client->SetError(errno, "GET method open()");
+      client->SetErrorString(errno, "GET method open()");
       client->SetErrorCode(SYS_ERR);
       client->SetStage(ERR_FIN);
       return;
@@ -75,7 +75,7 @@ void WorkGet(struct kevent* event) {
   try {
     work->GetResponseMsg().entity_ = new char[tmp_entity_len];
   } catch (const std::exception& e) {
-    client->SetError(errno, "GET method new()");
+    client->SetErrorString(errno, "GET method new()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
   }
@@ -84,7 +84,7 @@ void WorkGet(struct kevent* event) {
   int req_fd = work->GetFD();
   read_ret = read(req_fd, work->GetResponseMsg().entity_, tmp_entity_len);
   if ((read_ret != tmp_entity_len) || read_ret == size_t(-1)) {
-    client->SetError(errno, "GET method read()");
+    client->SetErrorString(errno, "GET method read()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
     return;
@@ -101,7 +101,7 @@ void WorkGet(struct kevent* event) {
                                NULL);
   }
   if (close(req_fd) == -1) {
-    client->SetError(errno, "GET method close()");
+    client->SetErrorString(errno, "GET method close()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
   }

@@ -80,6 +80,8 @@ pos_t FindValueLength(std::string& str, pos_t& pos);
  */
 void DeleteUdata(s_base_type* data);
 
+void ResetConnection(s_client_type* data);
+
 /**
  * @brief socket fd 를 위한 SO_REUSEADDR 설정을 하기 위한 util
  *

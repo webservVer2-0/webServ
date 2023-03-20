@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 127.0.0.1 [18/Mar/2023:13:54:55 + 0900] HTTP/1.1 ./storage/static/index.html GET 200 Ok [Path : ./storage/static/index.html]
 127.0.0.1 [18/Mar/2023:13:55:39 + 0900] HTTP/1.1 ./storage/static/index.html GET 200 Ok [Path : ./storage/static/index.html]
 127.0.0.1 [18/Mar/2023:14:37:59 + 0900] HTTP/1.1 ./storage/static/index.html GET 200 Ok [Path : ./storage/static/index.html]
@@ -76,3 +77,5 @@
 127.0.0.1 [20/Mar/2023:18:40:33 + 0900] HTTP/1.1 ./storage/static/index.html GET 200 Ok [Path : ./storage/static/index.html]
 127.0.0.1 [20/Mar/2023:18:40:33 + 0900] HTTP/1.1 ./storage/static/asset/favicon_io/favicon-32x32.png GET 200 Ok [Path : ./storage/static/asset/favicon_io/favicon-32x32.png]
 127.0.0.1 [20/Mar/2023:18:40:34 + 0900] HTTP/1.1 ./storage/static/asset/favicon_io/favicon-16x16.png GET 200 Ok [Path : ./storage/static/asset/favicon_io/favicon-16x16.png]
+=======
+>>>>>>> origin
