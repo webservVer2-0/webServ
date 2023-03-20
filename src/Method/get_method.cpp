@@ -96,9 +96,9 @@ void WorkGet(struct kevent* event) {
   } else {
     work->SetClientStage(GET_FIN);
     work->ChangeClientEvent(EVFILT_READ, EV_DISABLE, 0, 0, client);
-    work->ChangeClientEvent(EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, client);
+    work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
     ServerConfig::ChangeEvents(work->GetFD(), EVFILT_READ, EV_DELETE, 0, 0,
-                               NULL);
+                               work);
   }
   if (close(req_fd) == -1) {
     client->SetErrorString(errno, "GET method close()");
