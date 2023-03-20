@@ -80,8 +80,9 @@ inline char* ChunkMsgEnd(char* send_size, std::string last_size, t_http& res,
 
 static char* ChunkMsg(s_client_type* client, char* msg) {
   t_http res = client->GetResponse();
-  size_t chunk_size = static_cast<size_t>(
-      client->GetConfig().main_config_.find(BODY)->second.size());
+  std::string chunk = static_cast<std::string>(
+      client->GetConfig().main_config_.find(BODY)->second.data());
+  size_t chunk_size = std::atoi(chunk.c_str());
   std::string hex_size = to_hex_string(chunk_size);
   std::string last_size = to_hex_string(chunk_size % res.entity_length_);
   char send_size[1024];
