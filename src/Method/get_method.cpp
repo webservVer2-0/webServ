@@ -60,8 +60,6 @@ void ClientGet(struct kevent* event) {
   //   // TODO : redir도 나중에
   // }
   MethodGetReady(client);
-  // std::cout << "GetFileSize : " << GetFileSize((client->GetRequest().init_line_.find("URI")->second).c_str()) << std::endl;
-  // std::cout << "entity_len : " << event->data << std::endl;
 }
 
 void WorkGet(struct kevent* event) {
@@ -69,13 +67,13 @@ void WorkGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
   size_t chunk_size =
       atoi(client->GetConfig().main_config_.find(BODY)->second.c_str());
-  work->GetResponseMsg().entity_length_ = event->data;
-  // TODO : 그냥 애초에 GetFileSize() 하면 안됨?
+  // work->GetResponseMsg().entity_length_ = event->data;
   // client->GetResponse().entity_length_ = event->data;
+  work->GetResponseMsg().entity_length_ = GetFileSize(work->GetUri().c_str());
   size_t entity_len = work->GetResponseMsg().entity_length_;
+  // std::cout << "event->data : " << event->data << std::endl;
   // std::cout << "entity_len : " << entity_len << std::endl;
-  // std::cout << "GetFileSize : " << GetFileSize((client->GetRequest().init_line_.find("URI")->second).c_str()) << std::endl;
-// 왜 다르지?
+  // 왜 다르지?
   try {
     work->GetResponseMsg().entity_ = new char[entity_len];
   } catch (const std::exception& e) {
@@ -87,19 +85,25 @@ void WorkGet(struct kevent* event) {
   size_t read_ret = 0;
   int req_fd = work->GetFD();
   read_ret = read(req_fd, work->GetResponseMsg().entity_, entity_len);
+  // TODO : Checking the value of errno is strictly forbidden after a read or a write operation. 은 read(), write()에 대한 errno checking을 말하는거겠지?
+  // TODO : read errno 확인하는거 안되지 않나..?
+  // TODO : EWOULDBLOCK은 man에 없는데 조건에 집어넣을까..?
+  // if (read_ret != GetFileSize(work->GetUri().c_str())) 
   if ((read_ret != entity_len) || read_ret == size_t(-1)) {
     client->SetError(errno, "GET method read()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
     return;
   }
+
   client->SetErrorCode(OK);
   client->SetMimeType(work->GetUri());
   if (entity_len > chunk_size) {
     work->SetClientStage(GET_CHUNK);
   } else {
-    ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_DISABLE | EV_DELETE, 0, 0, client);
-    ServerConfig::ChangeEvents(req_fd, EVFILT_WRITE, EV_ENABLE, 0, 0, client);
+    ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_DISABLE, 0, 0, client);
+    ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+    ServerConfig::ChangeEvents(req_fd, EVFILT_WRITE, EV_ENABLE, 0, 0, client);//TODO : EV_ENABLE만 해도되지않나?
     work->SetClientStage(GET_FIN);
   }
   if (close(req_fd) == -1) {
