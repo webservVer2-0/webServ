@@ -195,7 +195,7 @@ char* MaketopMessage(s_client_type* client) {
        iter != msg.header_.end(); ++iter) {
     joined_str += iter->first + iter->second + "\r\n";
   }
-  joined_str += "\r\n\r\n";
+  joined_str += "\r\n";
   client->SetMessageLength(joined_str.length());
   char* result = new char[joined_str.length()];
   std::memcpy(result, joined_str.c_str(), joined_str.length());
