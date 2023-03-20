@@ -82,7 +82,7 @@ void ServerKinit(ServerConfig& config) {
   return;
 }
 
-inline size_t ChunkEncoding(s_client_type* client) {
+static size_t ChunkEncoding(s_client_type* client) {
   size_t send_msg_len;
   if (client->GetStage() == RES_CHUNK) {
     send_msg_len = static_cast<size_t>(
@@ -143,8 +143,10 @@ inline void SendProcess(struct kevent* event, s_client_type* client,
     if (client->GetSendNum() != DEF) {
       client->SetStage(client->GetSendNum());
       client->SetSendNum(DEF);
-      client->SetBuf(NULL);
-    }
+
+    } else
+      client->SetStage(RES_FIN);
+    client->SetBuf(NULL);
     return;
   }
 }
@@ -232,35 +234,38 @@ void ServerRun(ServerConfig& config) {
               s_client_type* client = static_cast<s_client_type*>(ft_filter);
               std::cout << "WRITE steps"
                         << " / Task FD : " << ft_filter->GetFD() << std::endl;
+              char msg_top[1024] = "";
 
               if (client->GetStage() == RES_SEND) {
                 SendProcess(curr_event, client, client->GetBuf(),
                             client->GetMessageLength());
-              } else {
-                client->SetResponse();
-                char* msg_top = MaketopMessage(client);
+              } else if (client->GetStage() != RES_FIN) {
+                if (client->GetStage() != RES_CHUNK) {
+                  client->SetResponse();
+                  char* msg_top = MaketopMessage(client);
+                }
                 client->SetBuf(MakeSendMessage(client, msg_top));
                 delete msg_top;
                 size_t send_msg_len = ChunkEncoding(client);
                 SendProcess(curr_event, client, client->GetBuf(), send_msg_len);
-                if (client->GetStage() == RES_SEND) break;
-                if (!client->GetChunked() || client->GetStage() != RES_CHUNK) {
-                  client->SendLogs();
-                  if (client->GetStage() == END) {
-                    ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
-                                               EV_DELETE, 0, 0, 0);
-                    close(curr_event->ident);
-                    DeleteUdata(ft_filter);
-                  } else {
-                    ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
-                                               EV_DISABLE, 0, 0, 0);
-                    ServerConfig::ChangeEvents(curr_event->ident, EVFILT_READ,
-                                               EV_DISABLE, 0, 0, ft_filter);
-                    DeleteUdata(ft_filter);
+              }
+              if (client->GetStage() == RES_SEND) break;
+              if (!client->GetChunked() || client->GetStage() != RES_CHUNK) {
+                client->SendLogs();
+                if (client->GetStage() == END) {
+                  ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
+                                             EV_DELETE, 0, 0, 0);
+                  close(curr_event->ident);
+                  DeleteUdata(ft_filter);
+                } else {
+                  ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
+                                             EV_DISABLE, 0, 0, 0);
+                  ServerConfig::ChangeEvents(curr_event->ident, EVFILT_READ,
+                                             EV_DISABLE, 0, 0, ft_filter);
+                  DeleteUdata(ft_filter);
 
-                    // TODO: 스테이지 초기화가 필요하다.
-                    client->SetStage(DEF);
-                  }
+                  // TODO: 스테이지 초기화가 필요하다.
+                  client->SetStage(DEF);
                 }
               }
             } else if (curr_event->filter == EVFILT_TIMER) {
