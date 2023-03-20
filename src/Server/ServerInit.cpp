@@ -101,9 +101,6 @@ void ServerRun(ServerConfig& config) {
 
     for (int i = 0; i < new_event_number; i++) {
       curr_event = &config.event_list_[i];
-      //   if (curr_event->flags & EV_ERROR) {
-      //     // PrintError(3, WEBSERV, CRITICAL, "kevent running error");
-      //   } else {
       s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
       switch (ft_filter->GetType()) {
         case WORK: {
@@ -126,7 +123,6 @@ void ServerRun(ServerConfig& config) {
                         << " / Task FD : " << ft_filter->GetFD() << std::endl;
               if (curr_event->data == 0) continue;
               char* client_msg = new char[curr_event->data];
-              std::cout << "data size : " << curr_event->data << std::endl;
               int ret =
                   recv(curr_event->ident, client_msg, curr_event->data, 0);
               if (ret == -1) {
@@ -135,7 +131,6 @@ void ServerRun(ServerConfig& config) {
               if (ret == 0) {
                 continue;
               }
-              write(1, client_msg, ret);
               request_handler(curr_event->data, curr_event->udata, client_msg);
               delete[] client_msg;
             }

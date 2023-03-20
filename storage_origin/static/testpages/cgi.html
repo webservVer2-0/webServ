@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Image Processing</title>
+    <script>
+      function submitImage() {
+        // 이미지 파일을 가져옴
+        var imageFile = document.getElementById("imageInput").files[0];
+        if (!imageFile) {
+          alert("Please select an image file.");
+          return;
+        }
+
+        // FormData 객체를 생성하여 이미지 파일을 추가함
+        var formData = new FormData();
+        formData.append("image", imageFile);
+
+        // XMLHttpRequest 객체를 생성하여 CGI 스크립트로 전송함
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "../cgi/cgi.py");  // 수정된 부분
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            // 처리된 결과를 받아와 UI를 업데이트함
+            var result = xhr.responseText;
+            var resultBox = document.getElementById("resultBox");
+            resultBox.innerText = result;
+            resultBox.style.display = "block";
+          } else {
+            alert("Failed to process the image.");
+          }
+        };
+        xhr.send(formData);
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Image Processing</h1>
+    <form>
+      <input type="file" id="imageInput">
+      <button type="button" onclick="submitImage()">Process</button>
+    </form>
+    <div id="resultBox" style="display:none; border: 1px solid black; padding: 10px;"></div>
+  </body>
+</html>
