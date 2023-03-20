@@ -110,7 +110,7 @@ inline t_http MakeResInitHeader(s_client_type* client, t_http msg,
                                 std::string str_code, std::string date_str,
                                 char* buf) {
   msg.init_line_.insert(
-      std::make_pair(std::string("version"), std::string("HTTP/1.1")));
+      std::make_pair(std::string("version"), std::string("HTTP/1.1 ")));
   msg.init_line_.insert(std::make_pair(std::string("code"), str_code));
   msg.header_.insert(std::make_pair(std::string("Date: "), date_str));
   msg.header_.insert(

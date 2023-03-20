@@ -67,6 +67,8 @@ s_client_type::s_client_type(t_server* config, int client_fd,
   request_msg_.entity_length_ = 0;
   response_msg_.entity_ = NULL;
   response_msg_.entity_length_ = 0;
+  send_num = DEF;
+  send_length = 0;
 }
 
 s_client_type::~s_client_type() {}
@@ -95,6 +97,12 @@ void s_client_type::SetResponse(void) {
 
 size_t& s_client_type::GetMessageLength(void) { return this->msg_length; }
 void s_client_type::SetMessageLength(size_t size) { this->msg_length = size; }
+const char* s_client_type::GetBuf(void) { return this->write_buf_; }
+void s_client_type::SetBuf(char* buf) { this->write_buf_ = buf; }
+const s_stage& s_client_type::GetSendNum(void) { return this->send_num; }
+void s_client_type::SetSendNum(s_stage num) { this->send_num = num; }
+const size_t& s_client_type::GetSendLength(void) { return this->send_length; }
+void s_client_type::SetSendLength(size_t length) { this->send_length = length; }
 const t_stage& s_client_type::GetStage(void) { return this->stage_; }
 void s_client_type::SetStage(t_stage val) {
   time_data_[1] = std::time(NULL);
