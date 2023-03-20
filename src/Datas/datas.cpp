@@ -17,6 +17,8 @@ t_event s_base_type::GetType() const { return this->type_; }
 
 int s_base_type::GetFD() { return this->fd_; }
 
+void s_base_type::SetFD(int fd) { this->fd_ = fd; }
+
 /****************** Server Type ********************/
 
 s_server_type::s_server_type(ServerConfig& config_list, int server_number,
@@ -32,9 +34,12 @@ s_server_type::s_server_type(ServerConfig& config_list, int server_number,
   e_fd = open(self_config_->main_config_.at("error_log").c_str(),
               O_WRONLY | O_APPEND | O_NONBLOCK);
 
-  this->logger_.SetFDs(l_fd, e_fd);
+  this->logger_.SetFD(l_fd);
+  this->e_logger_.SetFD(e_fd);
   ServerConfig::ChangeEvents(l_fd, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, NULL,
                              &(this->logger_));
+  ServerConfig::ChangeEvents(e_fd, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, NULL,
+                             &(this->e_logger_));
 }
 
 s_server_type::~s_server_type() {}
@@ -51,7 +56,7 @@ s_client_type::s_client_type(t_server* config, int client_fd,
                              s_server_type* mother)
     : s_base_type(client_fd) {
   std::ostringstream temp;
-  temp << rand();
+  temp << static_cast<unsigned int>(rand());
   cookie_id_ = temp.str();
   temp.clear();
   this->time_data_[0] = std::time(NULL);
@@ -60,7 +65,6 @@ s_client_type::s_client_type(t_server* config, int client_fd,
   this->loc_config_ptr_ = NULL;
   parent_ptr_ = static_cast<s_base_type*>(mother);
   data_ptr_ = NULL;
-  sent_size_ = 0;
   stage_ = DEF;
   status_code_ = NO_ERROR;
   request_msg_.entity_ = NULL;
@@ -217,19 +221,22 @@ void s_client_type::SendLogs(void) {
   char msg2[30];
   std::strftime(msg1, 30, "%d/%b/%Y:%H:%M:%S + 0900", std::localtime(&time[0]));
   std::strftime(msg2, 30, "%d/%b/%Y:%H:%M:%S + 0900", std::localtime(&time[1]));
-  s_logger_type* temp =
-      &(static_cast<s_server_type*>(parent_ptr_))->GetLogger();
-
+  s_logger_type* temp;
+  if (GetErrorCode() == OK || GetErrorCode() == MOV_PERMAN) {
+    temp = &(static_cast<s_server_type*>(parent_ptr_))->GetLogger();
+  } else {
+    temp = &(static_cast<s_server_type*>(parent_ptr_))->GetELogger();
+  }
+  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, NULL,
+                             &temp);
   if (this->GetErrorCode() == OK || this->GetErrorCode() == MOV_PERMAN) {
-    ServerConfig::ChangeEvents(temp->GetLoggingFd(), EVFILT_WRITE, EV_ENABLE, 0,
-                               NULL, &temp);
     logging_data.append(this->GetIP());
     logging_data.append(" [");
     logging_data.append(msg1);
     logging_data.append("] ");
     logging_data.append("HTTP/1.1");
     logging_data.append(" ");
-    logging_data.append(this->request_msg_.init_line_.at("URI"));
+    logging_data.append(this->origin_uri_);
     logging_data.append(" ");
     logging_data.append(this->request_msg_.init_line_.at("METHOD"));
     logging_data.append(" ");
@@ -252,8 +259,6 @@ void s_client_type::SendLogs(void) {
     logging_data.append(this->request_msg_.init_line_.at("URI"));
     logging_data.append("]");
   } else {
-    ServerConfig::ChangeEvents(temp->GetLoggingFd(), EVFILT_WRITE, EV_ENABLE, 0,
-                               NULL, &temp);
     logging_data.append("ERR : ");
     logging_data.append(this->GetIP());
     logging_data.append(" [");
@@ -316,8 +321,9 @@ void s_client_type::SendLogs(void) {
   return;
 }
 
-void s_client_type::SetError(int custom_errno, std::string custom_msg) {
+void s_client_type::SetErrorString(int custom_errno, std::string custom_msg) {
   this->errno_ = custom_errno;
+  this->err_custom_.clear();
   this->err_custom_ = custom_msg;
 }
 bool s_client_type::SetMimeType(std::string converted_uri) {
@@ -337,6 +343,14 @@ bool s_client_type::SetMimeType(std::string converted_uri) {
   return (true);
 }
 std::string& s_client_type::GetMimeType(void) { return this->mime_; }
+
+void s_client_type::SetAccessTime(void) {
+  this->time_data_[0] = std::time(NULL);
+}
+
+void s_client_type::SetFinishTime(void) {
+  this->time_data_[0] = std::time(NULL);
+}
 
 /****************** Work Type ********************/
 

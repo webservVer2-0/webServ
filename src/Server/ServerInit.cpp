@@ -5,6 +5,7 @@
 
 #include "../../include/config.hpp"
 #include "../../include/request_handler.hpp"
+#include "../../include/utils.hpp"
 #include "../../include/webserv.hpp"
 
 void ServerInit(ServerConfig& config) {
@@ -101,7 +102,7 @@ void ServerRun(ServerConfig& config) {
     for (int i = 0; i < new_event_number; i++) {
       curr_event = &config.event_list_[i];
       if (curr_event->flags & EV_ERROR) {
-        // PrintError(3, WEBSERV, CRITICAL, "kevent running error");
+        PrintError(3, WEBSERV, CRITICAL, "kevent running error");
         ;
       } else {
         s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
@@ -131,8 +132,6 @@ void ServerRun(ServerConfig& config) {
                 if (ret == -1) {
                   // 임시
                 }
-                // client_msg[curr_event->data] = '\0';
-                // TODO: 이 로직 바꿔여함
 
                 request_handler(curr_event->data, curr_event->udata,
                                 client_msg);
@@ -190,19 +189,19 @@ void ServerRun(ServerConfig& config) {
                   ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
                                              EV_DELETE, 0, 0, 0);
                   close(curr_event->ident);
-                  DeleteUdata(ft_filter);
+                  ResetConnection(
+                      static_cast<s_client_type*>(curr_event->udata));
                 } else {
                   ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
                                              EV_DISABLE, 0, 0, 0);
                   ServerConfig::ChangeEvents(curr_event->ident, EVFILT_READ,
                                              EV_DISABLE, 0, 0, ft_filter);
-                  DeleteUdata(ft_filter);
-
-                  // TODO: 스테이지 초기화가 필요하다.
-                  client->SetStage(DEF);
+                  ResetConnection(
+                      static_cast<s_client_type*>(curr_event->udata));
                 }
               }
-            } else if (curr_event->filter == EVFILT_TIMER) {
+            } else if (curr_event->filter == EVFILT_TIMER ||
+                       curr_event->flags & EV_EOF) {
               DeleteUdata(ft_filter);
               ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
                                          EV_DELETE, 0, 0, 0);
@@ -212,13 +211,17 @@ void ServerRun(ServerConfig& config) {
                                          EV_DELETE, 0, 0, 0);
               close(curr_event->ident);
             }
-          }
+          } break;
           case LOGGER: {
             if (curr_event->filter == EVFILT_WRITE) {
+              std::cout
+                  << "Logger steps"
+                  << " / Task FD : "
+                  << static_cast<s_logger_type*>(curr_event->udata)->GetFD()
+                  << std::endl;
               static_cast<s_logger_type*>(ft_filter)->PushData();
             }
-            break;
-          }
+          } break;
           default: {  // Server case
             sockaddr_in* addr_info = config.GetServerAddress();
             std::cout << "SERVER steps"
@@ -236,18 +239,18 @@ void ServerRun(ServerConfig& config) {
             s_client_type* client =
                 static_cast<s_client_type*>(server->CreateClient(client_fd));
             client->SetIP(ip_str);
-            ServerConfig::ChangeEvents(client_fd, EVFILT_READ, EV_ADD, 0, 0,
-                                       client);
+            ServerConfig::ChangeEvents(client_fd, EVFILT_READ, EV_ADD | EV_EOF,
+                                       0, 0, client);
 
             ServerConfig::ChangeEvents(client_fd, EVFILT_WRITE,
                                        EV_ADD | EV_DISABLE, 0, 0, client);
             int timer = atoi(client->GetConfig()
-                                 .main_config_.at("timeout")
+                                 .main_config_.at(TIMEOUT)
                                  .c_str());  // refactoring
-            ServerConfig::ChangeEvents(client_fd, EVFILT_TIMER, EV_ADD,
-                                       NOTE_SECONDS, timer, client);
-            // client->PrintClientStatus();
-            // server->GetLogger().PrintLogger();
+            if (timer != 0) {
+              ServerConfig::ChangeEvents(client_fd, EVFILT_TIMER, EV_ADD,
+                                         NOTE_SECONDS, timer, client);
+            }
           } break;
         }
       }

@@ -5,11 +5,6 @@
 #include "webserv.hpp"
 
 class ServerConfig;
-// class s_base_type;
-// class s_server_type;
-// class s_client_type;
-// class s_work_type;
-// class s_logger_type;
 
 typedef struct s_server t_server;
 typedef struct s_loc t_loc;
@@ -96,6 +91,7 @@ class s_base_type {
   void SetType(t_event val);
   t_event GetType() const;
   int GetFD();
+  void SetFD(int val);
 };
 
 /**
@@ -145,19 +141,20 @@ class s_work_type : public s_base_type {
   void SetClientStage(t_stage val);
 };
 
+typedef enum s_log_type { logger, error } t_log_type;
+
 class s_logger_type : public s_base_type {
  private:
-  int logging_fd_;
-  int error_fd_;
-  std::vector<std::string*> logs_;
+  t_log_type log_type_;
+  std::vector<std::string> logs_;
+  size_t data_que_;
 
  public:
   s_logger_type();
   ~s_logger_type();
-  //   s_logger_type& operator=(const s_logger_type& target);
-  void SetFDs(int log_fd, int err_fd);
-  int GetLoggingFd(void);
-  int GetErrorFd(void);
+  //   void SetFDs(int targetFD);
+  void SetLabel(s_log_type type);
+  t_log_type GetLabel(void);
   void GetData(std::string);
   void PushData(void);
   void PrintLogger(void);
@@ -167,6 +164,7 @@ class s_server_type : public s_base_type {
  private:
   t_server* self_config_;
   s_logger_type logger_;
+  s_logger_type e_logger_;
 
   s_server_type(const s_server_type& target);
   s_server_type& operator=(const s_server_type& target);
@@ -183,6 +181,7 @@ class s_server_type : public s_base_type {
    */
   s_base_type* CreateClient(int client_fd);
   s_logger_type& GetLogger(void) { return this->logger_; }
+  s_logger_type& GetELogger(void) { return this->e_logger_; }
   t_server& GetServerConfig(void) { return *this->self_config_; }
 };
 
@@ -205,7 +204,7 @@ class s_client_type : public s_base_type {
   std::string origin_uri_;
   t_http request_msg_;   // request 메시지
   t_http response_msg_;  // response 메시지
-  size_t sent_size_;  // chunked encoding 상황에서 얼마나 전달했는지를 체크함
+  size_t sent_size_;
   std::string mime_;
 
   s_base_type* parent_ptr_;  // server 클래스 포인터
@@ -281,14 +280,17 @@ class s_client_type : public s_base_type {
   const std::string& GetIP(void);
 
   std::time_t* GetTimeData(void);
+  void SetAccessTime(void);
+  void SetFinishTime(void);
 
   void SendLogs(void);
 
-  void PrintClientStatus(void);
+  void SetErrorString(int custom_errno, std::string custom_msg);
 
-  void SetError(int custom_errno, std::string custom_msg);
   bool SetMimeType(std::string converted_uri);
   std::string& GetMimeType(void);
+
+  void PrintClientStatus(void);
 };
 
 /**

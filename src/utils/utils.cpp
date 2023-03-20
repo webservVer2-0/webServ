@@ -159,3 +159,36 @@ void SetSockoptReuseaddr(int* socket_fd, int socket_length) {
     }
   }
 }
+
+void ResetConnection(s_client_type* udata) {
+  // s_client_type data clear
+  udata->GetTimeData()[0] = 0;
+  udata->GetTimeData()[1] = 0;
+  udata->SetConfigPtr(NULL);
+
+  const_cast<std::string&>(udata->GetOriginURI()).clear();
+
+  t_http* temp_http = &(udata->GetRequest());
+  if (temp_http->entity_ != NULL) {
+    delete[] temp_http->entity_;
+  }
+  temp_http->entity_length_ = 0;
+  temp_http->header_.clear();
+  temp_http->init_line_.clear();
+
+  temp_http = &((udata)->GetResponse());
+  if (temp_http->entity_ != NULL) {
+    delete[] temp_http->entity_;
+  }
+  temp_http->entity_length_ = 0;
+  temp_http->header_.clear();
+  temp_http->init_line_.clear();
+
+  udata->GetMimeType().clear();
+  udata->SetStage(DEF);
+  udata->SetErrorCode(NO_ERROR);
+  udata->SetErrorString(0, std::string());
+  if (udata->GetChildWork() != NULL) {
+    delete udata->GetChildWork();
+  }
+}
