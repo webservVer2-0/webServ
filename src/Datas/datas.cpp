@@ -175,7 +175,18 @@ bool s_client_type::GetCacheError(t_error code, t_http& response) {
   return (true);
 }
 
-bool s_client_type::GetChunked(void) { return (this->GetStage() == GET_CHUNK); }
+bool s_client_type::GetChunked(void) {
+  if (this->GetStage() == GET_CHUNK || this->GetStage() == RES_CHUNK)
+    return (1);
+  else
+    return (0);
+}
+bool s_client_type::IsChunked(void) {
+  if (this->GetStage() == RES_FIN || this->GetStage() == RES_CHUNK)
+    return (1);
+  else
+    return (0);
+}
 size_t s_client_type::GetChunkSize(void) { return this->sent_size_; }
 bool s_client_type::IncreaseChunked(size_t sent_size) {
   size_t sent_unit = sent_size;

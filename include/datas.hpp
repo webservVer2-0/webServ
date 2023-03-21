@@ -263,6 +263,7 @@ class s_client_type : public s_base_type {
   bool GetCacheError(t_error code, t_http& response);
 
   bool GetChunked(void);
+  bool IsChunked(void);
   size_t GetChunkSize(void);
 
   /**
