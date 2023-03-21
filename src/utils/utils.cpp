@@ -110,42 +110,25 @@ pos_t FindValueLength(std::string& str, pos_t& pos) {
 }
 
 void DeleteUdata(s_base_type* data) {
-  switch (data->GetType()) {
-    case SERVER: {
-      s_server_type* temp = static_cast<s_server_type*>(data);
-      delete temp;
-      break;
-    }
-    case CLIENT: {
-      s_client_type* temp = static_cast<s_client_type*>(data);
-      if (temp->GetChildWork() != NULL) {
-        s_work_type* file = temp->GetChildWork();
-        if (file != NULL) {
-          delete file;
-        }
-      }
-
-      if (temp->GetRequest().entity_length_ != 0)
-        delete[] temp->GetRequest().entity_;
-      temp->GetRequest().entity_length_ = 0;
-      temp->GetRequest().header_.clear();
-      temp->GetRequest().init_line_.clear();
-      if (temp->GetResponse().entity_length_ != 0)
-        delete[] temp->GetResponse().entity_;
-      temp->GetResponse().entity_length_ = 0;
-      temp->GetResponse().header_.clear();
-      temp->GetResponse().init_line_.clear();
-      break;
-    }
-    case WORK: {
-      s_work_type* file = static_cast<s_work_type*>(data);
+  if (data->GetType() != CLIENT) return;
+  s_client_type* temp = static_cast<s_client_type*>(data);
+  if (temp->GetChildWork() != NULL) {
+    s_work_type* file = temp->GetChildWork();
+    if (file != NULL) {
       delete file;
-      break;
-    }
-    case LOGGER: {
-      break;
     }
   }
+
+  if (temp->GetRequest().entity_length_ != 0)
+    delete[] temp->GetRequest().entity_;
+  temp->GetRequest().entity_length_ = 0;
+  temp->GetRequest().header_.clear();
+  temp->GetRequest().init_line_.clear();
+  if (temp->GetResponse().entity_length_ != 0)
+    delete[] temp->GetResponse().entity_;
+  temp->GetResponse().entity_length_ = 0;
+  temp->GetResponse().header_.clear();
+  temp->GetResponse().init_line_.clear();
 }
 
 void SetSockoptReuseaddr(int* socket_fd, int socket_length) {
@@ -158,4 +141,37 @@ void SetSockoptReuseaddr(int* socket_fd, int socket_length) {
       PrintError(2, WEBSERV, "Server socket option setting is failed");
     }
   }
+}
+
+void ResetConnection(s_client_type* udata) {
+  // s_client_type data clear
+  udata->GetTimeData()[0] = 0;
+  udata->GetTimeData()[1] = 0;
+  udata->SetConfigPtr(NULL);
+
+  const_cast<std::string&>(udata->GetOriginURI()).clear();
+
+  t_http* temp_http = &(udata->GetRequest());
+  if (temp_http->entity_ != NULL) {
+    delete[] temp_http->entity_;
+  }
+  temp_http->entity_length_ = 0;
+  temp_http->header_.clear();
+  temp_http->init_line_.clear();
+
+  temp_http = &((udata)->GetResponse());
+  if (temp_http->entity_ != NULL) {
+    delete[] temp_http->entity_;
+  }
+  temp_http->entity_length_ = 0;
+  temp_http->header_.clear();
+  temp_http->init_line_.clear();
+
+  udata->GetMimeType().clear();
+  udata->SetStage(DEF);
+  udata->SetErrorCode(NO_ERROR);
+  udata->SetErrorString(0, std::string());
+  //   if (udata->GetChildWork() != NULL) {
+  //     delete udata->GetChildWork();
+  //   }
 }

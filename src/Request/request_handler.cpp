@@ -95,7 +95,7 @@ std::string to_string(const T& value) {
 static t_error request_error(s_client_type* client_type, t_error err_code,
                              std::string msg) {
   int errno_ = errno;
-  client_type->SetError(errno_, msg);
+  client_type->SetErrorString(errno_, msg);
   client_type->SetErrorCode(err_code);
   client_type->SetStage(ERR_READY);
   return (err_code);
@@ -306,6 +306,7 @@ t_error elem_initializer(t_elem* e, std::vector<char> msg) {
 t_error request_handler(size_t msg_len, void* udata, char* msg) {
   s_client_type* client_type = static_cast<s_client_type*>(udata);
   client_type->SetStage(REQ_READY);
+  client_type->SetAccessTime();
 
   if (!msg) {
     return (request_error(client_type, BAD_REQ, "message is null"));

@@ -380,6 +380,9 @@ bool ServerConfig::ValidConfigNumber(conf_iterator& target,
   }
   int number_value = atoi(temp.c_str());
   if (number_value <= 0 || number_value > INT_MAX) {
+    if (number_value == 0 && target.operator->()->first.compare(TIMEOUT) == 0) {
+      return (true);
+    }
     PrintError(5, WEBSERV, "Server", standard,
                "value has a problem : ", temp.c_str());
   }
