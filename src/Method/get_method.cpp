@@ -12,7 +12,7 @@ void  MethodGetSetEntity(s_client_type*& client)
   try {
     client->GetResponse().entity_ = new char[client->GetResponse().entity_length_];
   } catch (const std::exception& e) {
-    client->SetError(errno, "GET method new()");
+    client->SetErrorString(errno, "GET method new()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
   }
@@ -44,12 +44,12 @@ void MethodGetReady(s_client_type*& client) {
   {
     int req_fd = open(uri.c_str(), O_RDONLY | O_NONBLOCK);
     if (req_fd == -1) {
-      client->SetError(errno, "GET method open()");
+      client->SetErrorString(errno, "GET method open()");
       client->SetErrorCode(SYS_ERR);
       client->SetStage(ERR_FIN);
       return;
     }
-    MethodGetSetEntity(client);
+    // MethodGetSetEntity(client);
     s_base_type* work = client->CreateWork(&uri, req_fd, file);
     ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_ADD, 0, 0, work);
     ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_DISABLE, 0, 0,
@@ -81,27 +81,30 @@ void ClientGet(struct kevent* event) {
 
 
 void WorkGet(struct kevent* event) {
-  // s_work_type* work = static_cast<s_work_type*>(event->udata);
-  // s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
   s_client_type*  client = static_cast<s_client_type*>(event->udata);
+  MethodGetSetEntity(client);
   size_t  entity_len = client->GetResponse().entity_length_;
   size_t  read_ret = 0;
   int req_fd = client->GetFD();
   read_ret = read(req_fd, client->GetResponse().entity_, entity_len);
-  std::vector<char> vec(entity_len, '/0');
-  if (read_ret == 0)//다 읽음. 
+  if (read_ret == (size_t)-1)
   {
-    // TODO : read() 계속 실패해서 이 상태가 오지 않는다면? > 계속 read() 시도?
-    if (entity_len != 현재버퍼길이) // TODO : event->data?
-    {
-      client->SetError(errno, "GET method read()");
-      client->SetErrorCode(SYS_ERR);
-      client->SetStage(ERR_FIN);
-    }
+    printf("read error()\n");
   }
-  else if (read_ret < entity_len) { // 다시 돌아야 함
-    return;
-  }
+  // std::vector<char> vec(entity_len, '/0');
+  // if (read_ret == 0)//다 읽음. 
+  // {
+  //   // TODO : read() 계속 실패해서 이 상태가 오지 않는다면? > 계속 read() 시도?
+  //   if (entity_len != 현재버퍼길이) // TODO : event->data?
+  //   {
+  //     client->SetErrorString(errno, "GET method read()");
+  //     client->SetErrorCode(SYS_ERR);
+  //     client->SetStage(ERR_FIN);
+  //   }
+  // }
+  // else if (read_ret < entity_len) { // 다시 돌아야 함
+  //   return;
+  // }
 
   client->SetErrorCode(OK);
   client->SetMimeType(client->GetConvertedURI());
@@ -116,7 +119,7 @@ void WorkGet(struct kevent* event) {
     client->SetStage(GET_FIN);
   }
   if (close(req_fd) == -1) {
-    client->SetError(errno, "GET method close()");
+    client->SetErrorString(errno, "GET method close()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
   }
