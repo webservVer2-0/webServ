@@ -110,9 +110,10 @@ void WorkFilePost(struct kevent* event) {
   s_work_type* work = static_cast<s_work_type*>(event->udata);
   s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
 
-  size_t write_result = write(work->GetFD(), client->GetRequest().entity_,
-                              client->GetRequest().entity_length_);
-  size_t total_write_len = client->GetMessageLength() + write_result;
+  int write_result = write(work->GetFD(), client->GetRequest().entity_,
+                           client->GetRequest().entity_length_);
+  size_t total_write_len =
+      client->GetMessageLength() + static_cast<size_t>(write_result);
   size_t entity_len = client->GetRequest().entity_length_;
 
   if (total_write_len > entity_len) {
@@ -139,7 +140,6 @@ void WorkFilePost(struct kevent* event) {
     client->SetMessageLength(0);
   }
   // TODO: POST 파일 저장 후 검사가 필요한지 확인하기
-  // TODO: work에서 사용이 끝난 udata를 리셋
   return;
 }
 
