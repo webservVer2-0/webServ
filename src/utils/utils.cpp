@@ -153,7 +153,7 @@ void ResetConnection(s_client_type* udata) {
   const_cast<std::string&>(udata->GetOriginURI()).clear();
 
   t_http* temp_http = &(udata->GetRequest());
-  if (temp_http->entity_ != NULL) {
+  if (temp_http->entity_length_ != 0) {
     delete[] temp_http->entity_;
   }
   temp_http->entity_length_ = 0;
@@ -161,7 +161,7 @@ void ResetConnection(s_client_type* udata) {
   temp_http->init_line_.clear();
 
   temp_http = &((udata)->GetResponse());
-  if (temp_http->entity_ != NULL) {
+  if (temp_http->entity_length_ != 0) {
     delete[] temp_http->entity_;
   }
   temp_http->entity_length_ = 0;
@@ -172,7 +172,7 @@ void ResetConnection(s_client_type* udata) {
   udata->SetStage(DEF);
   udata->SetErrorCode(NO_ERROR);
   udata->SetErrorString(0, std::string());
-  if (udata->GetErrorCode() != SYS_ERR && udata->GetChildWork() != NULL) {
+  if (udata->GetChildWork() != NULL) {
     delete udata->GetChildWork();
   }
 }
