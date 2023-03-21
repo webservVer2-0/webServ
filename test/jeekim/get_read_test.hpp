@@ -9,8 +9,8 @@
 #include <sys/stat.h>
 #include <cstring>
 
-#define BUF_SIZE 3
-// #define BUF_SIZE 1024
+// #define BUF_SIZE 3
+#define BUF_SIZE 1024
 
 class s_client_type
 {
