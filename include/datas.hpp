@@ -308,8 +308,6 @@ class s_client_type : public s_base_type {
   void SetSendLength(size_t length);
 
   void PrintClientStatus(void);
-
-  void  SetVec(std::vector<char> vec);
 };
 
 /**

@@ -376,10 +376,6 @@ std::vector<char>&  s_client_type::GetVec(void)
   return this->vec_;
 }
 
-void s_client_type::SetVec(std::vector<char> vec)
-{
-  this->vec_ = vec;
-}
 
 
 
