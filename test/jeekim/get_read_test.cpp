@@ -12,7 +12,6 @@ void for_read(struct ke* kev)
 		}
 		return ;
 	}
-	//TODO : buf content 다 0 대입
 	if (client->vec.size() != client->len)
 	{
 		std::cout << "client->vec.size() != len\n";
