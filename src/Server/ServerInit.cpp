@@ -160,39 +160,25 @@ void ServerRun(ServerConfig& config) {
             s_client_type* client = static_cast<s_client_type*>(ft_filter);
             std::cout << "WRITE steps"
                       << " / Task FD : " << ft_filter->GetFD() << std::endl;
-            client->SetResponse();
-            char* msg_top = MaketopMessage(client);
-            char* send_msg = MakeSendMessage(client, msg_top);
-            size_t send_msg_len;
-            delete msg_top;
-            if (client->GetStage() == RES_CHUNK) {
-              send_msg_len = static_cast<size_t>(
-                  client->GetConfig().main_config_.find(BODY)->second.size());
-            } else if (client->GetStage() == RES_CHUNK &&
-                       client->GetChunkSize() >
-                           client->GetResponse().entity_length_) {
-              send_msg_len =
-                  client->GetChunkSize() % client->GetResponse().entity_length_;
-            } else if (client->GetStage() == RES_FIN) {
-              send_msg_len = 5;
-            } else
-              send_msg_len = client->GetMessageLength();
-            send(curr_event->ident, send_msg, send_msg_len, 0);
-            delete send_msg;
-            if (!client->GetChunked() || client->GetStage() != RES_CHUNK) {
-              client->SendLogs();
-              if (client->GetStage() == END) {
-                ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
-                                           EV_DELETE, 0, 0, 0);
-                close(curr_event->ident);
-                ResetConnection(static_cast<s_client_type*>(curr_event->udata));
+
+            if (client->GetStage() == RES_SEND) {
+              SendProcess(curr_event, client);
+            } else {
+              char* msg_top = strdup("");
+              char* send_msg = strdup("");
+              if (client->IsChunked()) {
+                send_msg = MakeSendMessage(client, msg_top);
               } else {
-                ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
-                                           EV_DISABLE, 0, 0, 0);
-                ServerConfig::ChangeEvents(curr_event->ident, EVFILT_READ,
-                                           EV_ENABLE, 0, 0, ft_filter);
-                ResetConnection(static_cast<s_client_type*>(curr_event->udata));
+                client->SetResponse();
+                msg_top = MaketopMessage(client);
+                send_msg = MakeSendMessage(client, msg_top);
               }
+              delete msg_top;
+              client->SetBuf(send_msg);
+              SendMessageLength(client);
+              SendProcess(curr_event, client);
+              if (client->GetStage() == RES_SEND) continue;
+              SendFin(curr_event, client);
             }
           } else if (curr_event->filter == EVFILT_TIMER ||
                      curr_event->flags & EV_EOF) {

@@ -32,7 +32,8 @@ char* MaketopMessage(s_client_type* client);
  * @return char*
  */
 char* MakeSendMessage(s_client_type* client, char* msg);
-
-void DeleteSendMessage(char* msg, size_t size);
+void SendMessageLength(s_client_type* client);
+void SendProcess(struct kevent* event, s_client_type* client);
+void SendFin(struct kevent* event, s_client_type* client);
 
 #endif
