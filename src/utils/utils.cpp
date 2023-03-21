@@ -110,14 +110,12 @@ pos_t FindValueLength(std::string& str, pos_t& pos) {
 }
 
 void DeleteUdata(s_base_type* data) {
-  if (data->GetType() != CLIENT) return;
   s_client_type* temp = static_cast<s_client_type*>(data);
-  if (temp->GetChildWork() != NULL) {
-    s_work_type* file = temp->GetChildWork();
-    if (file != NULL) {
-      delete file;
-    }
-  }
+  std::cout << "DELETE Client : " << temp->GetFD() << std::endl;
+  //   s_work_type* file = temp->GetChildWork();
+  //   if (file != NULL) {
+  //     delete file;
+  //   }
 
   if (temp->GetRequest().entity_length_ != 0)
     delete[] temp->GetRequest().entity_;
@@ -129,6 +127,10 @@ void DeleteUdata(s_base_type* data) {
   temp->GetResponse().entity_length_ = 0;
   temp->GetResponse().header_.clear();
   temp->GetResponse().init_line_.clear();
+  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_READ, EV_DELETE, 0, 0, 0);
+  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_TIMER, EV_DELETE, 0, 0, 0);
+  close(temp->GetFD());
 }
 
 void SetSockoptReuseaddr(int* socket_fd, int socket_length) {
@@ -144,7 +146,6 @@ void SetSockoptReuseaddr(int* socket_fd, int socket_length) {
 }
 
 void ResetConnection(s_client_type* udata) {
-  // s_client_type data clear
   udata->GetTimeData()[0] = 0;
   udata->GetTimeData()[1] = 0;
   udata->SetConfigPtr(NULL);
@@ -171,7 +172,7 @@ void ResetConnection(s_client_type* udata) {
   udata->SetStage(DEF);
   udata->SetErrorCode(NO_ERROR);
   udata->SetErrorString(0, std::string());
-  //   if (udata->GetChildWork() != NULL) {
-  //     delete udata->GetChildWork();
-  //   }
+  if (udata->GetChildWork() != NULL) {
+    delete udata->GetChildWork();
+  }
 }
