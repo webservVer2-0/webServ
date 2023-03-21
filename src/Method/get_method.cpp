@@ -10,7 +10,7 @@ void  MethodGetSetEntity(s_client_type*& client)
      std::cout << "entity_len : " << entity_len << std::endl;
      왜 다르지? */
   try {
-    client->GetResponse().entity_ = new char[client->GetResponse().entity_length_ + 1];
+    client->GetResponse().entity_ = new char[client->GetResponse().entity_length_ + 1]();
   } catch (const std::exception& e) {
     client->SetErrorString(errno, "GET method new()");
     client->SetErrorCode(SYS_ERR);
@@ -81,28 +81,33 @@ void ClientGet(struct kevent* event) {
 
 void WorkGet(struct kevent* event) {
   s_client_type*  client = static_cast<s_client_type*>(event->udata);
-  size_t  entity_len = client->GetResponse().entity_length_;
-  size_t  read_ret = 0;
   int req_fd = client->GetFD();
-  read_ret = read(req_fd, client->GetResponse().entity_, entity_len);
-  if (read_ret == (size_t)-1)
+  size_t  entity_len = client->GetResponse().entity_length_;
+  int idx;
+  size_t  read_ret = 0;
+  read_ret = read(req_fd, client->GetResponse().entity_, BUF_SIZE);
+  if (read_ret == (size_t)-1 || read_ret)
   {
-    printf("read error()\n");
+    for (idx = 0; (size_t)idx < read_ret; idx++)
+    {
+      client->GetVec().push_back(client->GetResponse().entity_[idx]);
+    }
+    return ;
   }
-  // std::vector<char> vec(entity_len, '/0');
-  // if (read_ret == 0)//다 읽음. 
-  // {
-  //   // TODO : read() 계속 실패해서 이 상태가 오지 않는다면? > 계속 read() 시도?
-  //   if (entity_len != 현재버퍼길이) // TODO : event->data?
-  //   {
-  //     client->SetErrorString(errno, "GET method read()");
-  //     client->SetErrorCode(SYS_ERR);
-  //     client->SetStage(ERR_FIN);
-  //   }
-  // }
-  // else if (read_ret < entity_len) { // 다시 돌아야 함
-  //   return;
-  // }
+  if (client->GetVec().size() != entity_len)
+  {
+    client->SetErrorString(errno, "GET method read()");
+    client->SetErrorCode(SYS_ERR);
+    client->SetStage(ERR_FIN);
+
+    return ;
+  }
+  std::vector<char>::iterator it = client->GetVec().begin();
+  for (idx = 0; (idx < BUF_SIZE) && (it != client->GetVec().end()); it++)
+  {
+    client->GetResponse().entity_[idx] = *(it++);
+  }
+  client->GetResponse().entity_[idx - 1] = '\0';
 
   client->SetErrorCode(OK);
   client->SetMimeType(client->GetConvertedURI());

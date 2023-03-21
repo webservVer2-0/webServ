@@ -9,7 +9,7 @@ class ServerConfig;
 typedef struct s_server t_server;
 typedef struct s_loc t_loc;
 
-#define BUF_SIZE 1024;
+#define BUF_SIZE 1024
 
 /**
  * @brief 이벤트 type을 정의하기 위한 enum
