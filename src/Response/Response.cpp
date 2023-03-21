@@ -80,8 +80,9 @@ inline char* ChunkMsgEnd(char* send_size, std::string last_size, t_http& res,
 
 static char* ChunkMsg(s_client_type* client, char* msg) {
   t_http res = client->GetResponse();
-  size_t chunk_size = static_cast<size_t>(
-      client->GetConfig().main_config_.find(BODY)->second.size());
+  std::string chunk = static_cast<std::string>(
+      client->GetConfig().main_config_.find(BODY)->second.data());
+  size_t chunk_size = std::atoi(chunk.c_str());
   std::string hex_size = to_hex_string(chunk_size);
   std::string last_size = to_hex_string(chunk_size % res.entity_length_);
   char send_size[1024];
@@ -109,7 +110,7 @@ inline t_http MakeResInitHeader(s_client_type* client, t_http msg,
                                 std::string str_code, std::string date_str,
                                 char* buf) {
   msg.init_line_.insert(
-      std::make_pair(std::string("version"), std::string("HTTP/1.1")));
+      std::make_pair(std::string("version"), std::string("HTTP/1.1 ")));
   msg.init_line_.insert(std::make_pair(std::string("code"), str_code));
   msg.header_.insert(std::make_pair(std::string("Date: "), date_str));
   msg.header_.insert(
@@ -194,7 +195,7 @@ char* MaketopMessage(s_client_type* client) {
        iter != msg.header_.end(); ++iter) {
     joined_str += iter->first + iter->second + "\r\n";
   }
-  joined_str += "\r\n\r\n";
+  joined_str += "\r\n";
   client->SetMessageLength(joined_str.length());
   char* result = new char[joined_str.length()];
   std::memcpy(result, joined_str.c_str(), joined_str.length());
