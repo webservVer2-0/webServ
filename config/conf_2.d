@@ -1,5 +1,5 @@
 server  {
-	listen 80;
+	listen 8080;
 	body_size 10000000;
 	max_connect 100;
 	#TODO:max header 설정 추가하기 

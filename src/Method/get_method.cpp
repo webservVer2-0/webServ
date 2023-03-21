@@ -28,8 +28,8 @@ void MethodGetReady(s_client_type*& client) {
   std::string uri = client->GetConvertedURI();
   // std::string uri = client->GetRequest().init_line_.find("URI")->second;
   t_http& response = client->GetResponse();
-
-  if (client->GetCachePage(uri, response))  // 캐시파일인경우
+  std::cout << "requested URL : " << dir << std::endl;
+  if (client->GetCachePage(std::string(dir), response))  // 캐시파일인경우
   {
     client->SetMimeType(uri);
     client->SetErrorCode(OK);
@@ -110,13 +110,37 @@ void WorkGet(struct kevent* event) {
   client->SetMimeType(client->GetConvertedURI());
   size_t chunk_size =
       atoi(client->GetConfig().main_config_.find(BODY)->second.c_str());
-  if (entity_len > chunk_size) {
-    client->SetStage(GET_CHUNK);
+
+  work->GetResponseMsg().entity_length_ = event->data;
+  size_t tmp_entity_len = work->GetResponseMsg().entity_length_;
+
+  try {
+    work->GetResponseMsg().entity_ = new char[tmp_entity_len];
+  } catch (const std::exception& e) {
+    client->SetErrorString(errno, "GET method new()");
+    client->SetErrorCode(SYS_ERR);
+    client->SetStage(ERR_FIN);
+  }
+
+  size_t read_ret = 0;
+  int req_fd = work->GetFD();
+  read_ret = read(req_fd, work->GetResponseMsg().entity_, tmp_entity_len);
+  if ((read_ret != tmp_entity_len) || read_ret == size_t(-1)) {
+    client->SetErrorString(errno, "GET method read()");
+    client->SetErrorCode(SYS_ERR);
+    client->SetStage(ERR_FIN);
+    return;
+  }
+  client->SetErrorCode(OK);
+  client->SetMimeType(work->GetUri());
+  if (tmp_entity_len > chunk_size) {
+    work->SetClientStage(GET_CHUNK);
   } else {
-    ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_DISABLE, 0, 0, client);
-    ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-    ServerConfig::ChangeEvents(req_fd, EVFILT_WRITE, EV_ENABLE, 0, 0, client);//TODO : EV_ENABLE만 해도되지않나?
-    client->SetStage(GET_FIN);
+    work->SetClientStage(GET_FIN);
+    work->ChangeClientEvent(EVFILT_READ, EV_DISABLE, 0, 0, client);
+    work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
+    ServerConfig::ChangeEvents(work->GetFD(), EVFILT_READ, EV_DELETE, 0, 0,
+                               work);
   }
   if (close(req_fd) == -1) {
     client->SetErrorString(errno, "GET method close()");
