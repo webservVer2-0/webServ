@@ -6,30 +6,27 @@ void for_read(struct ke* kev)
 	int	read_ret = read(client->fd, client->buf, BUF_SIZE);
 	if (read_ret == -1 || read_ret)
 	{
+		for (int i = 0; i < read_ret; i++)
+		{
+			client->vec.push_back(client->buf[i]);
+		}
 		return ;
 	}
-	for (int i = 0; i < read_ret; i++)
-	{
-		client->vec.push_back(client->buf[i]);
-	}
 	//TODO : buf content 다 0 대입
-	std::cout << "read_ret : " << read_ret << std::endl;
 	if (client->vec.size() != client->len)
 	{
 		std::cout << "client->vec.size() != len\n";
 		exit(1);
 	}
 	int	idx = 0;
-	std::vector<char>::iterator it;
-	for (it = client->vec.begin(); it != client->vec.end(); it++)
+	std::vector<char>::iterator it = client->vec.begin();
+	for (idx = 0; (idx < BUF_SIZE) && it != client->vec.end(); idx++)
 	{
-		client->buf[idx++] = *it;
+		client->buf[idx] = *(it++);
 	}
-	if (strlen(client->buf) != client->len)
-	{
-		std::cout << "buf 길이 != len\n";
-		exit(1);
-	}
+	client->buf[idx -1] = '\0';
+	std::cout << "client->len : " << client->len << std::endl;
+	std::cout << "client->buf : " << strlen(client->buf) << std::endl;
 	std::cout << "buf : " << client->buf << std::endl;
 	client->type = 3;
 	return ;
@@ -45,9 +42,16 @@ int main()
 	if (client->fd == -1) std::cout << "open() error\n";
 	client->type = 2;
 	try
-	{	client->buf = new char[BUF_SIZE];	} // () : for value-initialize
-	// https://stackoverflow.com/questions/2204176/how-to-initialise-memory-with-new-operator-in-c
+	{	client->buf = new char[BUF_SIZE];	
+		if (client->buf == NULL)
+		{
+			std::cout << "new error\n";
+			exit(1);
+		}
+	} // () : for value-initialize
 	catch (const std::exception& e) {std::cout << "new error()";}
+	
+	// https://stackoverflow.com/questions/2204176/how-to-initialise-memory-with-new-operator-in-c
 	kev->udat = static_cast<void*>(client);
 	while (1)
 	{
@@ -63,7 +67,6 @@ int main()
 
 	
 	// std::cout << "buf : " << buf << std::endl;
-		// printf("%s\n", buf);
 	// TODO : buf_size < entity_len
 	// for (int i = 0; i < vec.size(); i++)
 	// {	entity[i] = vec.at(i);	}
