@@ -13,7 +13,7 @@ server  {
 
 	# 서버명과 같은 것들은 모두 영어 + 숫자 + '_' 만 지원한다. 
 	server_name RyujeansToday;
-	timeout 0;
+	timeout 1;
 	auto_index off;
 
 	# 메서드는 구현하기로 한 GET, POST, DELETE 왜에는 에러처리 

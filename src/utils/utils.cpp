@@ -110,42 +110,27 @@ pos_t FindValueLength(std::string& str, pos_t& pos) {
 }
 
 void DeleteUdata(s_base_type* data) {
-  switch (data->GetType()) {
-    case SERVER: {
-      s_server_type* temp = static_cast<s_server_type*>(data);
-      delete temp;
-      break;
-    }
-    case CLIENT: {
-      s_client_type* temp = static_cast<s_client_type*>(data);
-      if (temp->GetChildWork() != NULL) {
-        s_work_type* file = temp->GetChildWork();
-        if (file != NULL) {
-          delete file;
-        }
-      }
+  s_client_type* temp = static_cast<s_client_type*>(data);
+  std::cout << "DELETE Client : " << temp->GetFD() << std::endl;
+  //   s_work_type* file = temp->GetChildWork();
+  //   if (file != NULL) {
+  //     delete file;
+  //   }
 
-      if (temp->GetRequest().entity_length_ != 0)
-        delete[] temp->GetRequest().entity_;
-      temp->GetRequest().entity_length_ = 0;
-      temp->GetRequest().header_.clear();
-      temp->GetRequest().init_line_.clear();
-      if (temp->GetResponse().entity_length_ != 0)
-        delete[] temp->GetResponse().entity_;
-      temp->GetResponse().entity_length_ = 0;
-      temp->GetResponse().header_.clear();
-      temp->GetResponse().init_line_.clear();
-      break;
-    }
-    case WORK: {
-      s_work_type* file = static_cast<s_work_type*>(data);
-      delete file;
-      break;
-    }
-    case LOGGER: {
-      break;
-    }
-  }
+  if (temp->GetRequest().entity_length_ != 0)
+    delete[] temp->GetRequest().entity_;
+  temp->GetRequest().entity_length_ = 0;
+  temp->GetRequest().header_.clear();
+  temp->GetRequest().init_line_.clear();
+  if (temp->GetResponse().entity_length_ != 0)
+    delete[] temp->GetResponse().entity_;
+  temp->GetResponse().entity_length_ = 0;
+  temp->GetResponse().header_.clear();
+  temp->GetResponse().init_line_.clear();
+  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_READ, EV_DELETE, 0, 0, 0);
+  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_TIMER, EV_DELETE, 0, 0, 0);
+  close(temp->GetFD());
 }
 
 void SetSockoptReuseaddr(int* socket_fd, int socket_length) {
@@ -161,7 +146,6 @@ void SetSockoptReuseaddr(int* socket_fd, int socket_length) {
 }
 
 void ResetConnection(s_client_type* udata) {
-  // s_client_type data clear
   udata->GetTimeData()[0] = 0;
   udata->GetTimeData()[1] = 0;
   udata->SetConfigPtr(NULL);

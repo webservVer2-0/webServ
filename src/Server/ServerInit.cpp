@@ -102,6 +102,9 @@ void ServerRun(ServerConfig& config) {
     for (int i = 0; i < new_event_number; i++) {
       curr_event = &config.event_list_[i];
       s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
+      if (ft_filter == NULL) {
+        continue;
+      }
       switch (ft_filter->GetType()) {
         case WORK: {
           s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
@@ -121,39 +124,44 @@ void ServerRun(ServerConfig& config) {
             {
               std::cout << "READ steps"
                         << " / Task FD : " << ft_filter->GetFD() << std::endl;
-              if (curr_event->data == 0) continue;
-              char* client_msg = new char[curr_event->data];
-              int ret =
-                  recv(curr_event->ident, client_msg, curr_event->data, 0);
-              if (ret == -1) {
-                // 임시
-              }
-              if (ret == 0) {
+              if (curr_event->data == 0) {
                 continue;
+              } else {
+                char* client_msg = new char[curr_event->data];
+                int ret =
+                    recv(curr_event->ident, client_msg, curr_event->data, 0);
+                if (ret == -1) {
+                  // 임시
+                }
+                if (ret == 0) {
+                  continue;
+                }
+                request_handler(curr_event->data, curr_event->udata,
+                                client_msg);
+                delete[] client_msg;
               }
-              request_handler(curr_event->data, curr_event->udata, client_msg);
-              delete[] client_msg;
-            }
-            switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
-              case GET_READY: {
-                ClientGet(curr_event);
-                break;
-              }
-              case POST_READY: {
-                if (static_cast<s_work_type*>(ft_filter)->GetWorkType() == file)
-                  ClientFilePost(curr_event);
-                else
-                  ClientCGIPost(curr_event);
-                break;
-              }
-              case DELETE_READY: {
-                break;
-              }
-              case ERR_READY: {
-                break;
-              }
-              default: {
-                break;
+              switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
+                case GET_READY: {
+                  ClientGet(curr_event);
+                  break;
+                }
+                case POST_READY: {
+                  if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
+                      file)
+                    ClientFilePost(curr_event);
+                  else
+                    ClientCGIPost(curr_event);
+                  break;
+                }
+                case DELETE_READY: {
+                  break;
+                }
+                case ERR_READY: {
+                  break;
+                }
+                default: {
+                  break;
+                }
               }
             }
           } else if (curr_event->filter == EVFILT_WRITE) {
@@ -197,13 +205,6 @@ void ServerRun(ServerConfig& config) {
           } else if (curr_event->filter == EVFILT_TIMER ||
                      curr_event->flags & EV_EOF) {
             DeleteUdata(ft_filter);
-            ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
-                                       EV_DELETE, 0, 0, 0);
-            ServerConfig::ChangeEvents(curr_event->ident, EVFILT_READ,
-                                       EV_DELETE, 0, 0, 0);
-            ServerConfig::ChangeEvents(curr_event->ident, EVFILT_TIMER,
-                                       EV_DELETE, 0, 0, 0);
-            close(curr_event->ident);
           }
         } break;
         case LOGGER: {
