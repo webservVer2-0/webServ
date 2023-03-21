@@ -172,7 +172,7 @@ void ResetConnection(s_client_type* udata) {
   udata->SetStage(DEF);
   udata->SetErrorCode(NO_ERROR);
   udata->SetErrorString(0, std::string());
-  if (udata->GetChildWork() != NULL && udata->GetErrorCode() != SYS_ERR) {
+  if (udata->GetErrorCode() != SYS_ERR && udata->GetChildWork() != NULL) {
     delete udata->GetChildWork();
   }
 }
