@@ -371,6 +371,18 @@ void s_client_type::SetFinishTime(void) {
   this->time_data_[0] = std::time(NULL);
 }
 
+std::vector<char>&  s_client_type::GetVec(void)
+{
+  return this->vec_;
+}
+
+void s_client_type::SetVec(std::vector<char> vec)
+{
+  this->vec_ = vec;
+}
+
+
+
 /****************** Work Type ********************/
 
 s_work_type::s_work_type(std::string& path, int fd, s_chore work_type,
