@@ -50,12 +50,11 @@ void MethodGetReady(s_client_type*& client) {
       return;
     }
     MethodGetSetEntity(client);
-    s_base_type* work = client->CreateWork(&uri, req_fd, file);
-    ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_ADD, 0, 0, work);
+    ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_ADD, 0, 0, client);
     ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_DISABLE, 0, 0,
-                               work);
+                               client);
     ServerConfig::ChangeEvents(req_fd, EVFILT_WRITE, EV_DISABLE, 0, 0,
-                               work);
+                               client);
     client->SetErrorCode(OK);
     client->SetStage(GET_START);
   }
@@ -107,7 +106,7 @@ void WorkGet(struct kevent* event) {
   {
     client->GetResponse().entity_[idx] = *(it++);
   }
-  client->GetResponse().entity_[idx - 1] = '\0';
+  client->GetResponse().entity_[idx] = '\0';
 
   client->SetErrorCode(OK);
   client->SetMimeType(client->GetConvertedURI());
