@@ -80,8 +80,9 @@ inline char* ChunkMsgEnd(char* send_size, std::string last_size, t_http& res,
 
 static char* ChunkMsg(s_client_type* client, char* msg) {
   t_http res = client->GetResponse();
-  size_t chunk_size = static_cast<size_t>(
-      client->GetConfig().main_config_.find(BODY)->second.size());
+  std::string chunk = static_cast<std::string>(
+      client->GetConfig().main_config_.find(BODY)->second.data());
+  size_t chunk_size = std::atoi(chunk.c_str());
   std::string hex_size = to_hex_string(chunk_size);
   std::string last_size = to_hex_string(chunk_size % res.entity_length_);
   char send_size[1024];
@@ -105,6 +106,52 @@ static char* ChunkMsg(s_client_type* client, char* msg) {
   return buf;
 }
 
+inline t_http MakeResInitHeader(s_client_type* client, t_http msg,
+                                std::string str_code, std::string date_str,
+                                char* buf) {
+  msg.init_line_.insert(
+      std::make_pair(std::string("version"), std::string("HTTP/1.1 ")));
+  msg.init_line_.insert(std::make_pair(std::string("code"), str_code));
+  msg.header_.insert(std::make_pair(std::string("Date: "), date_str));
+  msg.header_.insert(
+      std::make_pair(std::string("Server: "),
+                     client->GetConfig().main_config_.at("server_name")));
+  std::string cookie_id = client->GetCookieId();
+  std::cout << "cookie_id : " << cookie_id << std::endl;
+  std::snprintf(buf, 1024, "id=%s; HttpOnly;", cookie_id.c_str());
+  std::string set_cookie = std::string(buf);
+  msg.header_.insert(std::make_pair(std::string("Set-Cookie: "), set_cookie));
+  return (msg);
+}
+
+inline t_http MakeChunkHeader(s_client_type* client, t_http msg) {
+  msg.header_.insert(
+      std::make_pair(std::string("Content-Type: "), client->GetMimeType()));
+  msg.header_.insert((std::make_pair(std::string("Transfer-Encoding: "),
+                                     std::string("chunked"))));
+  return (msg);
+}
+
+inline t_http MakePermanHeader(s_client_type* client, t_http msg) {
+  msg.header_.insert(std::make_pair(
+      std::string("Location: "),
+      client->GetLocationConfig().main_config_.at("redirection")));
+  msg.header_.insert(
+      std::make_pair(std::string("Connection: "), std::string("Closed")));
+  return (msg);
+}
+
+inline t_http MakeEntityHeader(s_client_type* client, t_http msg) {
+  msg.header_.insert(
+      std::make_pair(std::string("Content-Type: "), client->GetMimeType()));
+  std::string size = stToString(client->GetResponse().entity_length_);
+  msg.header_.insert(std::make_pair(std::string("Content-Length: "), size));
+
+  msg.header_.insert(std::make_pair(std::string("Cache-Control: "),
+                                    std::string("public, max-age=3600")));
+  return (msg);
+}
+
 t_http MakeResponseMessages(s_client_type* client) {
   t_error code = client->GetErrorCode();
   t_http msg = client->GetResponse();
@@ -114,40 +161,19 @@ t_http MakeResponseMessages(s_client_type* client) {
   date_str.erase(date_str.length() - 1);
   char buf[1024];
 
-  msg.init_line_.insert(
-      std::make_pair(std::string("version"), std::string("HTTP/1.1")));
-  msg.init_line_.insert(std::make_pair(std::string("code"), str_code));
-  msg.header_.insert(std::make_pair(std::string("Date: "), date_str));
-  msg.header_.insert(
-      std::make_pair(std::string("Server: "),
-                     client->GetConfig().main_config_.at("server_name")));
-  std::string cookie_id = client->GetCookieId();
-  std::snprintf(buf, 1024, "id=%s; HttpOnly;", cookie_id.c_str());
-  std::string set_cookie = std::string(buf);
-  msg.header_.insert(std::make_pair(std::string("Set-Cookie: "), set_cookie));
+  msg = MakeResInitHeader(client, msg, str_code, date_str, buf);
+
   if (client->GetChunked()) {
-    msg.header_.insert(
-        std::make_pair(std::string("Content-Type: "), client->GetMimeType()));
-    msg.header_.insert((std::make_pair(std::string("Transfer-Encoding: "),
-                                       std::string("chunked"))));
+    msg = MakeChunkHeader(client, msg);
     return (msg);
   }
   if (code == MOV_PERMAN) {
-    msg.header_.insert(std::make_pair(
-        std::string("Location: "),
-        client->GetLocationConfig().main_config_.at("redirection")));
-    msg.header_.insert(
-        std::make_pair(std::string("Connection: "), std::string("Closed")));
+    msg = MakePermanHeader(client, msg);
     return (msg);
   }
   if (client->GetResponse().entity_) {
-    msg.header_.insert(
-        std::make_pair(std::string("Content-Type: "), client->GetMimeType()));
-    std::string size = stToString(client->GetResponse().entity_length_);
-    msg.header_.insert(std::make_pair(std::string("Content-Length: "), size));
+    msg = MakeEntityHeader(client, msg);
   }
-  msg.header_.insert(std::make_pair(std::string("Cache-Control: "),
-                                    std::string("public, max-age=3600")));
   if (client->GetStage() == END) {
     msg.header_.insert(
         std::make_pair(std::string("Connection: "), std::string("Closed")));
@@ -161,10 +187,6 @@ t_http MakeResponseMessages(s_client_type* client) {
 char* MaketopMessage(s_client_type* client) {
   t_http msg = client->GetResponse();
   std::string joined_str = "";
-
-  // TODO: 애초에 msg가 안들어옴
-  //    std::string entity = msg.entity_;
-
   joined_str.append(msg.init_line_.at("version"));
   joined_str.append(msg.init_line_.at("code"));
   joined_str += "\r\n";
@@ -173,11 +195,10 @@ char* MaketopMessage(s_client_type* client) {
        iter != msg.header_.end(); ++iter) {
     joined_str += iter->first + iter->second + "\r\n";
   }
-  joined_str += "\r\n\r\n";
-
+  joined_str += "\r\n";
   client->SetMessageLength(joined_str.length());
-  char* result = new char[joined_str.length() + 1];
-  std::strcpy(result, joined_str.c_str());
+  char* result = new char[joined_str.length()];
+  std::memcpy(result, joined_str.c_str(), joined_str.length());
   return result;
 }
 
@@ -188,7 +209,6 @@ char* MakeSendMessage(s_client_type* client, char* msg) {
   }
   size_t len = client->GetMessageLength();
   size_t entity_length = client->GetResponse().entity_length_;
-
   char* result = new char[len + entity_length];
   std::memcpy(result, msg, len);
   std::memcpy(result + len, client->GetResponse().entity_, entity_length);

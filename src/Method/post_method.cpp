@@ -84,7 +84,7 @@ void ClientFilePost(struct kevent* event) {
 
   int save_file_fd = open(path_char, O_RDWR | O_CREAT | O_APPEND | O_NONBLOCK);
   if (save_file_fd == -1) {
-    client->SetError(errno, "POST method open()");
+    client->SetErrorString(errno, "POST method open()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
     return;
@@ -116,7 +116,7 @@ void WorkFilePost(struct kevent* event) {
   size_t entity_len = client->GetRequest().entity_length_;
 
   if (total_write_len > entity_len) {
-    client->SetError(errno, "POST method write()");
+    client->SetErrorString(errno, "POST method write()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
     return;
@@ -128,7 +128,7 @@ void WorkFilePost(struct kevent* event) {
                                NULL);
     work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
     if (close(work->GetFD()) == -1) {
-      client->SetError(errno, "POST method close()");
+      client->SetErrorString(errno, "POST method close()");
       client->SetErrorCode(SYS_ERR);
       client->SetStage(ERR_FIN);
       return;
