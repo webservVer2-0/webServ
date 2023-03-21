@@ -342,7 +342,7 @@ t_error request_handler(size_t msg_len, void* udata, char* msg) {
     }
     if (e._method == POST) {
       if ((err_code = alloc_entity(http, &e, msg))) {
-        return (request_error(client_type, err_code, "alloc()"));
+        return (request_error(client_type, err_code, "alloc_entity()"));
       }
     }
     set_status(client_type, http);
@@ -363,19 +363,19 @@ t_error request_handler(size_t msg_len, void* udata, char* msg) {
 ***
 */
 
-t_error baking_cookie(s_client_type* client_type, t_http* http) {
-  std::string old_cookie = client_type->GetCookieId();
-  std::string new_cookie = http->header_["Cookie"];
-  size_t equal_pos = new_cookie.find("=");
+t_error set_prev_cookie(s_client_type* client_type, t_http* http) {
+  std::string cookie_line = http->header_["Cookie"];
+  size_t equal_pos = cookie_line.find("=");
   if (equal_pos == std::string::npos) {
     return (BAD_REQ);
   }
-  // "id=" 이후로 지우고
-  new_cookie.erase(equal_pos + 1, new_cookie.size() - (equal_pos + 1));
-  // 이전 cookie 삽입
-  new_cookie += old_cookie;
-  http->header_["Cookie"] = new_cookie;
-  client_type->SetCookieId(old_cookie);
+  /* 발급 받은 Cookie가 없을 경우. (예: Cookie: id=)*/
+  if (equal_pos + 1 == cookie_line.size()) {
+    return (NO_ERROR);
+  }
+  std::string prev_id =
+      cookie_line.substr(equal_pos + 1, cookie_line.size() - equal_pos + 1);
+  client_type->SetCookieId(prev_id);
   return (NO_ERROR);
 }
 
@@ -411,9 +411,9 @@ t_error post_handler(s_client_type* client_type, t_http* http) {
       return (request_error(client_type, BAD_REQ, "fill_header()"));
     }
     if (e._exist_cookie) {
-      err_code = baking_cookie(client_type, http);
+      err_code = set_prev_cookie(client_type, http);
       if (err_code) {
-        return (request_error(client_type, err_code, "baking cookie()"));
+        return (request_error(client_type, err_code, "set_prev_cookie()"));
       }
     }
     err_code = alloc_entity(http, &e);
@@ -444,9 +444,9 @@ t_error get_handler(s_client_type* client_type, t_http* http) {
       return (request_error(client_type, BAD_REQ, "fill_header()"));
     }
     if (e._exist_cookie) {
-      err_code = baking_cookie(client_type, http);
+      err_code = set_prev_cookie(client_type, http);
       if (err_code) {
-        return (request_error(client_type, err_code, "baking cookie()"));
+        return (request_error(client_type, err_code, "set_prev cookie()"));
       }
     }
 
