@@ -36,6 +36,7 @@ typedef enum s_stage {
   DELETE_START,
   DELETE_FIN,
   ERR_FIN,  // error case로 page를 전달해야 할 때 체크해야할 enum
+  RES_SEND,
   RES_CHUNK,
   RES_FIN,
   END
@@ -214,7 +215,10 @@ class s_client_type : public s_base_type {
   t_error status_code_;     // HTTP status를 확인하는 용
   std::string err_custom_;  // custom msg 보관용
   int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다.
-  size_t msg_length;
+  size_t msg_length;  //
+  char* write_buf_;   // write
+  s_stage send_num;
+  size_t send_length;
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);
@@ -289,6 +293,13 @@ class s_client_type : public s_base_type {
 
   bool SetMimeType(std::string converted_uri);
   std::string& GetMimeType(void);
+
+  const char* GetBuf(void);
+  void SetBuf(char* buf);
+  const s_stage& GetSendNum(void);
+  void SetSendNum(s_stage num);
+  const size_t& GetSendLength(void);
+  void SetSendLength(size_t length);
 
   void PrintClientStatus(void);
 };
