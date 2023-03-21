@@ -102,6 +102,9 @@ void ServerRun(ServerConfig& config) {
     for (int i = 0; i < new_event_number; i++) {
       curr_event = &config.event_list_[i];
       s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
+      if (ft_filter == NULL) {
+        continue;
+      }
       switch (ft_filter->GetType()) {
         case WORK: {
           s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
@@ -121,89 +124,73 @@ void ServerRun(ServerConfig& config) {
             {
               std::cout << "READ steps"
                         << " / Task FD : " << ft_filter->GetFD() << std::endl;
-              if (curr_event->data == 0) continue;
-              char* client_msg = new char[curr_event->data];
-              int ret =
-                  recv(curr_event->ident, client_msg, curr_event->data, 0);
-              if (ret == -1) {
-                // 임시
-              }
-              if (ret == 0) {
+              if (curr_event->data == 0) {
                 continue;
+              } else {
+                char* client_msg = new char[curr_event->data];
+                int ret =
+                    recv(curr_event->ident, client_msg, curr_event->data, 0);
+                if (ret == -1) {
+                  // 임시
+                }
+                if (ret == 0) {
+                  continue;
+                }
+                request_handler(curr_event->data, curr_event->udata,
+                                client_msg);
+                delete[] client_msg;
               }
-              request_handler(curr_event->data, curr_event->udata, client_msg);
-              delete[] client_msg;
-            }
-            switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
-              case GET_READY: {
-                ClientGet(curr_event);
-                break;
-              }
-              case POST_READY: {
-                if (static_cast<s_work_type*>(ft_filter)->GetWorkType() == file)
-                  ClientFilePost(curr_event);
-                else
-                  ClientCGIPost(curr_event);
-                break;
-              }
-              case DELETE_READY: {
-                break;
-              }
-              case ERR_READY: {
-                break;
-              }
-              default: {
-                break;
+              switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
+                case GET_READY: {
+                  ClientGet(curr_event);
+                  break;
+                }
+                case POST_READY: {
+                  if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
+                      file)
+                    ClientFilePost(curr_event);
+                  else
+                    ClientCGIPost(curr_event);
+                  break;
+                }
+                case DELETE_READY: {
+                  break;
+                }
+                case ERR_READY: {
+                  break;
+                }
+                default: {
+                  break;
+                }
               }
             }
           } else if (curr_event->filter == EVFILT_WRITE) {
             s_client_type* client = static_cast<s_client_type*>(ft_filter);
             std::cout << "WRITE steps"
                       << " / Task FD : " << ft_filter->GetFD() << std::endl;
-            client->SetResponse();
-            char* msg_top = MaketopMessage(client);
-            char* send_msg = MakeSendMessage(client, msg_top);
-            size_t send_msg_len;
-            delete msg_top;
-            if (client->GetStage() == RES_CHUNK) {
-              send_msg_len = static_cast<size_t>(
-                  client->GetConfig().main_config_.find(BODY)->second.size());
-            } else if (client->GetStage() == RES_CHUNK &&
-                       client->GetChunkSize() >
-                           client->GetResponse().entity_length_) {
-              send_msg_len =
-                  client->GetChunkSize() % client->GetResponse().entity_length_;
-            } else if (client->GetStage() == RES_FIN) {
-              send_msg_len = 5;
-            } else
-              send_msg_len = client->GetMessageLength();
-            send(curr_event->ident, send_msg, send_msg_len, 0);
-            delete send_msg;
-            if (!client->GetChunked() || client->GetStage() != RES_CHUNK) {
-              client->SendLogs();
-              if (client->GetStage() == END) {
-                ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
-                                           EV_DELETE, 0, 0, 0);
-                close(curr_event->ident);
-                ResetConnection(static_cast<s_client_type*>(curr_event->udata));
+
+            if (client->GetStage() == RES_SEND) {
+              SendProcess(curr_event, client);
+            } else {
+              char* msg_top = strdup("");
+              char* send_msg = strdup("");
+              if (client->IsChunked()) {
+                send_msg = MakeSendMessage(client, msg_top);
               } else {
-                ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
-                                           EV_DISABLE, 0, 0, 0);
-                ServerConfig::ChangeEvents(curr_event->ident, EVFILT_READ,
-                                           EV_ENABLE, 0, 0, ft_filter);
-                ResetConnection(static_cast<s_client_type*>(curr_event->udata));
+                client->SetResponse();
+                msg_top = MaketopMessage(client);
+                send_msg = MakeSendMessage(client, msg_top);
               }
+              delete msg_top;
+              client->SetBuf(send_msg);
+              SendMessageLength(client);
+              SendProcess(curr_event, client);
+              if (client->GetStage() == RES_SEND) continue;
+              SendFin(curr_event, client);
             }
           } else if (curr_event->filter == EVFILT_TIMER ||
                      curr_event->flags & EV_EOF) {
             DeleteUdata(ft_filter);
-            ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
-                                       EV_DELETE, 0, 0, 0);
-            ServerConfig::ChangeEvents(curr_event->ident, EVFILT_READ,
-                                       EV_DELETE, 0, 0, 0);
-            ServerConfig::ChangeEvents(curr_event->ident, EVFILT_TIMER,
-                                       EV_DELETE, 0, 0, 0);
-            close(curr_event->ident);
           }
         } break;
         case LOGGER: {

@@ -1,9 +1,9 @@
 server  {
-	listen 80;
+	listen 8080;
 	body_size 10000000;
 	max_connect 100;
 	#TODO:max header 설정 추가하기 
-	max_header 4000;
+	#max_header 4000;
 	root storage/static/;
 	default_file index.html;
 	upload_path storage/temp/var1;

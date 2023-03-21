@@ -52,19 +52,33 @@ std::string make_uri_path(std::vector<std::string>& vec) {
 t_error convert_uri(std::string rq_uri,
                     std::map<std::string, t_loc*> location_config,
                     s_client_type& client) {
-  std::vector<std::string> rq_path(1);
+  std::vector<std::string> rq_path;
   size_t pos;
   std::map<std::string, t_loc*>::iterator loc_it;
 
   std::string token = rq_uri;
+
+  std::cout << "origin uri is: " << token << std::endl;
+
   while ((pos = rq_uri.find('/')) != std::string::npos) {
     token = rq_uri.substr(0, pos);
     if (token != "" && token != ".") rq_path.push_back(token);
     rq_uri.erase(0, pos + 1);
   }
-  if (rq_uri != "" && rq_uri != ".") rq_path.push_back(rq_uri);
+  std::cout << "remain uri is " << rq_uri << std::endl;
+  if (rq_uri != ".") rq_path.push_back(rq_uri);
+  std::cout << "front is " << rq_path.front() << std::endl;
   loc_it = location_config.find(("/" + rq_path.front()));
-  rq_path.front() = (*loc_it).second->main_config_[ROOT];
+  if (loc_it == location_config.end())
+  {
+    loc_it = location_config.find("/");
+    rq_path.insert(rq_path.begin(), (*loc_it).second->main_config_[ROOT]);
+  }
+  else
+  {
+    rq_path.front() = (*loc_it).second->main_config_[ROOT];
+  }
+  std::cout << "size: " << rq_path.size() << std::endl;
   if (rq_path.size() == 1)
     rq_path.push_back((*loc_it).second->main_config_[DEFFILE]);
 

@@ -165,17 +165,28 @@ bool s_client_type::GetCacheError(t_error code, t_http& response) {
   std::string temp_str(rule->error_pages_.find(err_key).operator->()->second);
   response.entity_length_ = temp_str.size();
 
-  response.entity_ = new char[response.entity_length_ + 1];
+  response.entity_ = new char[response.entity_length_];
   if (response.entity_ == NULL) {
     PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(GetCacheError)");
   }
   temp_str.copy(response.entity_, response.entity_length_, 0);
-  response.entity_[response.entity_length_] = '\0';
+  //   response.entity_[response.entity_length_] = '\0';
   temp_str.clear();
   return (true);
 }
 
-bool s_client_type::GetChunked(void) { return (this->GetStage() == GET_CHUNK); }
+bool s_client_type::GetChunked(void) {
+  if (this->GetStage() == GET_CHUNK || this->GetStage() == RES_CHUNK)
+    return (1);
+  else
+    return (0);
+}
+bool s_client_type::IsChunked(void) {
+  if (this->GetStage() == RES_FIN || this->GetStage() == RES_CHUNK)
+    return (1);
+  else
+    return (0);
+}
 size_t s_client_type::GetChunkSize(void) { return this->sent_size_; }
 bool s_client_type::IncreaseChunked(size_t sent_size) {
   size_t sent_unit = sent_size;
