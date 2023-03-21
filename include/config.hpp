@@ -24,6 +24,7 @@
 #define LOCNAME "location"      //   l
 #define REDIR "redirection"     //   l
 #define INC "include"
+#define MAXH "max_header"
 
 typedef std::string extension;
 typedef std::string mime_type;
