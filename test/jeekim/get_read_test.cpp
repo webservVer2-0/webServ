@@ -19,15 +19,15 @@ int main()
 		return (-1);
 	}
 	file_info.st_size;
-	int	fd = open("a.txt", O_RDONLY);
+	int	fd = open("screenshot.png", O_RDONLY);
 	if (fd == -1) std::cout << "open() error\n";
-	int	fd2 = open("b.txt", O_CREAT | O_WRONLY | O_APPEND, 0644);
+	int	fd2 = open("screenshot2.png", O_CREAT | O_WRONLY | O_APPEND, 0644);
 	if (fd2 == -1) std::cout << "open2() error\n";
 	std::vector<char> vec;
 	std::vector<char>::iterator it;
 	char* buf;
 	try
-	{	buf = new char[BUF_SIZE]();	} // () : for value-initialize
+	{	buf = new char[0];	} // () : for value-initialize
 	// https://stackoverflow.com/questions/2204176/how-to-initialise-memory-with-new-operator-in-c
 	catch (const std::exception& e) {std::cout << "new error()";}
 	char* entity;
@@ -54,14 +54,34 @@ int main()
 		buf[idx++] = *it;
 		// std::cout << *it;
 	}
-	for (int i = 0; buf[i]; i++)
-		std::cout << buf[i];
-	std::cout << std::endl;
-	// printf("%s\n", buf);
+	for (int idx = 0; buf[idx]; idx++)
+		;
+	if (write(fd2, buf, idx) == -1) std::cout << "write() error\n";
+	
 	// std::cout << "buf : " << buf << std::endl;
+		// printf("%s\n", buf);
 	// TODO : buf_size < entity_len
 	// for (int i = 0; i < vec.size(); i++)
 	// {	entity[i] = vec.at(i);	}
 	// if (write(fd2, entity, BUF_SIZE) == -1) std::cout << "write() error\n";
 //TODO : 위험 요소 더 알아보기
 }
+
+/* 이상해이상해코드
+char* buf;
+try
+{	buf = new char[0];	} //
+catch (const std::exception& e) {std::cout << "new error()";}
+
+int	read_ret = 0;
+std::vector<char> vec; //vec : abcdefghijk 집어넣음
+std::vector<char>::iterator it = vec.begin();
+int	idx;
+for (idx = 0; it != vec.end(); it++)
+{
+	buf[idx++] = *it;
+}
+
+for (idx = 0; buf[idx]; idx++)
+	std::cout << buf[idx];
+*/
