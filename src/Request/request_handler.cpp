@@ -17,6 +17,8 @@ typedef struct s_elem {
   bool _exist_cookie;
 } t_elem;
 
+void set_prev_cookie(s_client_type* client_type, t_http* http);
+
 /**
  * @brief 테스트용 출력함수
  *
@@ -281,6 +283,22 @@ t_error elem_initializer(t_elem* e, std::string line) {
   return (NO_ERROR);
 }
 
+inline std::vector<char> stringToCharVector(std::string line) {
+  std::vector<char> ret;
+  for (size_t i = 0; i < line.size(); ++i) {
+    ret.push_back(line[i]);
+  }
+  return (ret);
+}
+
+inline std::vector<char>::iterator finderToVector(std::vector<char> msg,
+                                                  std::string line) {
+  std::vector<char> double_crlf = stringToCharVector(line);
+  std::vector<char>::iterator result = std::search(
+      msg.begin(), msg.end(), double_crlf.begin(), double_crlf.end());
+  return (result);
+}
+
 t_error elem_initializer(t_elem* e, std::vector<char> msg) {
   if (msg.empty()) {
     return (BAD_REQ);
@@ -327,23 +345,17 @@ t_error request_handler(size_t msg_len, void* udata, char* msg) {
 
   try {
     err_code = elem_initializer(&e, line);
-    if (err_code) {
+    if (err_code)
       return (request_error(client_type, err_code, "elem_initializer()"));
-    }
     err_code = init_line_parser(http, &e);
-    if (err_code) {
+    if (err_code)
       return (request_error(client_type, err_code, "init_line_parser()"));
-    }
-    if (fill_header(http, &e)) {
+    if (fill_header(http, &e))
       return (request_error(client_type, BAD_REQ, "fill_header()"));
-    }
-    if (e._exist_cookie) {
-      client_type->SetCookieId(http->header_["COOKIE"]);
-    }
+    if (e._exist_cookie) set_prev_cookie(client_type, http);
     if (e._method == POST) {
-      if ((err_code = alloc_entity(http, &e, msg))) {
+      if ((err_code = alloc_entity(http, &e, msg)))
         return (request_error(client_type, err_code, "alloc_entity()"));
-      }
     }
     set_status(client_type, http);
     err_code = convert_uri(
@@ -363,36 +375,20 @@ t_error request_handler(size_t msg_len, void* udata, char* msg) {
 ***
 */
 
-t_error set_prev_cookie(s_client_type* client_type, t_http* http) {
+void set_prev_cookie(s_client_type* client_type, t_http* http) {
   std::string cookie_line = http->header_["Cookie"];
   size_t equal_pos = cookie_line.find("=");
   if (equal_pos == std::string::npos) {
-    return (BAD_REQ);
+    return;
   }
   /* 발급 받은 Cookie가 없을 경우. (예: Cookie: id=)*/
   if (equal_pos + 1 == cookie_line.size()) {
-    return (NO_ERROR);
+    return;
   }
   std::string prev_id =
       cookie_line.substr(equal_pos + 1, cookie_line.size() - equal_pos + 1);
   client_type->SetCookieId(prev_id);
-  return (NO_ERROR);
-}
-
-inline std::vector<char> stringToCharVector(std::string line) {
-  std::vector<char> ret;
-  for (int i = 0; i < line.size(); ++i) {
-    ret.push_back(line[i]);
-  }
-  return (ret);
-}
-
-inline std::vector<char>::iterator finderToVector(std::vector<char> msg,
-                                                  std::string line) {
-  std::vector<char> double_crlf = stringToCharVector(line);
-  std::vector<char>::iterator result = std::search(
-      msg.begin(), msg.end(), double_crlf.begin(), double_crlf.end());
-  return (result);
+  return;
 }
 
 t_error post_handler(s_client_type* client_type, t_http* http) {
@@ -410,12 +406,7 @@ t_error post_handler(s_client_type* client_type, t_http* http) {
     if (fill_header(http, &e)) {
       return (request_error(client_type, BAD_REQ, "fill_header()"));
     }
-    if (e._exist_cookie) {
-      err_code = set_prev_cookie(client_type, http);
-      if (err_code) {
-        return (request_error(client_type, err_code, "set_prev_cookie()"));
-      }
-    }
+    if (e._exist_cookie) set_prev_cookie(client_type, http);
     err_code = alloc_entity(http, &e);
     if (err_code) {
       return (request_error(client_type, err_code, "alloc_entity()"));
@@ -433,23 +424,14 @@ t_error get_handler(s_client_type* client_type, t_http* http) {
 
   try {
     err_code = elem_initializer(&e, line);
-    if (err_code) {
+    if (err_code)
       return (request_error(client_type, err_code, "elem_initializer()"));
-    }
     err_code = init_line_parser(http, &e);
-    if (err_code) {
+    if (err_code)
       return (request_error(client_type, err_code, "elem_initializer()"));
-    }
-    if (fill_header(http, &e)) {
+    if (fill_header(http, &e))
       return (request_error(client_type, BAD_REQ, "fill_header()"));
-    }
-    if (e._exist_cookie) {
-      err_code = set_prev_cookie(client_type, http);
-      if (err_code) {
-        return (request_error(client_type, err_code, "set_prev cookie()"));
-      }
-    }
-
+    if (e._exist_cookie) set_prev_cookie(client_type, http);
   } catch (const std::exception& e) {
     return (BAD_REQ);
   }
@@ -465,13 +447,13 @@ t_error request_handler(void* udata) {
 
   std::string method = http->init_line_["METHOD"];
   try {
-    if (method == "POST") {
+    if (method == "POST")
       err_code = post_handler(client_type, http);
-    } else if (method == "GET" || method == "DELETE") {
+    else if (method == "GET" || method == "DELETE")
       err_code = get_handler(client_type, http);
-    } else {
+    else
       return (request_error(client_type, NOT_IMPLE, "구현하지 않은 메소드"));
-    }
+
     if (err_code) {
       return (request_error(client_type, err_code, "request_handler()"));
     }
