@@ -10,7 +10,7 @@ void  MethodGetSetEntity(s_client_type*& client)
      std::cout << "entity_len : " << entity_len << std::endl;
      왜 다르지? */
   try {
-    client->GetResponse().entity_ = new char[client->GetResponse().entity_length_];
+    client->GetResponse().entity_ = new char[client->GetResponse().entity_length_ + 1];
   } catch (const std::exception& e) {
     client->SetErrorString(errno, "GET method new()");
     client->SetErrorCode(SYS_ERR);
@@ -80,7 +80,7 @@ void ClientGet(struct kevent* event) {
 }
 
 void WorkGet(struct kevent* event) {
-s_client_type*  client = static_cast<s_client_type*>(event->udata);
+  s_client_type*  client = static_cast<s_client_type*>(event->udata);
   size_t  entity_len = client->GetResponse().entity_length_;
   size_t  read_ret = 0;
   int req_fd = client->GetFD();
