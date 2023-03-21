@@ -1,2 +1,0 @@
-ERR : 127.0.0.1 [21/Mar/2023:13:40:20 + 0900] 500 SYS_ERR HTTP/1.1  [ERR_TIME 21/Mar/2023:13:40:20 + 0900] [500 Interneal Server Error] [2 : No such file or directory] [msg : GET method open()]
-ERR : 127.0.0.1 [21/Mar/2023:13:40:33 + 0900] 500 SYS_ERR HTTP/1.1  [ERR_TIME 21/Mar/2023:13:40:33 + 0900] [500 Interneal Server Error] [2 : No such file or directory] [msg : GET method open()]
