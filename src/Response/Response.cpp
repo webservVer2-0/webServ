@@ -203,8 +203,7 @@ char* MaketopMessage(s_client_type* client) {
 }
 
 char* MakeSendMessage(s_client_type* client, char* msg) {
-  if (client->GetChunked() || client->GetStage() == RES_CHUNK ||
-      client->GetStage() == RES_FIN) {
+  if (client->GetChunked() || client->GetStage() == RES_FIN) {
     return (ChunkMsg(client, msg));
   }
   size_t len = client->GetMessageLength();
@@ -214,4 +213,79 @@ char* MakeSendMessage(s_client_type* client, char* msg) {
   std::memcpy(result + len, client->GetResponse().entity_, entity_length);
   client->SetMessageLength(len + entity_length);
   return (result);
+}
+
+void SendMessageLength(s_client_type* client) {
+  size_t send_msg_len;
+
+  if (client->GetStage() == RES_CHUNK) {
+    send_msg_len = static_cast<size_t>(
+        client->GetConfig().main_config_.find(BODY)->second.size());
+  } else if (client->GetStage() == RES_CHUNK &&
+             client->GetChunkSize() > client->GetResponse().entity_length_) {
+    send_msg_len =
+        client->GetChunkSize() % client->GetResponse().entity_length_;
+  } else if (client->GetStage() == RES_FIN) {
+    send_msg_len = 5;
+  } else
+    send_msg_len = client->GetMessageLength();
+  client->SetMessageLength(send_msg_len);
+}
+
+static void SendChunk(struct kevent* event, s_client_type* client) {
+  if (client->GetSendNum() == DEF) {
+    client->SetSendNum(client->GetStage());
+  }
+  size_t len = client->GetMessageLength();
+  size_t send_len = client->GetSendLength();
+  size_t temp_len =
+      send(event->ident, client->GetBuf() + send_len, len - send_len, 0);
+  if (temp_len < 0) {
+    client->SetStage(RES_SEND);
+  } else if (temp_len < len) {
+    client->SetStage(RES_SEND);
+    temp_len += send_len;
+    client->SetSendLength(temp_len);
+  } else {
+    delete const_cast<char*>(client->GetBuf());
+    client->SetBuf(NULL);
+    client->SetSendLength(0);
+    client->SetStage(client->GetSendNum());
+  }
+}
+void SendProcess(struct kevent* event, s_client_type* client) {
+  if (client->GetChunked() || client->GetStage() == RES_FIN) {
+    SendChunk(event, client);
+  }
+  size_t len = client->GetMessageLength();
+  size_t send_len = client->GetSendLength();
+  size_t temp_len =
+      send(event->ident, client->GetBuf() + send_len, len - send_len, 0);
+  if (temp_len < 0) {
+    client->SetStage(RES_SEND);
+  } else if (temp_len < len) {
+    client->SetStage(RES_SEND);
+    temp_len += send_len;
+    client->SetSendLength(temp_len);
+  } else {
+    delete const_cast<char*>(client->GetBuf());
+    client->SetBuf(NULL);
+    client->SetSendLength(0);
+    client->SetMessageLength(0);
+    client->SetStage(DEF);
+  }
+}
+
+void SendFin(struct kevent* event, s_client_type* client) {
+  client->SendLogs();
+  if (client->GetStage() == END) {
+    ServerConfig::ChangeEvents(event->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+    close(event->ident);
+    ResetConnection(static_cast<s_client_type*>(event->udata));
+  } else {
+    ServerConfig::ChangeEvents(event->ident, EVFILT_WRITE, EV_DISABLE, 0, 0, 0);
+    ServerConfig::ChangeEvents(event->ident, EVFILT_READ, EV_ENABLE, 0, 0,
+                               client);
+    ResetConnection(static_cast<s_client_type*>(event->udata));
+  }
 }
