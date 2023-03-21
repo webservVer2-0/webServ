@@ -11,6 +11,7 @@
 void MethodGetReady(s_client_type*& client) {
   const char* dir = client->GetRequest().init_line_.find("URI")->second.c_str();
   t_http& response = client->GetResponse();
+  std::cout << "requested URL : " << dir << std::endl;
   if (client->GetCachePage(std::string(dir), response))  // 캐시파일인경우
   {
     client->SetMimeType(std::string(dir));
