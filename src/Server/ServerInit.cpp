@@ -136,8 +136,7 @@ void ServerRun(ServerConfig& config) {
                 if (ret == 0) {
                   continue;
                 }
-                request_handler(curr_event->data, curr_event->udata,
-                                client_msg);
+                RequestHandler(curr_event->data, curr_event->udata, client_msg);
                 delete[] client_msg;
               }
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
