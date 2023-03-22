@@ -117,6 +117,8 @@ class s_work_type : public s_base_type {
   s_work_type(const s_work_type& target);
   s_work_type& operator=(const s_work_type& target);
 
+  std::vector<char> vec_;  // read()시 buffer에 담기는 내용 계속 담는 용
+
  public:
   s_work_type(std::string& path, int fd, s_chore work_type,
               t_http& response_msg);
@@ -143,6 +145,8 @@ class s_work_type : public s_base_type {
 
   t_stage GetClientStage(void);
   void SetClientStage(t_stage val);
+
+  std::vector<char>& GetVec(void);
 };
 
 typedef enum s_log_type { logger, error } t_log_type;
@@ -222,7 +226,6 @@ class s_client_type : public s_base_type {
   char* write_buf_;   // write
   s_stage send_num;
   size_t send_length;
-  std::vector<char> vec_; // read()시 buffer에 담기는 내용 계속 담는 용
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);
@@ -269,8 +272,6 @@ class s_client_type : public s_base_type {
   bool GetChunked(void);
   bool IsChunked(void);
   size_t GetChunkSize(void);
-
-  std::vector<char>&  GetVec(void);
 
   /**
    * @brief 전달한 사이즈만큼과 실제 전체 entity_length_를 비교하여 값을

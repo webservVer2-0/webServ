@@ -1,0 +1,1 @@
+ERR : 127.0.0.1 [22/Mar/2023:15:35:29 + 0900] 500 SYS_ERR HTTP/1.1  [ERR_TIME 22/Mar/2023:15:35:30 + 0900] [500 Interneal Server Error] [9 : Bad file descriptor] [msg : get_method.cpp / WorkGet()안의 read()]

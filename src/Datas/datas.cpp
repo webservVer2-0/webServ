@@ -380,10 +380,7 @@ void s_client_type::SetFinishTime(void) {
   this->time_data_[0] = std::time(NULL);
 }
 
-std::vector<char>&  s_client_type::GetVec(void)
-{
-  return this->vec_;
-}
+
 
 
 
@@ -426,4 +423,9 @@ void s_work_type::SetClientStage(t_stage val) {
   s_client_type* my_mother = static_cast<s_client_type*>(this->client_ptr_);
   my_mother->GetTimeData()[1] = std::time(NULL);
   my_mother->SetStage(val);
+}
+
+std::vector<char>&  s_work_type::GetVec(void)
+{
+  return this->vec_;
 }
