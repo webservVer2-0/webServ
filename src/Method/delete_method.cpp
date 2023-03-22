@@ -2,7 +2,7 @@
 
 /*
 GET ~~~/delete?delete_target=137_file.png HTTP/1.1
-GET upload_path/?delete_target=137_file.png HTTP/1.1
+GET upload_path/137_file.png HTTP/1.1
 enitity
 entity_length_
 MiME
@@ -38,7 +38,11 @@ void ClientDelete(struct kevent* event) {
                              client);
   ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
                              client);
-  client->SetMimeType(file_path);
+
+  std::string upload_path =
+      client->GetConfig().main_config_.find("upload_path")->second;
+
+  client->SetMimeType(upload_path.append("/delete.html"));
   client->SetErrorCode(OK);
   client->SetStage(DELETE_FIN);
   return;
