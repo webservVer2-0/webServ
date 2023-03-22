@@ -8,6 +8,16 @@ entity_length_
 MiME
 */
 
+/**
+ * @brief Request에서 변경한 URI에서 "?delete_target=" 문자열을
+ * 제거한 문자열(삭제 파일 경로)을 생성하는 함수입니다.
+ *
+ * @param uri_w_query Query("?delete_target=")가 들어있는 URI
+ * @return std::string Query가 삭제된 URI string (삭제 파일 경로)
+ * @note POST에 있는 파일 경로 함수와 다르게 이 함수는 인자로 std::string&가
+ * 아닌 std::string을 받습니다. 그 결과 client 내부의 ConvertedURI는
+ * 변경되지 않습니다.
+ */
 std::string EraseQueryFromUri(std::string uri_w_query) {
   size_t query_start = uri_w_query.find("?");
   size_t erase_len = (uri_w_query.find("=") - query_start) + 1;
