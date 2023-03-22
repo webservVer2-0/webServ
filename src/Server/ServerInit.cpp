@@ -114,7 +114,10 @@ void ServerRun(ServerConfig& config) {
             if (work_type->GetClientStage() == GET_START)
               WorkGet(curr_event);
             else if (work_type->GetClientStage() == POST_START)
+            {
+              std::cout << "post start!!! " << std::endl;
               WorkFilePost(curr_event);
+            }
           } else if (work_type->GetWorkType() == cgi)
             WorkCGIPost(curr_event);
           // std::cout << "cgi steps" << std::endl;
@@ -129,12 +132,12 @@ void ServerRun(ServerConfig& config) {
               } else {
                 int result = 0;
                 result = RequestHandler(curr_event);
-                std::cout << "stage is: " << static_cast<s_client_type*>(ft_filter)->GetStage() << std::endl; 
+                std::cout << "stage is: " << static_cast<s_client_type*>(ft_filter)->GetStage() << std::endl;
                 if (result == -1)
                   continue;
               }
 
-            std::cout <<               static_cast<s_client_type*>(ft_filter)->GetStage() << "\n";  
+            std::cout <<               static_cast<s_client_type*>(ft_filter)->GetStage() << "\n";
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
                 case GET_READY: {
                   ClientGet(curr_event);
