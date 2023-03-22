@@ -131,6 +131,7 @@ void MethodGetSetEntity(s_client_type*& client) {
   } catch (const std::exception& e) {
     client->SetErrorString(errno,
                            "get_method.cpp / MethodGetSetEntity안의 new()");
+
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
   }
@@ -144,6 +145,7 @@ void MethodGetSetEntity(s_client_type*& client) {
  */
 void MethodGetReady(s_client_type*& client) {
   std::string uri = client->GetConvertedURI();
+
   t_http& response = client->GetResponse();
 
   if (client->GetCachePage(uri, response))  // 캐시파일인경우
@@ -182,7 +184,6 @@ void MethodGetReady(s_client_type*& client) {
     client->SetErrorCode(OK);
     client->SetStage(GET_START);
   }
-
   return;
 }
 
@@ -245,6 +246,7 @@ void WorkGet(struct kevent* event) {
   }
   // client->GetResponse().entity_[idx] = '\0';
 
+
   client->SetErrorCode(OK);
   client->SetMimeType(client->GetConvertedURI());
   size_t chunk_size =
@@ -262,6 +264,5 @@ void WorkGet(struct kevent* event) {
   //   client->SetErrorCode(SYS_ERR);
   //   client->SetStage(ERR_FIN);
   // }
-
   return;
 }

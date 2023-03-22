@@ -9,6 +9,8 @@ class ServerConfig;
 typedef struct s_server t_server;
 typedef struct s_loc t_loc;
 
+#define BUF_SIZE 1024
+
 /**
  * @brief 이벤트 type을 정의하기 위한 enum
  *
@@ -68,6 +70,7 @@ typedef struct s_http {
   http_line header_;
   size_t entity_length_;
   char* entity_;
+  std::vector<char> msg_;
 } t_http;
 
 /**
@@ -221,6 +224,7 @@ class s_client_type : public s_base_type {
   char* write_buf_;   // write
   s_stage send_num;
   size_t send_length;
+  std::vector<char> vec_; // read()시 buffer에 담기는 내용 계속 담는 용
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);
@@ -267,6 +271,8 @@ class s_client_type : public s_base_type {
   bool GetChunked(void);
   bool IsChunked(void);
   size_t GetChunkSize(void);
+
+  std::vector<char>&  GetVec(void);
 
   /**
    * @brief 전달한 사이즈만큼과 실제 전체 entity_length_를 비교하여 값을
