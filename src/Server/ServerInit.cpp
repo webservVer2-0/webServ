@@ -168,7 +168,30 @@ void ServerRun(ServerConfig& config) {
             std::cout << "WRITE steps"
                       << " / Task FD : " << ft_filter->GetFD() << std::endl;
 
-            if (client->GetStage() == RES_SEND) {
+            t_send* send = &client->GetSend();
+            switch (send->flags) {
+              case 0:  // Make sendmsg(header + body)
+                client->SetResponse();
+                send->header = MaketopMessage(client);
+                std::cout << "v1" << std::endl;
+              case 1:  // No header, only body
+
+                send->send_msg = MakeSendMessage(client, send->header);
+                delete[] send->header;
+                SendMessageLength(client);
+                SendProcess(curr_event, client);
+                std::cout << "v2" << std::endl;
+                break;
+              case 2:  // send failed(char * &sendmsg)
+                SendProcess(curr_event, client);
+                std::cout << "v3" << std::endl;
+                break;
+              default:
+
+                SendFin(curr_event, client);
+                std::cout << "v4" << std::endl;
+            }
+            /*if (client->GetStage() == RES_SEND) {
               SendProcess(curr_event, client);
             } else {
               char* msg_top = strdup("");
@@ -186,7 +209,7 @@ void ServerRun(ServerConfig& config) {
               SendProcess(curr_event, client);
               if (client->GetStage() == RES_SEND) continue;
               SendFin(curr_event, client);
-            }
+            }*/
           } else if (curr_event->filter == EVFILT_TIMER ||
                      curr_event->flags & EV_EOF) {
             DeleteUdata(ft_filter);
