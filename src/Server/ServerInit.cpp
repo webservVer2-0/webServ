@@ -170,12 +170,11 @@ void ServerRun(ServerConfig& config) {
 
             t_send* send = &client->GetSend();
             switch (send->flags) {
-              case 0:  // Make sendmsg(header + body)
+              case 0:  // Make header(header + body)
                 client->SetResponse();
-                send->header = MaketopMessage(client);
-              case 1:  // No header, only body
+                send->header = MakeTopMessage(client);
+              case 1:  // Make send message(no header, only body)
                 send->send_msg = MakeSendMessage(client, send->header);
-                delete[] send->header;
                 SendMessageLength(client);
                 SendProcess(curr_event, client);
                 break;

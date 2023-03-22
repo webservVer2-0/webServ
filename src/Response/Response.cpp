@@ -3,7 +3,7 @@
 
 #include "../../include/utils.hpp"
 
-std::string enumToString(t_error code) {
+std::string EnumToString(t_error code) {
   switch (code) {
     case NO_ERROR:
       return "0 NO_ERROR";
@@ -26,7 +26,7 @@ std::string enumToString(t_error code) {
   }
 }
 
-static std::string stToString(size_t size) {
+static std::string StToString(size_t size) {
   size_t num = size;
   char buf[1024];
   std::snprintf(buf, 1024, "%lu", num);
@@ -34,7 +34,7 @@ static std::string stToString(size_t size) {
   return str_num;
 }
 
-static std::string to_hex_string(size_t value) {
+static std::string ToHexStr(size_t value) {
   std::ostringstream os;
   unsigned char* p = reinterpret_cast<unsigned char*>(&value);
   for (size_t i = 0; i < sizeof(value); i++) {
@@ -83,8 +83,8 @@ static char* ChunkMsg(s_client_type* client, char* msg) {
   std::string chunk = static_cast<std::string>(
       client->GetConfig().main_config_.find(BODY)->second.data());
   size_t chunk_size = std::atoi(chunk.c_str());
-  std::string hex_size = to_hex_string(chunk_size);
-  std::string last_size = to_hex_string(chunk_size % res.entity_length_);
+  std::string hex_size = ToHexStr(chunk_size);
+  std::string last_size = ToHexStr(chunk_size % res.entity_length_);
   char send_size[1024];
 
   if (client->GetChunkSize() == 0) {
@@ -97,7 +97,7 @@ static char* ChunkMsg(s_client_type* client, char* msg) {
     } else if (client->IncreaseChunked(chunk_size)) {
       return (ChunkMsgMain(send_size, hex_size, res, chunk_size));
     } else {
-      return (ChunkMsgEnd(send_size, hex_size, res, chunk_size, client));
+      return (ChunkMsgEnd(send_size, last_size, res, chunk_size, client));
     }
   }
   snprintf(send_size, 1024, "0\r\n\r\n");
@@ -144,7 +144,7 @@ inline t_http MakePermanHeader(s_client_type* client, t_http msg) {
 inline t_http MakeEntityHeader(s_client_type* client, t_http msg) {
   msg.header_.insert(
       std::make_pair(std::string("Content-Type: "), client->GetMimeType()));
-  std::string size = stToString(client->GetResponse().entity_length_);
+  std::string size = StToString(client->GetResponse().entity_length_);
   msg.header_.insert(std::make_pair(std::string("Content-Length: "), size));
 
   msg.header_.insert(std::make_pair(std::string("Cache-Control: "),
@@ -155,7 +155,7 @@ inline t_http MakeEntityHeader(s_client_type* client, t_http msg) {
 t_http MakeResponseMessages(s_client_type* client) {
   t_error code = client->GetErrorCode();
   t_http msg = client->GetResponse();
-  std::string str_code = enumToString(code);
+  std::string str_code = EnumToString(code);
   std::time_t now = std::time(NULL);
   std::string date_str = std::asctime(std::gmtime(&now));
   date_str.erase(date_str.length() - 1);
@@ -184,7 +184,7 @@ t_http MakeResponseMessages(s_client_type* client) {
   return (msg);
 }
 
-char* MaketopMessage(s_client_type* client) {
+char* MakeTopMessage(s_client_type* client) {
   t_http msg = client->GetResponse();
   std::string joined_str = "";
   joined_str.append(msg.init_line_.at("version"));
@@ -232,6 +232,16 @@ void SendMessageLength(s_client_type* client) {
   client->GetSend().send_len = send_len;
 }
 
+inline void DeleteSend(s_client_type* client, t_send* send) {
+  delete[] send->send_msg;
+  delete[] send->header;
+  send->send_msg = NULL;
+  send->header = NULL;
+  client->SetSentLength(0);
+  client->SetStage(client->GetChunkStage());
+  send->flags = 1;
+}
+
 static void SendChunk(struct kevent* event, s_client_type* client,
                       t_send* send_, size_t len, size_t sent_len) {
   if (client->GetChunkStage() == DEF) client->SetChunkStage(client->GetStage());
@@ -244,11 +254,7 @@ static void SendChunk(struct kevent* event, s_client_type* client,
     temp_len += sent_len;
     client->SetSentLength(temp_len);
   } else {
-    delete send_->send_msg;
-    send_->send_msg = NULL;
-    client->SetSentLength(0);
-    client->SetStage(client->GetChunkStage());
-    send_->flags = 1;
+    DeleteSend(client, send_);
   }
 }
 void SendProcess(struct kevent* event, s_client_type* client) {
@@ -266,12 +272,7 @@ void SendProcess(struct kevent* event, s_client_type* client) {
     temp_len += sent_len;
     client->SetSentLength(temp_len);
   } else {
-    delete[] send_->send_msg;
-    send_->send_msg = NULL;
-    send_->header = NULL;
-    client->SetSentLength(0);
-    send_->send_len = 0;
-    send_->flags = 3;
+    DeleteSend(client, send_);
   }
 }
 
@@ -328,7 +329,7 @@ inline t_http MakePermanHeader(s_client_type* client, t_http msg) {
 inline t_http MakeEntityHeader(s_client_type* client, t_http msg) {
   msg.header_.insert(
       std::make_pair(std::string("Content-Type: "), client->GetMimeType()));
-  std::string size = stToString(client->GetResponse().entity_length_);
+  std::string size = StToString(client->GetResponse().entity_length_);
   msg.header_.insert(std::make_pair(std::string("Content-Length: "), size));
 
   msg.header_.insert(std::make_pair(std::string("Cache-Control: "),
@@ -339,7 +340,7 @@ inline t_http MakeEntityHeader(s_client_type* client, t_http msg) {
 t_http MakeResponseMessages(s_client_type* client) {
   t_error code = client->GetErrorCode();
   t_http msg = client->GetResponse();
-  std::string str_code = enumToString(code);
+  std::string str_code = EnumToString(code);
   std::time_t now = std::time(NULL);
   std::string date_str = std::asctime(std::gmtime(&now));
   date_str.erase(date_str.length() - 1);
@@ -363,7 +364,8 @@ t_http MakeResponseMessages(s_client_type* client) {
         std::make_pair(std::string("Connection: "), std::string("Closed")));
   } else {
     msg.header_.insert(
-        std::make_pair(std::string("Connection: "), std::string("Keep-Alive")));
+        std::make_pair(std::string("Connection: "),
+std::string("Keep-Alive")));
   }
   return (msg);
 }
@@ -463,12 +465,12 @@ void SendProcess(struct kevent* event, s_client_type* client) {
 void SendFin(struct kevent* event, s_client_type* client) {
   client->SendLogs();
   if (client->GetStage() == END) {
-    ServerConfig::ChangeEvents(event->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
-    close(event->ident);
+    ServerConfig::ChangeEvents(event->ident, EVFILT_WRITE, EV_DELETE, 0, 0,
+0); close(event->ident);
     ResetConnection(static_cast<s_client_type*>(event->udata));
   } else {
-    ServerConfig::ChangeEvents(event->ident, EVFILT_WRITE, EV_DISABLE, 0, 0, 0);
-    ServerConfig::ChangeEvents(event->ident, EVFILT_READ, EV_ENABLE, 0, 0,
+    ServerConfig::ChangeEvents(event->ident, EVFILT_WRITE, EV_DISABLE, 0, 0,
+0); ServerConfig::ChangeEvents(event->ident, EVFILT_READ, EV_ENABLE, 0, 0,
                                client);
     ResetConnection(static_cast<s_client_type*>(event->udata));
   }
