@@ -47,6 +47,7 @@ s_server_type::~s_server_type() {}
 s_base_type* s_server_type::CreateClient(int client_fd) {
   s_client_type* child;
   child = new s_client_type(this->self_config_, client_fd, this);
+  if (child == NULL) return NULL;
   return child;
 }
 
@@ -82,6 +83,7 @@ s_base_type* s_client_type::CreateWork(std::string* path, int file_fd,
   s_work_type* work;
 
   work = new s_work_type(*path, file_fd, work_type, response_msg_);
+  if (work == NULL) return NULL;
   work->SetType(WORK);
   work->SetClientPtr(this);
   this->data_ptr_ = work;
@@ -124,7 +126,8 @@ t_loc& s_client_type::GetLocationConfig(void) { return *this->loc_config_ptr_; }
 void s_client_type::SetConfigPtr(t_loc* ptr) { this->loc_config_ptr_ = ptr; }
 
 s_work_type* s_client_type::GetChildWork(void) {
-  return (dynamic_cast<s_work_type*>(data_ptr_));
+  if (data_ptr_ == NULL) return NULL;
+  return (static_cast<s_work_type*>(data_ptr_));
 }
 
 bool s_client_type::GetCachePage(const std::string& uri, t_http& response) {
@@ -154,11 +157,14 @@ bool s_client_type::GetCacheError(t_error code, t_http& response) {
   t_server* rule = this->config_ptr_;
 
   std::ostringstream temp;
-  temp << code;
+  if (code == 999) {
+    temp << 400;
+  } else {
+    temp << code;
+  }
 
   std::string err_key = temp.str();
   temp.clear();
-
   if (rule->error_pages_.find(err_key) == rule->error_pages_.end()) {
     return (false);
   }
@@ -167,10 +173,13 @@ bool s_client_type::GetCacheError(t_error code, t_http& response) {
 
   response.entity_ = new char[response.entity_length_];
   if (response.entity_ == NULL) {
-    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(GetCacheError)");
+    response.entity_ = new char[response.entity_length_];
+    if (response.entity_ == NULL) {
+      response.entity_length_ = 0;
+      return false;
+    }
   }
   temp_str.copy(response.entity_, response.entity_length_, 0);
-  //   response.entity_[response.entity_length_] = '\0';
   temp_str.clear();
   return (true);
 }

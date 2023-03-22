@@ -20,7 +20,7 @@ server  {
 	method GET POST DELETE;
 	# 앞에 숫자, 뒤에 경로 파일 있어야 함 (반복형)
 	# 에러는 반드시 해당 server config 에서 받아오는 것으로 생각한다. 
-	error 400 storage/loc/400.html 403 storage/loc/403.html  404 storage/loc/404.html 501 storage/loc/501.html 505 storage/loc/505.html;
+	error 400 storage/loc/400.html 403 storage/loc/403.html  404 storage/loc/404.html 500 storage/loc/500.html  501 storage/loc/501.html 505 storage/loc/505.html;
 
 	# 필수 location(root)
 	location / {
