@@ -8,19 +8,17 @@ entity_length_
 MiME
 */
 
-std::string EraseQueryFromUri(s_client_type* client) {
-  std::string uri_query = client->GetConvertedURI();
+std::string EraseQueryFromUri(std::string uri_w_query) {
+  size_t query_start = uri_w_query.find("?");
+  size_t erase_len = (uri_w_query.find("=") - query_start) + 1;
 
-  size_t query_start = uri_query.find("?");
-  size_t erase_len = (uri_query.find("=") - query_start) + 1;
-
-  return uri_query.erase(query_start, erase_len);
+  return uri_w_query.erase(query_start, erase_len);
 }
 
 void ClientDelete(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
 
-  std::string file_path = EraseQueryFromUri(client);
+  std::string file_path = EraseQueryFromUri(client->GetConvertedURI());
   const char* path_char = file_path.c_str();
 
   unlink(path_char);
