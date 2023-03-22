@@ -1,7 +1,0 @@
-ERR : 127.0.0.1 [22/Mar/2023:00:17:37 + 0900] 500 SYS_ERR HTTP/1.1  [ERR_TIME 22/Mar/2023:00:17:37 + 0900] [500 Interneal Server Error] [2 : No such file or directory] [msg : GET method open()]
-ERR : 127.0.0.1 [22/Mar/2023:00:17:52 + 0900] 500 SYS_ERR HTTP/1.1  [ERR_TIME 22/Mar/2023:00:17:52 + 0900] [500 Interneal Server Error] [2 : No such file or directory] [msg : GET method open()]
-ERR : 127.0.0.1 [22/Mar/2023:00:18:04 + 0900] 500 SYS_ERR HTTP/1.1  [ERR_TIME 22/Mar/2023:00:18:04 + 0900] [500 Interneal Server Error] [2 : No such file or directory] [msg : GET method open()]
-ERR : 127.0.0.1 [22/Mar/2023:00:18:09 + 0900] 500 SYS_ERR HTTP/1.1  [ERR_TIME 22/Mar/2023:00:18:09 + 0900] [500 Interneal Server Error] [2 : No such file or directory] [msg : GET method open()]
-ERR : 127.0.0.1 [22/Mar/2023:00:20:29 + 0900] 500 SYS_ERR HTTP/1.1  [ERR_TIME 22/Mar/2023:00:20:29 + 0900] [500 Interneal Server Error] [2 : No such file or directory] [msg : GET method open()]
-ERR : 127.0.0.1 [22/Mar/2023:00:20:32 + 0900] 500 SYS_ERR HTTP/1.1  [ERR_TIME 22/Mar/2023:00:20:32 + 0900] [500 Interneal Server Error] [2 : No such file or directory] [msg : GET method open()]
-ERR : 127.0.0.1 [22/Mar/2023:00:21:24 + 0900] 500 SYS_ERR HTTP/1.1  [ERR_TIME 22/Mar/2023:00:21:24 + 0900] [500 Interneal Server Error] [2 : No such file or directory] [msg : GET method open()]
