@@ -131,21 +131,21 @@ void MakeHead(t_http& response) {
       "initial-scale=1.0\">\n");
   entity.append(
       "	<link rel=\"stylesheet\" type=\"text/css\" "
-      "href=\"./asset/style.css\">\n");
+      "href=\"/asset/style.css\">\n");
   entity.append("	<title>류진스의 길었던 하류</title>\n");
   entity.append(
       "    <link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" "
-      "href=\"./asset/favicon_io/favicon-32x32.png\">\n");
+      "href=\"/asset/favicon_io/favicon-32x32.png\">\n");
   entity.append(
       "    <link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" "
-      "href=\"./asset/favicon_io/favicon-16x16.png\">\n");
+      "href=\"/asset/favicon_io/favicon-16x16.png\">\n");
   entity.append("</head>\n");
   entity.append("<body>\n");
   entity.append(
-      "	<div id=\"background\"><img src=\"./asset/wallpaper.jpeg\" "
+      "	<div id=\"background\"><img src=\"/asset/wallpaper.jpeg\" "
       "id=\"back_img\"></img></div>\n");
   entity.append("	<div class=\"box\" >\n");
-  entity.append("	<a href=\"/storage/static/index.html\">\n");
+  entity.append("	<a href=\"/\">\n");
   entity.append("		<h1 id=\"banner\">류진스의 길었던 하류</h1>\n");
   entity.append("		<h2 id=\"banner_mid\" >Webserv Project</h2>\n");
   entity.append(
@@ -165,11 +165,18 @@ void MakeHead(t_http& response) {
 }
 
 void MakeFooter(t_http& response) {
-  std::string entity(response.entity_);
+  std::string entity;
+
+  for (size_t i = 0; i < response.entity_length_; i += 2) {
+    entity.push_back(response.entity_[i]);
+    if (i + 1 < response.entity_length_) {
+      entity.push_back(response.entity_[i + 1]);
+    }
+  }
   delete[] response.entity_;
 
   entity.append(
-      "	<a href=\"./index.html\"><img src=\"./asset/home.png\" "
+      "	<a href=\"/\"><img src=\"/\" "
       "id=\"home\"></img></a>\n");
   entity.append("</body>\n</html>");
 
