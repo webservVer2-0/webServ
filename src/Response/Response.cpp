@@ -259,26 +259,19 @@ void SendProcess(struct kevent* event, s_client_type* client) {
     SendChunk(event, client, send_, len, sent_len);
   size_t temp_len =
       send(event->ident, send_->send_msg + sent_len, len - sent_len, 0);
-
-  // size_t temp_len = send(1, send_->send_msg + sent_len, len - sent_len, 0);
-
   if (temp_len < 0) {
     send_->flags = 2;
-    std::cout << "v5" << std::endl;
   } else if (temp_len < len) {
     send_->flags = 2;
     temp_len += sent_len;
     client->SetSentLength(temp_len);
-    std::cout << "v6" << std::endl;
   } else {
     delete[] send_->send_msg;
     send_->send_msg = NULL;
     send_->header = NULL;
     client->SetSentLength(0);
-    client->SetStage(DEF);
     send_->send_len = 0;
     send_->flags = 3;
-    std::cout << "v7 : " << send_->flags << std::endl;
   }
 }
 
