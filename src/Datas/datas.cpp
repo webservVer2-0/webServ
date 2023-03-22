@@ -419,3 +419,5 @@ void s_work_type::SetClientStage(t_stage val) {
   my_mother->GetTimeData()[1] = std::time(NULL);
   my_mother->SetStage(val);
 }
+
+std::vector<char>& s_work_type::GetVec(void) { return this->vec_; }

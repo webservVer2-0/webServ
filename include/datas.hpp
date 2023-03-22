@@ -110,6 +110,7 @@ class s_work_type : public s_base_type {
   s_base_type* client_ptr_;
   s_chore work_type_;
   t_http& response_msg_;
+  std::vector<char> vec_;  // read()시 buffer에 담기는 내용 계속 담는 용
 
   s_work_type(const s_work_type& target);
   s_work_type& operator=(const s_work_type& target);
@@ -140,6 +141,7 @@ class s_work_type : public s_base_type {
 
   t_stage GetClientStage(void);
   void SetClientStage(t_stage val);
+  std::vector<char>& GetVec(void);
 };
 
 typedef enum s_log_type { logger, error } t_log_type;
