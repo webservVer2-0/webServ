@@ -33,14 +33,14 @@ void ClientDelete(struct kevent* event) {
 
   unlink(path_char);
 
-  MakeDeletePage(client, client->GetResponse(), file_path);
+  std::string upload_path =
+      client->GetConfig().main_config_.find("upload_path")->second;
+
+  MakeDeletePage(client, client->GetResponse(), upload_path);
   ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
                              client);
   ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
                              client);
-
-  std::string upload_path =
-      client->GetConfig().main_config_.find("upload_path")->second;
 
   client->SetMimeType(upload_path.append("/delete.html"));
   client->SetErrorCode(OK);
