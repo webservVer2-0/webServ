@@ -81,7 +81,6 @@ void ClientFilePost(struct kevent* event) {
 
   std::string file_path = MakeFilePath(client);
   const char* path_char = AppendNumSuffix(file_path);
-  std::cout << "path_char is " << path_char << std::endl;
   int save_file_fd = open(path_char, O_RDWR | O_CREAT | O_NONBLOCK, 0644);
   if (save_file_fd == -1) {
     client->SetErrorString(errno, "POST method open()");
@@ -112,11 +111,7 @@ void WorkFilePost(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
   size_t write_result = 0;
 
-
-  std::cout << "진짜 적는다?" << std::endl;
-  std::cout << "entity length is " << client->GetRequest().entity_length_ << std::endl;
-  // client->GetRequest().entity_ = (client->GetRequest().msg_.begin() + 135).base();
-  // client->GetRequest().entity_length_ = 1031;
+  std::cout << "write!!!\n";
   write_result = write(work->GetFD(), client->GetRequest().entity_,
                        client->GetRequest().entity_length_);
   if (write_result != client->GetRequest().entity_length_) {

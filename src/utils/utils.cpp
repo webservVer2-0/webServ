@@ -117,8 +117,8 @@ void DeleteUdata(s_base_type* data) {
   //     delete file;
   //   }
 
-  if (temp->GetRequest().entity_length_ != 0)
-    delete[] temp->GetRequest().entity_;
+  // if (temp->GetRequest().entity_length_ != 0)
+    // delete[] temp->GetRequest().entity_;
   temp->GetRequest().entity_length_ = 0;
   temp->GetRequest().header_.clear();
   temp->GetRequest().init_line_.clear();

@@ -28,8 +28,6 @@ t_error convert_uri(std::string rq_uri,
 
   std::string token = rq_uri;
 
-  std::cout << "origin uri is: " << token << std::endl;
-
   while ((pos = rq_uri.find('/')) != std::string::npos) {
     token = rq_uri.substr(0, pos);
     if (token != "" && token != ".") rq_path.push_back(token);
@@ -97,8 +95,6 @@ static void SetClientStage(s_client_type* client, t_http* http) {
   if (method == "GET")
     client->SetStage(GET_READY);
   else if (method == "POST") {
-    std::cout << "msg size: " << http->msg_.size() << std::endl;
-    std::cout << "entity len: " << http->entity_length_ << std::endl;
     if (http->msg_.size() == http->entity_length_)
       client->SetStage(POST_READY);
     else
@@ -224,14 +220,10 @@ int RequestHandler(struct kevent* curr_event) {
       int result = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
       if (result == -1)
         return (-1);
-      std::cout << "read size: " << result << std::endl;
-      std::cout << "first msg size: " << http->msg_.size() << std::endl;
       buf[MAX_HEADER_SIZE] = '\0';
       // 4000만큼 읽었는데 헤더가 끝나지 않는 경우 -> BAD_REQ
       char* double_crlf = strstr(buf, DOUBLE_CRLF);
 
-      std::ofstream hi("qqqq");
-      hi <<  double_crlf;
       if (double_crlf == nullptr)
         return (RequestError(client_type, BAD_REQ, "DOUBLE CRLF가 없음"));
 
@@ -262,13 +254,8 @@ int RequestHandler(struct kevent* curr_event) {
 
         if (result > (double_crlf + DOUBLE_CRLF_LEN) - buf)
         {
-          std::cout << "찌꺼기 넣기!!!!!\n";
-          std::cout << "insert buf size: " << (buf + MAX_HEADER_SIZE) - (double_crlf + DOUBLE_CRLF_LEN) << std::endl;
-          // http->msg_.insert(http->msg_.end(), double_crlf + DOUBLE_CRLF_LEN, buf + MAX_HEADER_SIZE);
-          std::cout << "second result is " << result << std::endl;
-          http->msg_.insert(http->msg_.end(), double_crlf + DOUBLE_CRLF_LEN, double_crlf + DOUBLE_CRLF_LEN + http->entity_length_);
+          http->msg_.insert(http->msg_.end(), double_crlf + DOUBLE_CRLF_LEN, double_crlf + DOUBLE_CRLF_LEN + (result - (double_crlf + DOUBLE_CRLF_LEN - buf)));
           http->entity_ = http->msg_.begin().base();
-          std::cout << "second msg size: " << http->msg_.size() << std::endl;
           if (http->msg_.size() == http->entity_length_)
             client_type->SetStage(POST_READY);
         }
@@ -283,30 +270,25 @@ int RequestHandler(struct kevent* curr_event) {
       }
     } break;
     case REQ_ING : {
-      std::cout << "req_ing in " << std::endl;
       int result = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
       if (result == -1)
         return (-1);
       http->temp_len_ -= result;
       http->msg_.insert(http->msg_.end(), buf, buf + result);
-      std::cout << "ING!!!" << std::endl;
       if (http->temp_len_ <= 0) {
         http->entity_ = strstr(http->msg_.begin().base(), DOUBLE_CRLF) + DOUBLE_CRLF_LEN;
-        int index = 0;
-        while (1)
+        char* found = NULL;
+        std::string key = http->header_["Content-Type"].substr(http->header_["Content-Type"].find("boundary") + 9);
+        std::cout << key << std::endl;
+        for (size_t i = 0; i < http->entity_length_ - key.size() + 1; i++)
         {
-          if (http->entity_[index] == '-')
-          {
-            if (http->entity_[index + 1] == '-')
+            if (std::memcmp(&http->entity_[i], key.c_str(), key.size()) == 0)
             {
-              if (http->entity_[index + 2] == '-')
+                found = &http->entity_[i];
                 break;
             }
-          }
-          index++;
         }
-        http->entity_length_ = index;
-        std::cout << "len " << http->entity_length_ << std::endl;
+        http->entity_length_ = found - http->entity_ - 5;
         client_type->SetStage(POST_READY);
       }
       }  break;

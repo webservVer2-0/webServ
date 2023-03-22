@@ -132,12 +132,10 @@ void ServerRun(ServerConfig& config) {
               } else {
                 int result = 0;
                 result = RequestHandler(curr_event);
-                std::cout << "stage is: " << static_cast<s_client_type*>(ft_filter)->GetStage() << std::endl;
                 if (result == -1)
                   continue;
               }
 
-            std::cout <<               static_cast<s_client_type*>(ft_filter)->GetStage() << "\n";
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
                 case GET_READY: {
                   ClientGet(curr_event);
