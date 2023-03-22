@@ -71,7 +71,9 @@
     "functional": "cpp",
     "iterator": "cpp",
     "utility": "cpp",
-    "filesystem": "cpp"
+    "filesystem": "cpp",
+    "__functional_03": "cpp",
+    "memory_resource": "cpp"
   },
   "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
   "C_Cpp.intelliSenseEngineFallback": "disabled"

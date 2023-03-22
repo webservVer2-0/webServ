@@ -1,0 +1,2 @@
+ERR : 127.0.0.1 [22/Mar/2023:23:08:49 + 0900] 501 NOT_IMPLE HTTP/1.1  [ERR_TIME 22/Mar/2023:23:08:49 + 0900] [501 Not Implemented] [9 : Bad file descriptor] [msg : RequestHandler.cpp/InitLineParser()]
+ERR : 127.0.0.1 [22/Mar/2023:23:08:50 + 0900] 500 SYS_ERR HTTP/1.1  [ERR_TIME 22/Mar/2023:23:08:50 + 0900] [500 Interneal Server Error] [2 : No such file or directory] [msg : get_method.cpp / MethodGetReady()안의 open()]
