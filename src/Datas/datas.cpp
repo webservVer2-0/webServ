@@ -17,6 +17,8 @@ t_event s_base_type::GetType() const { return this->type_; }
 
 int s_base_type::GetFD() { return this->fd_; }
 
+void s_base_type::SetFD(int fd) { this->fd_ = fd; }
+
 /****************** Server Type ********************/
 
 s_server_type::s_server_type(ServerConfig& config_list, int server_number,
@@ -32,9 +34,12 @@ s_server_type::s_server_type(ServerConfig& config_list, int server_number,
   e_fd = open(self_config_->main_config_.at("error_log").c_str(),
               O_WRONLY | O_APPEND | O_NONBLOCK);
 
-  this->logger_.SetFDs(l_fd, e_fd);
+  this->logger_.SetFD(l_fd);
+  this->e_logger_.SetFD(e_fd);
   ServerConfig::ChangeEvents(l_fd, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, NULL,
                              &(this->logger_));
+  ServerConfig::ChangeEvents(e_fd, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, NULL,
+                             &(this->e_logger_));
 }
 
 s_server_type::~s_server_type() {}
@@ -42,6 +47,7 @@ s_server_type::~s_server_type() {}
 s_base_type* s_server_type::CreateClient(int client_fd) {
   s_client_type* child;
   child = new s_client_type(this->self_config_, client_fd, this);
+  if (child == NULL) return NULL;
   return child;
 }
 
@@ -51,7 +57,7 @@ s_client_type::s_client_type(t_server* config, int client_fd,
                              s_server_type* mother)
     : s_base_type(client_fd) {
   std::ostringstream temp;
-  temp << rand();
+  temp << static_cast<unsigned int>(rand());
   cookie_id_ = temp.str();
   temp.clear();
   this->time_data_[0] = std::time(NULL);
@@ -60,13 +66,14 @@ s_client_type::s_client_type(t_server* config, int client_fd,
   this->loc_config_ptr_ = NULL;
   parent_ptr_ = static_cast<s_base_type*>(mother);
   data_ptr_ = NULL;
-  sent_size_ = 0;
   stage_ = DEF;
   status_code_ = NO_ERROR;
   request_msg_.entity_ = NULL;
   request_msg_.entity_length_ = 0;
   response_msg_.entity_ = NULL;
   response_msg_.entity_length_ = 0;
+  send_num = DEF;
+  send_length = 0;
 }
 
 s_client_type::~s_client_type() {}
@@ -76,6 +83,7 @@ s_base_type* s_client_type::CreateWork(std::string* path, int file_fd,
   s_work_type* work;
 
   work = new s_work_type(*path, file_fd, work_type, response_msg_);
+  if (work == NULL) return NULL;
   work->SetType(WORK);
   work->SetClientPtr(this);
   this->data_ptr_ = work;
@@ -95,6 +103,12 @@ void s_client_type::SetResponse(void) {
 
 size_t& s_client_type::GetMessageLength(void) { return this->msg_length; }
 void s_client_type::SetMessageLength(size_t size) { this->msg_length = size; }
+const char* s_client_type::GetBuf(void) { return this->write_buf_; }
+void s_client_type::SetBuf(char* buf) { this->write_buf_ = buf; }
+const s_stage& s_client_type::GetSendNum(void) { return this->send_num; }
+void s_client_type::SetSendNum(s_stage num) { this->send_num = num; }
+const size_t& s_client_type::GetSendLength(void) { return this->send_length; }
+void s_client_type::SetSendLength(size_t length) { this->send_length = length; }
 const t_stage& s_client_type::GetStage(void) { return this->stage_; }
 void s_client_type::SetStage(t_stage val) {
   time_data_[1] = std::time(NULL);
@@ -112,7 +126,8 @@ t_loc& s_client_type::GetLocationConfig(void) { return *this->loc_config_ptr_; }
 void s_client_type::SetConfigPtr(t_loc* ptr) { this->loc_config_ptr_ = ptr; }
 
 s_work_type* s_client_type::GetChildWork(void) {
-  return (dynamic_cast<s_work_type*>(data_ptr_));
+  if (data_ptr_ == NULL) return NULL;
+  return (static_cast<s_work_type*>(data_ptr_));
 }
 
 bool s_client_type::GetCachePage(const std::string& uri, t_http& response) {
@@ -142,28 +157,45 @@ bool s_client_type::GetCacheError(t_error code, t_http& response) {
   t_server* rule = this->config_ptr_;
 
   std::ostringstream temp;
-  temp << code;
+  if (code == 999) {
+    temp << 400;
+  } else {
+    temp << code;
+  }
 
   std::string err_key = temp.str();
   temp.clear();
-
   if (rule->error_pages_.find(err_key) == rule->error_pages_.end()) {
     return (false);
   }
   std::string temp_str(rule->error_pages_.find(err_key).operator->()->second);
   response.entity_length_ = temp_str.size();
 
-  response.entity_ = new char[response.entity_length_ + 1];
+  response.entity_ = new char[response.entity_length_];
   if (response.entity_ == NULL) {
-    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(GetCacheError)");
+    response.entity_ = new char[response.entity_length_];
+    if (response.entity_ == NULL) {
+      response.entity_length_ = 0;
+      return false;
+    }
   }
   temp_str.copy(response.entity_, response.entity_length_, 0);
-  response.entity_[response.entity_length_] = '\0';
   temp_str.clear();
   return (true);
 }
 
-bool s_client_type::GetChunked(void) { return (this->GetStage() == GET_CHUNK); }
+bool s_client_type::GetChunked(void) {
+  if (this->GetStage() == GET_CHUNK || this->GetStage() == RES_CHUNK)
+    return (1);
+  else
+    return (0);
+}
+bool s_client_type::IsChunked(void) {
+  if (this->GetStage() == RES_FIN || this->GetStage() == RES_CHUNK)
+    return (1);
+  else
+    return (0);
+}
 size_t s_client_type::GetChunkSize(void) { return this->sent_size_; }
 bool s_client_type::IncreaseChunked(size_t sent_size) {
   size_t sent_unit = sent_size;
@@ -217,19 +249,22 @@ void s_client_type::SendLogs(void) {
   char msg2[30];
   std::strftime(msg1, 30, "%d/%b/%Y:%H:%M:%S + 0900", std::localtime(&time[0]));
   std::strftime(msg2, 30, "%d/%b/%Y:%H:%M:%S + 0900", std::localtime(&time[1]));
-  s_logger_type* temp =
-      &(static_cast<s_server_type*>(parent_ptr_))->GetLogger();
-
+  s_logger_type* temp;
+  if (GetErrorCode() == OK || GetErrorCode() == MOV_PERMAN) {
+    temp = &(static_cast<s_server_type*>(parent_ptr_))->GetLogger();
+  } else {
+    temp = &(static_cast<s_server_type*>(parent_ptr_))->GetELogger();
+  }
+  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, NULL,
+                             &temp);
   if (this->GetErrorCode() == OK || this->GetErrorCode() == MOV_PERMAN) {
-    ServerConfig::ChangeEvents(temp->GetLoggingFd(), EVFILT_WRITE, EV_ENABLE, 0,
-                               NULL, &temp);
     logging_data.append(this->GetIP());
     logging_data.append(" [");
     logging_data.append(msg1);
     logging_data.append("] ");
     logging_data.append("HTTP/1.1");
     logging_data.append(" ");
-    logging_data.append(this->request_msg_.init_line_.at("URI"));
+    logging_data.append(this->origin_uri_);
     logging_data.append(" ");
     logging_data.append(this->request_msg_.init_line_.at("METHOD"));
     logging_data.append(" ");
@@ -252,8 +287,6 @@ void s_client_type::SendLogs(void) {
     logging_data.append(this->request_msg_.init_line_.at("URI"));
     logging_data.append("]");
   } else {
-    ServerConfig::ChangeEvents(temp->GetLoggingFd(), EVFILT_WRITE, EV_ENABLE, 0,
-                               NULL, &temp);
     logging_data.append("ERR : ");
     logging_data.append(this->GetIP());
     logging_data.append(" [");
@@ -316,8 +349,9 @@ void s_client_type::SendLogs(void) {
   return;
 }
 
-void s_client_type::SetError(int custom_errno, std::string custom_msg) {
+void s_client_type::SetErrorString(int custom_errno, std::string custom_msg) {
   this->errno_ = custom_errno;
+  this->err_custom_.clear();
   this->err_custom_ = custom_msg;
 }
 bool s_client_type::SetMimeType(std::string converted_uri) {
@@ -337,6 +371,22 @@ bool s_client_type::SetMimeType(std::string converted_uri) {
   return (true);
 }
 std::string& s_client_type::GetMimeType(void) { return this->mime_; }
+
+void s_client_type::SetAccessTime(void) {
+  this->time_data_[0] = std::time(NULL);
+}
+
+void s_client_type::SetFinishTime(void) {
+  this->time_data_[0] = std::time(NULL);
+}
+
+std::vector<char>&  s_client_type::GetVec(void)
+{
+  return this->vec_;
+}
+
+
+
 
 /****************** Work Type ********************/
 

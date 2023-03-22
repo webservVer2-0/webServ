@@ -5,6 +5,7 @@
 
 #include "../../include/config.hpp"
 #include "../../include/request_handler.hpp"
+#include "../../include/utils.hpp"
 #include "../../include/webserv.hpp"
 
 void ServerInit(ServerConfig& config) {
@@ -100,42 +101,42 @@ void ServerRun(ServerConfig& config) {
 
     for (int i = 0; i < new_event_number; i++) {
       curr_event = &config.event_list_[i];
-      if (curr_event->flags & EV_ERROR) {
-        // PrintError(3, WEBSERV, CRITICAL, "kevent running error");
-        ;
-      } else {
-        s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
-        switch (ft_filter->GetType()) {
-          case WORK: {
-            s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
-            if (work_type->GetWorkType() == file) {
-              std::cout << "FILE steps"
+      s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
+      if (ft_filter == NULL) {
+        continue;
+      }
+      switch (ft_filter->GetType()) {
+        case WORK: {
+          s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
+          if (work_type->GetWorkType() == file) {
+            std::cout << "FILE steps"
+                      << " / Task FD : " << ft_filter->GetFD() << std::endl;
+            if (work_type->GetClientStage() == GET_START)
+              WorkGet(curr_event);
+            else if (work_type->GetClientStage() == POST_START)
+              WorkFilePost(curr_event);
+          } else if (work_type->GetWorkType() == cgi)
+            WorkCGIPost(curr_event);
+          // std::cout << "cgi steps" << std::endl;
+        } break;
+        case CLIENT: {
+          if (curr_event->filter == EVFILT_READ) {
+            {
+              std::cout << "READ steps"
                         << " / Task FD : " << ft_filter->GetFD() << std::endl;
-              if (work_type->GetClientStage() == GET_START)
-                WorkGet(curr_event);
-              else if (work_type->GetClientStage() == POST_START)
-                WorkFilePost(curr_event);
-            } else if (work_type->GetWorkType() == cgi)
-              WorkCGIPost(curr_event);
-            // std::cout << "cgi steps" << std::endl;
-
-          } break;
-          case CLIENT: {
-            if (curr_event->filter == EVFILT_READ) {
-              {
-                std::cout << "READ steps"
-                          << " / Task FD : " << ft_filter->GetFD() << std::endl;
+              if (curr_event->data == 0) {
+                continue;
+              } else {
                 char* client_msg = new char[curr_event->data];
                 int ret =
                     recv(curr_event->ident, client_msg, curr_event->data, 0);
                 if (ret == -1) {
                   // 임시
                 }
-                // client_msg[curr_event->data] = '\0';
-                // TODO: 이 로직 바꿔여함
-
-                request_handler(curr_event->data, curr_event->udata,
-                                client_msg);
+                if (ret == 0) {
+                  continue;
+                }
+                RequestHandler(curr_event->data, curr_event->udata, client_msg);
                 delete[] client_msg;
               }
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
@@ -161,95 +162,75 @@ void ServerRun(ServerConfig& config) {
                   break;
                 }
               }
-            } else if (curr_event->filter == EVFILT_WRITE) {
-              s_client_type* client = static_cast<s_client_type*>(ft_filter);
-              std::cout << "WRITE steps"
-                        << " / Task FD : " << ft_filter->GetFD() << std::endl;
-              client->SetResponse();
-              char* msg_top = MaketopMessage(client);
-              char* send_msg = MakeSendMessage(client, msg_top);
-              size_t send_msg_len;
-              delete msg_top;
-              if (client->GetStage() == RES_CHUNK) {
-                send_msg_len = static_cast<size_t>(
-                    client->GetConfig().main_config_.find(BODY)->second.size());
-              } else if (client->GetStage() == RES_CHUNK &&
-                         client->GetChunkSize() >
-                             client->GetResponse().entity_length_) {
-                send_msg_len = client->GetChunkSize() %
-                               client->GetResponse().entity_length_;
-              } else if (client->GetStage() == RES_FIN) {
-                send_msg_len = 5;
-              } else
-                send_msg_len = client->GetMessageLength();
-              send(curr_event->ident, send_msg, send_msg_len, 0);
-              delete send_msg;
-              if (!client->GetChunked() || client->GetStage() != RES_CHUNK) {
-                client->SendLogs();
-                if (client->GetStage() == END) {
-                  ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
-                                             EV_DELETE, 0, 0, 0);
-                  close(curr_event->ident);
-                  DeleteUdata(ft_filter);
-                } else {
-                  ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
-                                             EV_DISABLE, 0, 0, 0);
-                  ServerConfig::ChangeEvents(curr_event->ident, EVFILT_READ,
-                                             EV_DISABLE, 0, 0, ft_filter);
-                  DeleteUdata(ft_filter);
-
-                  // TODO: 스테이지 초기화가 필요하다.
-                  client->SetStage(DEF);
-                }
-              }
-            } else if (curr_event->filter == EVFILT_TIMER) {
-              DeleteUdata(ft_filter);
-              ServerConfig::ChangeEvents(curr_event->ident, EVFILT_WRITE,
-                                         EV_DELETE, 0, 0, 0);
-              ServerConfig::ChangeEvents(curr_event->ident, EVFILT_READ,
-                                         EV_DELETE, 0, 0, 0);
-              ServerConfig::ChangeEvents(curr_event->ident, EVFILT_TIMER,
-                                         EV_DELETE, 0, 0, 0);
-              close(curr_event->ident);
             }
-          }
-          case LOGGER: {
-            if (curr_event->filter == EVFILT_WRITE) {
-              static_cast<s_logger_type*>(ft_filter)->PushData();
-            }
-            break;
-          }
-          default: {  // Server case
-            sockaddr_in* addr_info = config.GetServerAddress();
-            std::cout << "SERVER steps"
+          } else if (curr_event->filter == EVFILT_WRITE) {
+            s_client_type* client = static_cast<s_client_type*>(ft_filter);
+            std::cout << "WRITE steps"
                       << " / Task FD : " << ft_filter->GetFD() << std::endl;
-            socklen_t addrlen = sizeof(addr_info);
-            int client_fd(accept(curr_event->ident,
-                                 reinterpret_cast<sockaddr*>(addr_info),
-                                 &addrlen));
-            if (client_fd == -1) {
-              PrintError(3, WEBSERV, CRITICAL, strerror(errno));
-            }
-            char ip_str[INET_ADDRSTRLEN];
-            inet_ntop(AF_INET, &(addr_info->sin_addr), ip_str, INET_ADDRSTRLEN);
-            s_server_type* server = static_cast<s_server_type*>(ft_filter);
-            s_client_type* client =
-                static_cast<s_client_type*>(server->CreateClient(client_fd));
-            client->SetIP(ip_str);
-            ServerConfig::ChangeEvents(client_fd, EVFILT_READ, EV_ADD, 0, 0,
-                                       client);
 
-            ServerConfig::ChangeEvents(client_fd, EVFILT_WRITE,
-                                       EV_ADD | EV_DISABLE, 0, 0, client);
-            int timer = atoi(client->GetConfig()
-                                 .main_config_.at("timeout")
-                                 .c_str());  // refactoring
+            if (client->GetStage() == RES_SEND) {
+              SendProcess(curr_event, client);
+            } else {
+              char* msg_top = strdup("");
+              char* send_msg = strdup("");
+              if (client->IsChunked()) {
+                send_msg = MakeSendMessage(client, msg_top);
+              } else {
+                client->SetResponse();
+                msg_top = MaketopMessage(client);
+                send_msg = MakeSendMessage(client, msg_top);
+              }
+              delete msg_top;
+              client->SetBuf(send_msg);
+              SendMessageLength(client);
+              SendProcess(curr_event, client);
+              if (client->GetStage() == RES_SEND) continue;
+              SendFin(curr_event, client);
+            }
+          } else if (curr_event->filter == EVFILT_TIMER ||
+                     curr_event->flags & EV_EOF) {
+            DeleteUdata(ft_filter);
+          }
+        } break;
+        case LOGGER: {
+          if (curr_event->filter == EVFILT_WRITE) {
+            std::cout << "Logger steps"
+                      << " / Task FD : "
+                      << static_cast<s_logger_type*>(curr_event->udata)->GetFD()
+                      << std::endl;
+            static_cast<s_logger_type*>(ft_filter)->PushData();
+          }
+        } break;
+        default: {  // Server case
+          sockaddr_in* addr_info = config.GetServerAddress();
+          std::cout << "SERVER steps"
+                    << " / Task FD : " << ft_filter->GetFD() << std::endl;
+          socklen_t addrlen = sizeof(addr_info);
+          int client_fd(accept(curr_event->ident,
+                               reinterpret_cast<sockaddr*>(addr_info),
+                               &addrlen));
+          if (client_fd == -1) {
+            PrintError(3, WEBSERV, CRITICAL, strerror(errno));
+          }
+          char ip_str[INET_ADDRSTRLEN];
+          inet_ntop(AF_INET, &(addr_info->sin_addr), ip_str, INET_ADDRSTRLEN);
+          s_server_type* server = static_cast<s_server_type*>(ft_filter);
+          s_client_type* client =
+              static_cast<s_client_type*>(server->CreateClient(client_fd));
+          client->SetIP(ip_str);
+          ServerConfig::ChangeEvents(client_fd, EVFILT_READ, EV_ADD | EV_EOF, 0,
+                                     0, client);
+
+          ServerConfig::ChangeEvents(client_fd, EVFILT_WRITE,
+                                     EV_ADD | EV_DISABLE, 0, 0, client);
+          int timer = atoi(client->GetConfig()
+                               .main_config_.at(TIMEOUT)
+                               .c_str());  // refactoring
+          if (timer != 0) {
             ServerConfig::ChangeEvents(client_fd, EVFILT_TIMER, EV_ADD,
                                        NOTE_SECONDS, timer, client);
-            // client->PrintClientStatus();
-            // server->GetLogger().PrintLogger();
-          } break;
-        }
+          }
+        };
       }
       CheckError(curr_event);
     }
