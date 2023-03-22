@@ -30,6 +30,9 @@ void CheckError(struct kevent* curr_event) {
 void PutErrorPage(s_client_type* client) {
   if (client->GetResponse().entity_length_ != 0)
     delete[] client->GetResponse().entity_;
-  client->GetCacheError(client->GetErrorCode(), client->GetResponse());
+  if (client->GetCacheError(client->GetErrorCode(), client->GetResponse()) ==
+      false) {
+    PrintError(4, WEBSERV, CRITICAL, "Error Cache Failed", "(PutErrorPage)");
+  }
   return;
 }
