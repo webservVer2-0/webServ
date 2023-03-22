@@ -128,12 +128,9 @@ void WorkFilePost(struct kevent* event) {
     ServerConfig::ChangeEvents(work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0,
                                NULL);
     work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
-    if (close(work->GetFD()) == -1) {
-      client->SetErrorString(errno, "post_method.cpp / close()");
-      client->SetErrorCode(SYS_ERR);
-      client->SetStage(ERR_FIN);
-      return;
-    }
+
+    close(work->GetFD());
+
     client->SetMimeType(work->GetUri());
     client->SetErrorCode(OK);
     client->SetStage(POST_FIN);
