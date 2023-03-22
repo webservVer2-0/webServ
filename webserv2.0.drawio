@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2023-03-16T12:51:34.368Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36" etag="wRMZTTzRQIEQ72UyXVhX" version="21.0.6" type="github" pages="3">
+<mxfile host="app.diagrams.net" modified="2023-03-22T06:02:44.719Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36" etag="h8iDBT4WctCQXKqttCiz" version="21.0.8" type="github" pages="3">
   <diagram name="data_structure" id="0lBOWSRzW262vy09HFQD">
-    <mxGraphModel dx="972" dy="697" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="1194" dy="766" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -389,7 +389,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="LQptrI-g6rzxv_2xL_lt" name="method_overall">
-    <mxGraphModel dx="5970" dy="3830" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+    <mxGraphModel dx="724" dy="464" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -446,10 +446,10 @@
             <mxPoint x="70" y="1" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="7zTSCtCjmm9JlzjVkFWO-7" target="h_9QLyALtzzJCISoq2tC-36">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="7zTSCtCjmm9JlzjVkFWO-7" target="h_9QLyALtzzJCISoq2tC-36" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-38" value="case DELETE_START" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontStyle=1;labelBackgroundColor=#FFF2CC;fontSize=15;" vertex="1" connectable="0" parent="h_9QLyALtzzJCISoq2tC-37">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-38" value="case DELETE_START" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontStyle=1;labelBackgroundColor=#FFF2CC;fontSize=15;" parent="h_9QLyALtzzJCISoq2tC-37" vertex="1" connectable="0">
           <mxGeometry x="0.5552" relative="1" as="geometry">
             <mxPoint x="30" as="offset" />
           </mxGeometry>
@@ -499,12 +499,12 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="F4LRof5FCmn5BzIcXzMc-2" value="auto index paging" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="1572" y="1960" width="400" height="270" as="geometry">
+          <mxGeometry x="1572" y="1960" width="400" height="340" as="geometry">
             <mxRectangle x="1320" y="-570" width="140" height="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="F4LRof5FCmn5BzIcXzMc-8" value="auto index opt가 켜져있는 상태라면&lt;br&gt;&lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;실제 페이지 처럼 서버가 entity를 생성해서&lt;br&gt;Response msg로 보내줍니다.&lt;br&gt;&lt;/span&gt;&lt;br&gt;이 때, {파일명.확장자}가 존재하면&lt;br&gt;그 부분을 삭제하고 디렉토리만 존재하는 URI로 변형해서 사용합니다.&lt;br&gt;&lt;br&gt;dir 라는 구조체를 사용해서 디렉토리 내의 파일 이름, 폴더 이름, 크기 등을 가져올수 있다고 합니다.&lt;br&gt;&lt;br&gt;&lt;u&gt;이 부분은 DELETE 부분과 같은 맥락이기 때문에&lt;br&gt;아직 구현을 안한 상태로 둬도 됩니다.&lt;br&gt;&lt;br&gt;(주석으로 이 쪽으로 넘어갈 것이라고 써주시면 됩니다!)&lt;/u&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="F4LRof5FCmn5BzIcXzMc-2" vertex="1">
-          <mxGeometry x="20" y="40" width="360" height="210" as="geometry" />
+        <mxCell id="F4LRof5FCmn5BzIcXzMc-8" value="auto index opt가 켜져있는 상태라면&lt;br&gt;&lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;실제 페이지 처럼 서버가 entity를 생성해서&lt;br&gt;Response msg로 보내줍니다.&lt;br&gt;&lt;/span&gt;&lt;br&gt;1. 서버가 켜져있으면 항상 auto index&lt;br&gt;2. location에 켜져있으면 확인하고 auto index paging&lt;br&gt;&lt;br&gt;&lt;strike&gt;이 때, {파일명.확장자}가 존재하면&lt;br&gt;그 부분을 삭제하고 디렉토리만 존재하는 URI로 변형해서 사용합니다.&lt;br&gt;&lt;/strike&gt;&lt;br&gt;dir 라는 구조체를 사용해서 디렉토리 내의 파일 이름, 폴더 이름, 크기 등을 가져올수 있다고 합니다.&lt;br&gt;&lt;br&gt;&lt;u&gt;이 부분은 DELETE 부분과 같은 맥락이기 때문에&lt;br&gt;아직 구현을 안한 상태로 둬도 됩니다.&lt;br&gt;&lt;br&gt;(주석으로 이 쪽으로 넘어갈 것이라고 써주시면 됩니다!)&lt;/u&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="F4LRof5FCmn5BzIcXzMc-2" vertex="1">
+          <mxGeometry x="20" y="40" width="360" height="290" as="geometry" />
         </mxCell>
         <mxCell id="F4LRof5FCmn5BzIcXzMc-47" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="F4LRof5FCmn5BzIcXzMc-14" target="F4LRof5FCmn5BzIcXzMc-46" edge="1">
           <mxGeometry relative="1" as="geometry" />
@@ -580,7 +580,7 @@
         <mxCell id="F4LRof5FCmn5BzIcXzMc-49" value="STAGE = GET_START" style="whiteSpace=wrap;html=1;fontStyle=1;fontSize=16;labelBackgroundColor=#99FFFF;" parent="1" vertex="1">
           <mxGeometry x="3452" y="3058.75" width="200" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="F4LRof5FCmn5BzIcXzMc-52" target="F4LRof5FCmn5BzIcXzMc-46">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="F4LRof5FCmn5BzIcXzMc-52" target="F4LRof5FCmn5BzIcXzMc-46" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="F4LRof5FCmn5BzIcXzMc-52" value="set mime type" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
@@ -626,7 +626,7 @@
         <mxCell id="F4LRof5FCmn5BzIcXzMc-118" value="GET_CHUNK가 되면 더이상 method에서 처리하지 않습니다!!" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;labelBackgroundColor=#FF99CC;" parent="1" vertex="1">
           <mxGeometry x="2772" y="655" width="320" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="NOxQud3-YWQdBA9590gq-1" target="h_9QLyALtzzJCISoq2tC-1">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="NOxQud3-YWQdBA9590gq-1" target="h_9QLyALtzzJCISoq2tC-1" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="NOxQud3-YWQdBA9590gq-1" value="ClientFilePost()" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
@@ -642,7 +642,7 @@
             <mxRectangle x="824.5199999999999" y="1850.2499999999998" width="220" height="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-29" value="/loc cgi1, 2에 있는 (가칭) &lt;b style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;cgi.py를 실행&lt;/b&gt;시킵니다.&lt;br&gt;&lt;br&gt;이 때, fork()로 thread를 생성해서 서버 프로세스는 종료시키지 않고, &lt;br&gt;&lt;u style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;자식 프로세스로 .py의 결과값을 pipe를 사용하여 받아옵니다.&lt;/u&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="NOxQud3-YWQdBA9590gq-3">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-29" value="/loc cgi1, 2에 있는 (가칭) &lt;b style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;cgi.py를 실행&lt;/b&gt;시킵니다.&lt;br&gt;&lt;br&gt;이 때, fork()로 thread를 생성해서 서버 프로세스는 종료시키지 않고, &lt;br&gt;&lt;u style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;자식 프로세스로 .py의 결과값을 pipe를 사용하여 받아옵니다.&lt;/u&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="NOxQud3-YWQdBA9590gq-3" vertex="1">
           <mxGeometry x="20" y="37.40000000000009" width="360" height="190" as="geometry" />
         </mxCell>
         <mxCell id="-fLP8uU4CtJufOeFfEC3-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="-fLP8uU4CtJufOeFfEC3-1" target="7zTSCtCjmm9JlzjVkFWO-12" edge="1">
@@ -661,10 +661,10 @@
             <mxPoint x="4" y="1" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="-fLP8uU4CtJufOeFfEC3-1" target="h_9QLyALtzzJCISoq2tC-31">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="-fLP8uU4CtJufOeFfEC3-1" target="h_9QLyALtzzJCISoq2tC-31" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-34" value="case DELETE_READY" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#FFF2CC;fontStyle=1;fontSize=15;" vertex="1" connectable="0" parent="h_9QLyALtzzJCISoq2tC-33">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-34" value="case DELETE_READY" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#FFF2CC;fontStyle=1;fontSize=15;" parent="h_9QLyALtzzJCISoq2tC-33" vertex="1" connectable="0">
           <mxGeometry x="0.9" y="-1" relative="1" as="geometry">
             <mxPoint x="22" y="-1" as="offset" />
           </mxGeometry>
@@ -684,7 +684,7 @@
         <mxCell id="-fLP8uU4CtJufOeFfEC3-5" value="STAGE = GET_FIN" style="whiteSpace=wrap;html=1;fontStyle=1;fontSize=16;labelBackgroundColor=#99FFFF;" parent="1" vertex="1">
           <mxGeometry x="2832" y="260" width="200" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="-fLP8uU4CtJufOeFfEC3-38" target="h_9QLyALtzzJCISoq2tC-21">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="-fLP8uU4CtJufOeFfEC3-38" target="h_9QLyALtzzJCISoq2tC-21" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="-fLP8uU4CtJufOeFfEC3-38" value="write()" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
@@ -692,68 +692,68 @@
             <mxRectangle x="960" y="920" width="140" height="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-18" value="ClientPost()에서 생성한 fd에 &lt;b style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;request entity를 write() 하고, 파일을 저장&lt;/b&gt;합니다.&lt;br&gt;&lt;br&gt;이 때, &lt;span style=&quot;background-color: rgb(255, 204, 153);&quot;&gt;write()에 오류가 발생한 경우, &lt;/span&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;	&lt;/span&gt;&lt;span style=&quot;background-color: rgb(255, 204, 153);&quot;&gt;-&amp;gt; error_code를 SYS_ERR로 설정하고&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;	&lt;/span&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;	&lt;/span&gt;&lt;span style=&quot;background-color: rgb(255, 204, 153);&quot;&gt;errno를 저장한 후 함수를 빠져 나옵니다.&lt;/span&gt;&lt;br&gt;&lt;br&gt;write()가 성공적으로 끝났다면, &lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;	&lt;/span&gt;-&amp;gt; &lt;span style=&quot;background-color: rgb(255, 255, 153);&quot;&gt;work 이벤트를 삭제하고 client의 쓰기 이벤트를 활성화 한 후, &lt;/span&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;	&lt;/span&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;	&lt;/span&gt;&lt;span style=&quot;background-color: rgb(255, 255, 153);&quot;&gt;error_code를 OK로 설정하고 함수를 빠져 나옵니다.&lt;/span&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="-fLP8uU4CtJufOeFfEC3-38">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-18" value="ClientPost()에서 생성한 fd에 &lt;b style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;request entity를 write() 하고, 파일을 저장&lt;/b&gt;합니다.&lt;br&gt;&lt;br&gt;이 때, &lt;span style=&quot;background-color: rgb(255, 204, 153);&quot;&gt;write()에 오류가 발생한 경우, &lt;/span&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt; &lt;/span&gt;&lt;span style=&quot;background-color: rgb(255, 204, 153);&quot;&gt;-&amp;gt; error_code를 SYS_ERR로 설정하고&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt; &lt;/span&gt;&lt;span style=&quot;white-space: pre;&quot;&gt; &lt;/span&gt;&lt;span style=&quot;background-color: rgb(255, 204, 153);&quot;&gt;errno를 저장한 후 함수를 빠져 나옵니다.&lt;/span&gt;&lt;br&gt;&lt;br&gt;write()가 성공적으로 끝났다면, &lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt; &lt;/span&gt;-&amp;gt; &lt;span style=&quot;background-color: rgb(255, 255, 153);&quot;&gt;work 이벤트를 삭제하고 client의 쓰기 이벤트를 활성화 한 후, &lt;/span&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt; &lt;/span&gt;&lt;span style=&quot;white-space: pre;&quot;&gt; &lt;/span&gt;&lt;span style=&quot;background-color: rgb(255, 255, 153);&quot;&gt;error_code를 OK로 설정하고 함수를 빠져 나옵니다.&lt;/span&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="-fLP8uU4CtJufOeFfEC3-38" vertex="1">
           <mxGeometry x="2.5" y="40" width="400" height="170" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="h_9QLyALtzzJCISoq2tC-1" target="h_9QLyALtzzJCISoq2tC-4">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="h_9QLyALtzzJCISoq2tC-1" target="h_9QLyALtzzJCISoq2tC-4" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-1" value="MakeFilePath()" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-1" value="MakeFilePath()" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="2080" y="3351.1" width="320" height="240" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-2" value="POST로 파일을 생성해서 저장하는 &lt;br&gt;upload_path (server config에 존재)에&amp;nbsp;&lt;br&gt;저장하려고 하는 파일의 유형에 따라,&lt;br&gt;&lt;br&gt;1. &lt;span style=&quot;background-color: rgb(255, 153, 204);&quot;&gt;텍스트&lt;/span&gt; 데이터의 경우&amp;nbsp;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;	&lt;/span&gt;-&amp;gt; &lt;span style=&quot;background-color: rgb(255, 153, 204);&quot;&gt;(cookie ID)_userdata.dat&lt;/span&gt;&lt;br&gt;2. &lt;span style=&quot;background-color: rgb(153, 255, 204);&quot;&gt;이미지&lt;/span&gt; 파일의 경우&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;	&lt;/span&gt;-&amp;gt; &lt;span style=&quot;background-color: rgb(153, 255, 204);&quot;&gt;(cookie ID)_(image 파일 이름).(파일 확장자)&lt;/span&gt;&lt;br&gt;&lt;br&gt;형식으로 &lt;b&gt;&lt;u&gt;std::string을 생성&lt;/u&gt;&lt;/b&gt;합니다." style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="h_9QLyALtzzJCISoq2tC-1">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-2" value="POST로 파일을 생성해서 저장하는 &lt;br&gt;upload_path (server config에 존재)에&amp;nbsp;&lt;br&gt;저장하려고 하는 파일의 유형에 따라,&lt;br&gt;&lt;br&gt;1. &lt;span style=&quot;background-color: rgb(255, 153, 204);&quot;&gt;텍스트&lt;/span&gt; 데이터의 경우&amp;nbsp;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt; &lt;/span&gt;-&amp;gt; &lt;span style=&quot;background-color: rgb(255, 153, 204);&quot;&gt;(cookie ID)_userdata.dat&lt;/span&gt;&lt;br&gt;2. &lt;span style=&quot;background-color: rgb(153, 255, 204);&quot;&gt;이미지&lt;/span&gt; 파일의 경우&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt; &lt;/span&gt;-&amp;gt; &lt;span style=&quot;background-color: rgb(153, 255, 204);&quot;&gt;(cookie ID)_(image 파일 이름).(파일 확장자)&lt;/span&gt;&lt;br&gt;&lt;br&gt;형식으로 &lt;b&gt;&lt;u&gt;std::string을 생성&lt;/u&gt;&lt;/b&gt;합니다." style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="h_9QLyALtzzJCISoq2tC-1" vertex="1">
           <mxGeometry x="20" y="56.09999999999991" width="280" height="150" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="h_9QLyALtzzJCISoq2tC-4" target="h_9QLyALtzzJCISoq2tC-10">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="h_9QLyALtzzJCISoq2tC-4" target="h_9QLyALtzzJCISoq2tC-10" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-4" value="AppendNumSurffix()" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-4" value="AppendNumSurffix()" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="2510" y="3351.1" width="330" height="240" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-5" value="MakeFilePath()에서 생성된 파일 이름으로&lt;br&gt;저장공간 upload_path내에 동일한 파일이 있는지 확인한 후,&amp;nbsp;&lt;br&gt;&lt;br&gt;1. 만약 &lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;동일한 이름의 파일이 존재하면&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;	&lt;/span&gt;&lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;-&amp;gt; 파일 뒤에 &#39;(1)&#39;, &#39;(2)&#39;와 같이 번호를 붙여서 &lt;/span&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;	&lt;/span&gt;&amp;nbsp; &amp;nbsp; 실제로 저장할 파일 디렉토리 문자열을 변경합니다.&lt;br&gt;2. &lt;span style=&quot;background-color: rgb(255, 255, 153);&quot;&gt;동일한 파일이 없다고 한다면 &lt;/span&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;	&lt;/span&gt;&lt;span style=&quot;background-color: rgb(255, 255, 153);&quot;&gt;-&amp;gt; 앞서 만든 그 문자열을 그대로 반환&lt;/span&gt;합니다." style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="h_9QLyALtzzJCISoq2tC-4">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-5" value="MakeFilePath()에서 생성된 파일 이름으로&lt;br&gt;저장공간 upload_path내에 동일한 파일이 있는지 확인한 후,&amp;nbsp;&lt;br&gt;&lt;br&gt;1. 만약 &lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;동일한 이름의 파일이 존재하면&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt; &lt;/span&gt;&lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;-&amp;gt; 파일 뒤에 &#39;(1)&#39;, &#39;(2)&#39;와 같이 번호를 붙여서 &lt;/span&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt; &lt;/span&gt;&amp;nbsp; &amp;nbsp; 실제로 저장할 파일 디렉토리 문자열을 변경합니다.&lt;br&gt;2. &lt;span style=&quot;background-color: rgb(255, 255, 153);&quot;&gt;동일한 파일이 없다고 한다면 &lt;/span&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt; &lt;/span&gt;&lt;span style=&quot;background-color: rgb(255, 255, 153);&quot;&gt;-&amp;gt; 앞서 만든 그 문자열을 그대로 반환&lt;/span&gt;합니다." style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="h_9QLyALtzzJCISoq2tC-4" vertex="1">
           <mxGeometry x="10" y="44.150000000000006" width="310" height="173.9" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="h_9QLyALtzzJCISoq2tC-10" target="h_9QLyALtzzJCISoq2tC-12">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="h_9QLyALtzzJCISoq2tC-10" target="h_9QLyALtzzJCISoq2tC-12" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-10" value="open() : create new file" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-10" value="open() : create new file" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="2970" y="3351.1" width="330" height="240" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-11" value="생성한 파일 디렉토리 문자열을 open()에 넣어서&lt;br&gt;파일을 생성합니다.&lt;br&gt;&lt;br&gt;만약 &lt;span style=&quot;background-color: rgb(255, 204, 153);&quot;&gt;open()에 문제가 발생한 경우 errno를 저장하고 SYS_ERR로 error_code를 설정해준 후, 함수를 빠져나옵니다.&lt;/span&gt;&lt;br&gt;&lt;br&gt;&lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;open()에 성공한 경우, CreateWork()로 작업을 생성하고 이벤트 등록 및 비활성 처리 후 OK로 error_code를 설정하고 &lt;br&gt;함수를 빠져 나옵니다.&lt;/span&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="h_9QLyALtzzJCISoq2tC-10">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-11" value="생성한 파일 디렉토리 문자열을 open()에 넣어서&lt;br&gt;파일을 생성합니다.&lt;br&gt;&lt;br&gt;만약 &lt;span style=&quot;background-color: rgb(255, 204, 153);&quot;&gt;open()에 문제가 발생한 경우 errno를 저장하고 SYS_ERR로 error_code를 설정해준 후, 함수를 빠져나옵니다.&lt;/span&gt;&lt;br&gt;&lt;br&gt;&lt;span style=&quot;background-color: rgb(204, 255, 153);&quot;&gt;open()에 성공한 경우, CreateWork()로 작업을 생성하고 이벤트 등록 및 비활성 처리 후 OK로 error_code를 설정하고 &lt;br&gt;함수를 빠져 나옵니다.&lt;/span&gt;" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="h_9QLyALtzzJCISoq2tC-10" vertex="1">
           <mxGeometry x="10" y="44.150000000000006" width="310" height="173.9" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="h_9QLyALtzzJCISoq2tC-12" target="F4LRof5FCmn5BzIcXzMc-61">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="h_9QLyALtzzJCISoq2tC-12" target="F4LRof5FCmn5BzIcXzMc-61" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-12" value="STAGE = POST_START" style="whiteSpace=wrap;html=1;fontStyle=1;fontSize=16;labelBackgroundColor=#99FFFF;" vertex="1" parent="1">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-12" value="STAGE = POST_START" style="whiteSpace=wrap;html=1;fontStyle=1;fontSize=16;labelBackgroundColor=#99FFFF;" parent="1" vertex="1">
           <mxGeometry x="3452" y="3441.1" width="200" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="h_9QLyALtzzJCISoq2tC-17" target="F4LRof5FCmn5BzIcXzMc-61">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="h_9QLyALtzzJCISoq2tC-17" target="F4LRof5FCmn5BzIcXzMc-61" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-17" value="STAGE = POST_FIN" style="whiteSpace=wrap;html=1;fontStyle=1;fontSize=16;labelBackgroundColor=#99FFFF;" vertex="1" parent="1">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-17" value="STAGE = POST_FIN" style="whiteSpace=wrap;html=1;fontStyle=1;fontSize=16;labelBackgroundColor=#99FFFF;" parent="1" vertex="1">
           <mxGeometry x="2832" y="875" width="200" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="h_9QLyALtzzJCISoq2tC-21" target="h_9QLyALtzzJCISoq2tC-17">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="h_9QLyALtzzJCISoq2tC-21" target="h_9QLyALtzzJCISoq2tC-17" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-21" value="파일을 저장한 후, &lt;br&gt;올바르게 저장되었는지 확인을 하는 &lt;br&gt;유효성 검사 항목이 추가될 수 있습니다!" style="whiteSpace=wrap;html=1;fontStyle=5;dashed=1;rounded=1;" vertex="1" parent="1">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-21" value="파일을 저장한 후, &lt;br&gt;올바르게 저장되었는지 확인을 하는 &lt;br&gt;유효성 검사 항목이 추가될 수 있습니다!" style="whiteSpace=wrap;html=1;fontStyle=5;dashed=1;rounded=1;" parent="1" vertex="1">
           <mxGeometry x="1732" y="850" width="230" height="110" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-31" value="ClientDelete(struct kevent* event)" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-31" value="ClientDelete(struct kevent* event)" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="982" y="4460" width="361" height="189" as="geometry">
             <mxRectangle x="824.5199999999999" y="1850.2499999999998" width="220" height="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-32" value="wip" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="h_9QLyALtzzJCISoq2tC-31">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-32" value="wip" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="h_9QLyALtzzJCISoq2tC-31" vertex="1">
           <mxGeometry x="11.5" y="33" width="338" height="137" as="geometry" />
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-35" value="wip" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-35" value="wip" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="959.5" y="1227.5" width="402.5" height="230" as="geometry">
             <mxRectangle x="960" y="920" width="140" height="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="h_9QLyALtzzJCISoq2tC-36" value="wip" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="h_9QLyALtzzJCISoq2tC-35">
+        <mxCell id="h_9QLyALtzzJCISoq2tC-36" value="wip" style="text;strokeColor=none;align=left;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="h_9QLyALtzzJCISoq2tC-35" vertex="1">
           <mxGeometry x="2.5" y="40" width="400" height="170" as="geometry" />
         </mxCell>
       </root>
