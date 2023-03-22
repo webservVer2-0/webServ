@@ -5,14 +5,10 @@
 void  MethodGetSetEntity(s_client_type*& client)
 {
   client->GetResponse().entity_length_ = GetFileSize(client->GetConvertedURI().c_str());
-  /* test : 길이 제대로 들어오는지
-     std::cout << "event->data : " << event->data << std::endl;
-     std::cout << "entity_len : " << entity_len << std::endl;
-     왜 다르지? */
   try {
     client->GetResponse().entity_ = new char[client->GetResponse().entity_length_ + 1]();
   } catch (const std::exception& e) {
-    client->SetErrorString(errno, "GET method new()");
+    client->SetErrorString(errno, "get_method.cpp / MethodGetSetEntity안의 new()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
   }
@@ -26,7 +22,6 @@ void  MethodGetSetEntity(s_client_type*& client)
  */
 void MethodGetReady(s_client_type*& client) {
   std::string uri = client->GetConvertedURI();
-  // std::string uri = client->GetRequest().init_line_.find("URI")->second;
   t_http& response = client->GetResponse();
 
   if (client->GetCachePage(uri, response))  // 캐시파일인경우
@@ -44,7 +39,7 @@ void MethodGetReady(s_client_type*& client) {
   {
     int req_fd = open(uri.c_str(), O_RDONLY | O_NONBLOCK);
     if (req_fd == -1) {
-      client->SetErrorString(errno, "GET method open()");
+      client->SetErrorString(errno, "get_method.cpp / MethodGetReady()안의 open()");
       client->SetErrorCode(SYS_ERR);
       client->SetStage(ERR_FIN);
       return;
@@ -65,11 +60,11 @@ void MethodGetReady(s_client_type*& client) {
 void ClientGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
 
-  // if (client->GetConfig().index_mode_ != off &&
-  //     client->GetLocationConfig().index_mode_ != off) {
-  //   // auto index;
-  // }
-  // // TODO : auto index는 나중에. haryu님이 구현하시는 중. delete랑 거의
+  // auto index;
+  if (client->GetConfig().index_mode_ != off &&
+      client->GetLocationConfig().index_mode_ != off) {
+  }
+  // TODO : auto index는 나중에. haryu님이 구현하시는 중. delete랑 거의
   // 비슷해서 config_map config = client->GetLocationConfig().main_config_; if
   // (config.find("redirection") != config.end()) {
   //   // redir;
@@ -95,7 +90,7 @@ void WorkGet(struct kevent* event) {
   }
   if (client->GetVec().size() != entity_len)
   {
-    client->SetErrorString(errno, "GET method read()");
+    client->SetErrorString(errno, "get_method.cpp / WorkGet()안의 read()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
 
@@ -121,7 +116,7 @@ void WorkGet(struct kevent* event) {
     client->SetStage(GET_FIN);
   }
   if (close(req_fd) == -1) {
-    client->SetErrorString(errno, "GET method close()");
+    client->SetErrorString(errno, "get_method.cpp / WorkGet()안의 close()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
   }
