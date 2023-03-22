@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../../include/datas.hpp"
 #include "../../include/utils.hpp"
 
-std::string EnumToString(t_error code) {
+std::string EnumToString(int code) {
   switch (code) {
     case NO_ERROR:
       return "0 NO_ERROR";
@@ -239,7 +240,7 @@ inline void DeleteSend(s_client_type* client, t_send* send) {
   send->header = NULL;
   client->SetSentLength(0);
   client->SetStage(client->GetChunkStage());
-  send->flags = 1;
+  send->flags = 3;
 }
 
 static void SendChunk(struct kevent* event, s_client_type* client,

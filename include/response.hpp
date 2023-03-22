@@ -13,7 +13,7 @@ typedef struct s_http t_http;
  * @param code
  * @return std::string
  */
-std::string EnumToString(t_error code);
+std::string EnumToString(int code);
 
 /**
  * @brief responsemessage setting 함수
