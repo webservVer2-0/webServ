@@ -380,6 +380,14 @@ void s_client_type::SetFinishTime(void) {
   this->time_data_[0] = std::time(NULL);
 }
 
+std::vector<char>&  s_client_type::GetVec(void)
+{
+  return this->vec_;
+}
+
+
+
+
 /****************** Work Type ********************/
 
 s_work_type::s_work_type(std::string& path, int fd, s_chore work_type,
