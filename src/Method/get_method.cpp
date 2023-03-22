@@ -215,7 +215,7 @@ void WorkGet(struct kevent* event) {
   // if (INT_MAX < entity_len)
   // std::cout << "FAIL!\n";
   // read_ret = read(req_fd, client->GetResponse().entity_, entity_len);
-  read_ret = read(req_fd, response->entity_, BUF_SIZE);
+  read_ret = read(req_fd, response->entity_, response->entity_length_);
   if (read_ret == (size_t)-1 || read_ret) {
     // std::cout << "read_ret : " << read_ret << std::endl;
     // std::cout << "entity_len : " << entity_len << std::endl;
