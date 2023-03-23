@@ -34,7 +34,7 @@ std::string MakeFilePath(s_client_type* client) {
       client->GetConfig().main_config_.find("upload_path")->second;
   std::string ret = "./";
 
-  ret.append(upload_path);
+  ret.append(upload_path.append("/"));
   ret.append(client->GetCookieId());
   ret.push_back('_');
   if (IsTextFile(client)) {
@@ -82,7 +82,8 @@ void ClientFilePost(struct kevent* event) {
   std::string file_path = MakeFilePath(client);
   const char* path_char = AppendNumSuffix(file_path);
 
-  int save_file_fd = open(path_char, O_RDWR | O_CREAT | O_APPEND | O_NONBLOCK, 0644);
+  int save_file_fd =
+      open(path_char, O_RDWR | O_CREAT | O_APPEND | O_NONBLOCK, 0644);
   if (save_file_fd == -1) {
     client->SetErrorString(errno, "post_method.cpp / open()");
     client->SetErrorCode(SYS_ERR);
