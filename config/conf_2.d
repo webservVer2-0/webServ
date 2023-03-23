@@ -67,7 +67,7 @@ server  {
 	# DELETE 기능용 
 	location /delete {
 		root storage/static;
-		default_file test_delete.html;
+		default_file delete.html;
 		method GET DELETE;
 		auto_index off;
 	}
@@ -75,7 +75,7 @@ server  {
 	# AutoIndex 기능용 
 	location /auto_index {
 		root storage/static;
-		default_file test_auto_index.html;
+		default_file auto_index.html;
 		method GET;
 		auto_index on;
 	}

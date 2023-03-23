@@ -170,7 +170,24 @@ void ServerRun(ServerConfig& config) {
             std::cout << "WRITE steps"
                       << " / Task FD : " << ft_filter->GetFD() << std::endl;
 
-            if (client->GetStage() == RES_SEND) {
+            t_send* send = &client->GetSend();
+            switch (send->flags) {
+              case 0:  // Make header(header + body)
+                client->SetResponse();
+                send->header = MakeTopMessage(client);
+              case 1:  // Make send message(no header, only body)
+                send->send_msg = MakeSendMessage(client, send->header);
+                SendMessageLength(client);
+                SendProcess(curr_event, client);
+                break;
+              case 2:  // send failed(char * &sendmsg)
+                SendProcess(curr_event, client);
+                break;
+              default:
+
+                SendFin(curr_event, client);
+            }
+            /*if (client->GetStage() == RES_SEND) {
               SendProcess(curr_event, client);
             } else {
               char* msg_top = strdup("");
@@ -188,7 +205,7 @@ void ServerRun(ServerConfig& config) {
               SendProcess(curr_event, client);
               if (client->GetStage() == RES_SEND) continue;
               SendFin(curr_event, client);
-            }
+            }*/
           } else if (curr_event->filter == EVFILT_TIMER ||
                      curr_event->flags & EV_EOF) {
             DeleteUdata(ft_filter);
