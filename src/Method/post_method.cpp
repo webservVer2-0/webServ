@@ -84,7 +84,7 @@ void ClientFilePost(struct kevent* event) {
 
   int save_file_fd = open(path_char, O_RDWR | O_CREAT | O_APPEND | O_NONBLOCK, 0644);
   if (save_file_fd == -1) {
-    client->SetErrorString(errno, "POST method open()");
+    client->SetErrorString(errno, "post_method.cpp / open()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
     return;
@@ -117,7 +117,7 @@ void WorkFilePost(struct kevent* event) {
   size_t entity_len = client->GetRequest().entity_length_;
 
   if (total_write_len > entity_len) {
-    client->SetErrorString(errno, "POST method write()");
+    client->SetErrorString(errno, "post_method.cpp / write()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
     return;
@@ -128,13 +128,15 @@ void WorkFilePost(struct kevent* event) {
     ServerConfig::ChangeEvents(work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0,
                                NULL);
     work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
-    if (close(work->GetFD()) == -1) {
-      client->SetErrorString(errno, "POST method close()");
-      client->SetErrorCode(SYS_ERR);
-      client->SetStage(ERR_FIN);
-      return;
-    }
-    client->SetMimeType(work->GetUri());
+
+    close(work->GetFD());
+
+    std::string upload_path =
+        client->GetConfig().main_config_.find("upload_path")->second;
+
+    MakeDeletePage(client, client->GetResponse(), upload_path);
+
+    client->SetMimeType(upload_path.append("/delete.html"));
     client->SetErrorCode(OK);
     client->SetStage(POST_FIN);
     client->SetMessageLength(0);
