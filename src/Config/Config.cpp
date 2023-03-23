@@ -380,7 +380,9 @@ bool ServerConfig::ValidConfigNumber(conf_iterator& target,
   }
   int number_value = atoi(temp.c_str());
   if (number_value <= 0 || number_value > INT_MAX) {
-    if (number_value == 0 && target.operator->()->first.compare(TIMEOUT) == 0) {
+    if (number_value == 0 &&
+        (target.operator->()->first.compare(TIMEOUT) == 0 ||
+         target.operator->()->first.compare(MAXH) == 0)) {
       return (true);
     }
     PrintError(5, WEBSERV, "Server", standard,
@@ -692,6 +694,10 @@ bool ServerConfig::ValidCheckServer(int server_number) {
       }
     } else if (temp.compare(INC) == 0) {
       if (!ValidConfigFile(target)) {
+        return (false);
+      }
+    } else if (temp.compare(MAXH) == 0) {
+      if (!ValidConfigNumber(target, MAXH)) {
         return (false);
       }
     } else {
