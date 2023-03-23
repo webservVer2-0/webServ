@@ -82,7 +82,7 @@ void ClientFilePost(struct kevent* event) {
   std::string file_path = MakeFilePath(client);
   const char* path_char = AppendNumSuffix(file_path);
 
-  int save_file_fd = open(path_char, O_RDWR | O_CREAT | O_APPEND | O_NONBLOCK);
+  int save_file_fd = open(path_char, O_RDWR | O_CREAT | O_APPEND | O_NONBLOCK, 0644);
   if (save_file_fd == -1) {
     client->SetErrorString(errno, "POST method open()");
     client->SetErrorCode(SYS_ERR);
