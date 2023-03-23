@@ -127,13 +127,20 @@ void DeleteUdata(s_base_type* data) {
 }
 
 void SetSockoptReuseaddr(int* socket_fd, int socket_length) {
-  int bf;
+  int bf = 1;
   int ret;
+  //   bool opval = 1;
 
   for (int i = 0; i < socket_length; i++) {
     ret = setsockopt(socket_fd[i], SOL_SOCKET, SO_REUSEADDR, &bf, sizeof(bf));
     if (ret == -1) {
-      PrintError(2, WEBSERV, "Server socket option setting is failed");
+      PrintError(2, WEBSERV,
+                 "Server socket option setting is failed : SO_REUSEADDR");
+    }
+    ret = setsockopt(socket_fd[i], SOL_SOCKET, SO_KEEPALIVE, &bf, sizeof(bf));
+    if (ret == -1) {
+      PrintError(2, WEBSERV,
+                 "Server socket option setting is failed : SO_KEEPALIVE");
     }
   }
 }
