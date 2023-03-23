@@ -2,7 +2,6 @@ server  {
 	listen 80;
 	body_size 10000000;
 	max_connect 100;
-	#TODO:max header 설정 추가하기 
 	max_header 4000;
 	root storage/static/;
 	default_file index.html;
@@ -14,6 +13,7 @@ server  {
 	# 서버명과 같은 것들은 모두 영어 + 숫자 + '_' 만 지원한다. 
 	server_name RyujeansToday;
 	timeout 1;
+	# TODO: auto index 전체 
 	auto_index off;
 
 	# 메서드는 구현하기로 한 GET, POST, DELETE 왜에는 에러처리 
@@ -67,7 +67,7 @@ server  {
 	# DELETE 기능용 
 	location /delete {
 		root storage/static;
-		default_file test_delete.html;
+		default_file delete.html;
 		method GET DELETE;
 		auto_index off;
 	}
@@ -75,7 +75,7 @@ server  {
 	# AutoIndex 기능용 
 	location /auto_index {
 		root storage/static;
-		default_file test_auto_index.html;
+		default_file auto_index.html;
 		method GET;
 		auto_index on;
 	}
