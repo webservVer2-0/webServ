@@ -34,7 +34,7 @@ std::string MakeFilePath(s_client_type* client) {
       client->GetConfig().main_config_.find("upload_path")->second;
   std::string ret = "./";
 
-  ret.append(upload_path);
+  ret.append(upload_path.append("/"));
   ret.append(client->GetCookieId());
   ret.push_back('_');
   if (IsTextFile(client)) {
@@ -82,14 +82,16 @@ void ClientFilePost(struct kevent* event) {
   std::string file_path = MakeFilePath(client);
   const char* path_char = AppendNumSuffix(file_path);
 
-  int save_file_fd = open(path_char, O_RDWR | O_CREAT | O_NONBLOCK);
+  int save_file_fd =
+      open(path_char, O_RDWR | O_CREAT | O_APPEND | O_NONBLOCK, 0644);
   if (save_file_fd == -1) {
-    client->SetErrorString(errno, "POST method open()");
+    client->SetErrorString(errno, "post_method.cpp / open()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
     return;
   }
 
+  std::cout << "open success " << std::endl;
   s_base_type* new_work = client->CreateWork(&(file_path), save_file_fd, file);
   ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
                              client);
@@ -97,7 +99,7 @@ void ClientFilePost(struct kevent* event) {
                              new_work);
   client->SetErrorCode(OK);
   client->SetStage(POST_START);
-
+  std::cout << "post start success " << std::endl;
   return;
 }
 
@@ -109,31 +111,40 @@ void ClientCGIPost(struct kevent* event) {
 void WorkFilePost(struct kevent* event) {
   s_work_type* work = static_cast<s_work_type*>(event->udata);
   s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
-  size_t write_result = 0;
 
-  write_result = write(work->GetFD(), client->GetRequest().entity_,
-                       client->GetRequest().entity_length_);
-  if (write_result != client->GetRequest().entity_length_) {
-    client->SetErrorString(errno, "POST method write()");
+  std::cout << "write!!!\n";
+  int write_result = write(work->GetFD(), client->GetRequest().entity_,
+                           client->GetRequest().entity_length_);
+  size_t total_write_len =
+      client->GetMessageLength() + static_cast<size_t>(write_result);
+  size_t entity_len = client->GetRequest().entity_length_;
+
+  if (total_write_len > entity_len) {
+    client->SetErrorString(errno, "post_method.cpp / write()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_FIN);
     return;
-  }
-
-  ServerConfig::ChangeEvents(work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0,
-                             NULL);
-  work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
-  if (close(work->GetFD()) == -1) {
-    client->SetErrorString(errno, "POST method close()");
-    client->SetErrorCode(SYS_ERR);
-    client->SetStage(ERR_FIN);
+  } else if (total_write_len < entity_len) {
+    if (write_result != -1) client->SetMessageLength(total_write_len);
     return;
+  } else {
+    ServerConfig::ChangeEvents(work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0,
+                               NULL);
+    work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
+
+    close(work->GetFD());
+
+    std::string upload_path =
+        client->GetConfig().main_config_.find("upload_path")->second;
+
+    MakeDeletePage(client, client->GetResponse(), upload_path);
+
+    client->SetMimeType(upload_path.append("/delete.html"));
+    client->SetErrorCode(OK);
+    client->SetStage(POST_FIN);
+    client->SetMessageLength(0);
   }
-  client->SetMimeType(work->GetUri());
-  client->SetErrorCode(OK);
-  client->SetStage(POST_FIN);
   // TODO: POST 파일 저장 후 검사가 필요한지 확인하기
-  // TODO: DeleteUdata()로 work에서 사용이 끝난 udata 삭제
   return;
 }
 

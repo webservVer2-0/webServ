@@ -22,6 +22,7 @@ typedef enum s_event_type { SERVER, CLIENT, WORK, LOGGER } t_event;
 typedef enum s_stage {
   DEF,
   REQ_READY,
+  REQ_ING,
   ERR_READY,
   GET_READY,
   GET_START,
@@ -69,6 +70,7 @@ typedef struct s_http {
   size_t entity_length_;
   char* entity_;
   std::vector<char> msg_;
+  int temp_len_;
 } t_http;
 
 typedef struct s_send {

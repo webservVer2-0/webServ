@@ -114,7 +114,10 @@ void ServerRun(ServerConfig& config) {
             if (work_type->GetClientStage() == GET_START)
               WorkGet(curr_event);
             else if (work_type->GetClientStage() == POST_START)
+            {
+              std::cout << "post start!!! " << std::endl;
               WorkFilePost(curr_event);
+            }
           } else if (work_type->GetWorkType() == cgi)
             WorkCGIPost(curr_event);
           // std::cout << "cgi steps" << std::endl;
@@ -122,34 +125,33 @@ void ServerRun(ServerConfig& config) {
         case CLIENT: {
           if (curr_event->filter == EVFILT_READ) {
             {
-              std::cout << "READ steps"
-                        << " / Task FD : " << ft_filter->GetFD() << std::endl;
+              //std::cout << "READ steps"
+              //          << " / Task FD : " << ft_filter->GetFD() << std::endl;
               if (curr_event->data == 0) {
                 continue;
               } else {
-                char* client_msg = new char[curr_event->data];
-                int ret =
-                    recv(curr_event->ident, client_msg, curr_event->data, 0);
-                if (ret == -1) {
-                  // 임시
-                }
-                if (ret == 0) {
+                int result = 0;
+                result = RequestHandler(curr_event);
+                if (result == -1)
                   continue;
-                }
-                RequestHandler(curr_event->data, curr_event->udata, client_msg);
-                delete[] client_msg;
               }
+
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
                 case GET_READY: {
                   ClientGet(curr_event);
                   break;
                 }
                 case POST_READY: {
-                  if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
-                      file)
-                    ClientFilePost(curr_event);
-                  else
-                    ClientCGIPost(curr_event);
+                  std::cout << "post r\n";
+                  //if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
+                  //    file)
+                  //    {
+                  //      std::cout << "file!!!!!!!!!!!!!!!!!!\n";
+                  //      ClientFilePost(curr_event);
+                  //    }
+                  //else
+                  //  ClientCGIPost(curr_event);
+                  ClientFilePost(curr_event);
                   break;
                 }
                 case DELETE_READY: {

@@ -112,8 +112,6 @@ pos_t FindValueLength(std::string& str, pos_t& pos) {
 void DeleteUdata(s_base_type* data) {
   s_client_type* temp = static_cast<s_client_type*>(data);
   std::cout << "DELETE Client : " << temp->GetFD() << std::endl;
-  if (temp->GetRequest().entity_length_ != 0)
-    delete[] temp->GetRequest().entity_;
   temp->GetRequest().entity_length_ = 0;
   temp->GetRequest().header_.clear();
   temp->GetRequest().init_line_.clear();
@@ -148,9 +146,9 @@ void ResetConnection(s_client_type* udata) {
   const_cast<std::string&>(udata->GetOriginURI()).clear();
 
   t_http* temp_http = &(udata->GetRequest());
-  if (temp_http->entity_length_ != 0) {
-    delete[] temp_http->entity_;
-  }
+  // if (temp_http->entity_length_ != 0) {
+  //   delete[] temp_http->entity_;
+  // }
   temp_http->entity_length_ = 0;
   temp_http->header_.clear();
   temp_http->init_line_.clear();
