@@ -11,7 +11,14 @@ void MakeDeletePage(s_client_type* client, t_http& response,
 
 void MakeDeleteBody(s_client_type* client, std::string directory_path,
                     t_http& response) {
-  std::string entity(response.entity_);
+  std::string entity;
+
+  for (size_t i = 0; i < response.entity_length_; i += 2) {
+    entity.push_back(response.entity_[i]);
+    if (i + 1 < response.entity_length_) {
+      entity.push_back(response.entity_[i + 1]);
+    }
+  }
   delete[] response.entity_;
 
   entity.append("	<h1>");
