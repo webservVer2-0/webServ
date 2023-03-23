@@ -220,11 +220,10 @@ int RequestHandler(struct kevent* curr_event) {
       int result = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
       if (result == -1)
         return (-1);
-      buf[MAX_HEADER_SIZE] = '\0';
       // 4000만큼 읽었는데 헤더가 끝나지 않는 경우 -> BAD_REQ
-      char* double_crlf = strstr(buf, DOUBLE_CRLF);
+      char* double_crlf = strnstr(buf, DOUBLE_CRLF, result);
 
-      if (double_crlf == nullptr)
+      if (double_crlf == NULL)
         return (RequestError(client_type, BAD_REQ, "DOUBLE CRLF가 없음"));
 
       std::string top(buf, double_crlf);
@@ -278,7 +277,9 @@ int RequestHandler(struct kevent* curr_event) {
       if (http->temp_len_ <= 0) {
         http->entity_ = strstr(http->msg_.begin().base(), DOUBLE_CRLF) + DOUBLE_CRLF_LEN;
         char* found = NULL;
-        std::string key = http->header_["Content-Type"].substr(http->header_["Content-Type"].find("boundary") + 9);
+
+        const std::string boundary = "boundary=";
+        std::string key = http->header_["Content-Type"].substr(http->header_["Content-Type"].find(boundary) + boundary.size());
         std::cout << key << std::endl;
         for (size_t i = 0; i < http->entity_length_ - key.size() + 1; i++)
         {
