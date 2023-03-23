@@ -132,17 +132,17 @@ void WorkGet(struct kevent* event) {
 	}
 
 	client->SetErrorCode(OK);
-	client->SetMimeType(client->GetConvertedURI());
+	client->SetMimeType(work->GetUri());
 
 	size_t chunk_size = atoi(client->GetConfig().main_config_.find(BODY)->second.c_str());
 	if (response->entity_length_ > chunk_size) {
 		client->SetStage(GET_CHUNK);
 	} else {
 		ServerConfig::ChangeEvents(file_fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-		work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
 		client->SetStage(GET_FIN);
+		work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
 	}
-	close(work->GetFD());
+	close(file_fd);
 
 	return;
 }
