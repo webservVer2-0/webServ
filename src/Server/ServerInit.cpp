@@ -237,8 +237,8 @@ void ServerRun(ServerConfig& config) {
           s_client_type* client =
               static_cast<s_client_type*>(server->CreateClient(client_fd));
           client->SetIP(ip_str);
-          ServerConfig::ChangeEvents(client_fd, EVFILT_READ, EV_ADD | EV_EOF, 0,
-                                     0, client);
+          ServerConfig::ChangeEvents(client_fd, EVFILT_READ, EV_ADD, 0, 0,
+                                     client);
 
           ServerConfig::ChangeEvents(client_fd, EVFILT_WRITE,
                                      EV_ADD | EV_DISABLE, 0, 0, client);

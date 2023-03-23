@@ -127,14 +127,15 @@ t_loc& s_client_type::GetLocationConfig(void) { return *this->loc_config_ptr_; }
 void s_client_type::SetConfigPtr(t_loc* ptr) { this->loc_config_ptr_ = ptr; }
 
 s_work_type* s_client_type::GetChildWork(void) {
-  if (data_ptr_ == NULL) return NULL;
+  if (data_ptr_ == NULL) {
+    return NULL;
+  }
   return (static_cast<s_work_type*>(data_ptr_));
 }
 
 bool s_client_type::GetCachePage(const std::string& uri, t_http& response) {
   t_server* rule = this->config_ptr_;
   std::string path;
-  //   path += "./";
   path += uri;
 
   if (rule->static_pages_.find(path) == rule->static_pages_.end()) {
@@ -294,10 +295,7 @@ void s_client_type::SendLogs(void) {
     logging_data.append(msg1);
     logging_data.append("] ");
 
-    // TODO: 항상 METHOD, URI, VER 로 통일하자!
     logging_data.append(this->response_msg_.init_line_.at("code"));
-    // logging_data.append(" ");
-    // logging_data.append(this->response_msg_.init_line_.at("URI"));
     logging_data.append(" ");
     logging_data.append(this->response_msg_.init_line_.at("version"));
     logging_data.append(" [ERR_TIME ");
@@ -345,7 +343,6 @@ void s_client_type::SendLogs(void) {
     logging_data.append("]");
   }
   logging_data.append("\n");
-  //   std::cout << logging_data << std::endl;
   temp->GetData(logging_data);
   return;
 }
@@ -382,6 +379,12 @@ void s_client_type::SetFinishTime(void) {
 }
 
 std::vector<char>& s_client_type::GetVec(void) { return this->vec_; }
+
+void s_client_type::DeleteDataPtr(void) {
+  if (this->data_ptr_ == NULL) return;
+  delete this->data_ptr_;
+  this->data_ptr_ = NULL;
+}
 
 /****************** Work Type ********************/
 
