@@ -32,6 +32,8 @@ void ServerBind(ServerConfig& config) {
   int server_number = config.GetServerNumber();
   int ret;
 
+  SetSockoptReuseaddr(socket_list, server_number);
+
   for (int i = 0; i < server_number; i++) {
     ret = bind(socket_list[i], reinterpret_cast<struct sockaddr*>(&sock_ptr[i]),
                sizeof(sock_ptr[i]));
@@ -69,7 +71,7 @@ void ServerKinit(ServerConfig& config) {
     PrintError(2, WEBSERV, "Server kque is malfunctioned");
   }
 
-  SetSockoptReuseaddr(server_socket, server_number);
+  //   SetSockoptReuseaddr(server_socket, server_number);
 
   for (int i = 0; i < server_number; i++) {
     s_server_type* udata = new s_server_type(config, i, server_socket[i]);
@@ -113,8 +115,7 @@ void ServerRun(ServerConfig& config) {
                       << " / Task FD : " << ft_filter->GetFD() << std::endl;
             if (work_type->GetClientStage() == GET_START)
               WorkGet(curr_event);
-            else if (work_type->GetClientStage() == POST_START)
-            {
+            else if (work_type->GetClientStage() == POST_START) {
               std::cout << "post start!!! " << std::endl;
               WorkFilePost(curr_event);
             }
@@ -125,15 +126,15 @@ void ServerRun(ServerConfig& config) {
         case CLIENT: {
           if (curr_event->filter == EVFILT_READ) {
             {
-              //std::cout << "READ steps"
-              //          << " / Task FD : " << ft_filter->GetFD() << std::endl;
+              // std::cout << "READ steps"
+              //           << " / Task FD : " << ft_filter->GetFD() <<
+              //           std::endl;
               if (curr_event->data == 0) {
                 continue;
               } else {
                 int result = 0;
                 result = RequestHandler(curr_event);
-                if (result == -1)
-                  continue;
+                if (result == -1) continue;
               }
 
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
@@ -143,14 +144,14 @@ void ServerRun(ServerConfig& config) {
                 }
                 case POST_READY: {
                   std::cout << "post r\n";
-                  //if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
-                  //    file)
-                  //    {
-                  //      std::cout << "file!!!!!!!!!!!!!!!!!!\n";
-                  //      ClientFilePost(curr_event);
-                  //    }
-                  //else
-                  //  ClientCGIPost(curr_event);
+                  // if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
+                  //     file)
+                  //     {
+                  //       std::cout << "file!!!!!!!!!!!!!!!!!!\n";
+                  //       ClientFilePost(curr_event);
+                  //     }
+                  // else
+                  //   ClientCGIPost(curr_event);
                   ClientFilePost(curr_event);
                   break;
                 }
@@ -237,8 +238,8 @@ void ServerRun(ServerConfig& config) {
           s_client_type* client =
               static_cast<s_client_type*>(server->CreateClient(client_fd));
           client->SetIP(ip_str);
-          ServerConfig::ChangeEvents(client_fd, EVFILT_READ, EV_ADD | EV_EOF, 0,
-                                     0, client);
+          ServerConfig::ChangeEvents(client_fd, EVFILT_READ, EV_ADD, 0, 0,
+                                     client);
 
           ServerConfig::ChangeEvents(client_fd, EVFILT_WRITE,
                                      EV_ADD | EV_DISABLE, 0, 0, client);

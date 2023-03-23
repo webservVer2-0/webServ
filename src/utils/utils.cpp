@@ -118,7 +118,7 @@ void DeleteUdata(s_base_type* data) {
   //   }
 
   // if (temp->GetRequest().entity_length_ != 0)
-    // delete[] temp->GetRequest().entity_;
+  // delete[] temp->GetRequest().entity_;
   temp->GetRequest().entity_length_ = 0;
   temp->GetRequest().header_.clear();
   temp->GetRequest().init_line_.clear();
@@ -134,13 +134,20 @@ void DeleteUdata(s_base_type* data) {
 }
 
 void SetSockoptReuseaddr(int* socket_fd, int socket_length) {
-  int bf;
+  int bf = 1;
   int ret;
+  //   bool opval = 1;
 
   for (int i = 0; i < socket_length; i++) {
     ret = setsockopt(socket_fd[i], SOL_SOCKET, SO_REUSEADDR, &bf, sizeof(bf));
     if (ret == -1) {
-      PrintError(2, WEBSERV, "Server socket option setting is failed");
+      PrintError(2, WEBSERV,
+                 "Server socket option setting is failed : SO_REUSEADDR");
+    }
+    ret = setsockopt(socket_fd[i], SOL_SOCKET, SO_KEEPALIVE, &bf, sizeof(bf));
+    if (ret == -1) {
+      PrintError(2, WEBSERV,
+                 "Server socket option setting is failed : SO_KEEPALIVE");
     }
   }
 }
