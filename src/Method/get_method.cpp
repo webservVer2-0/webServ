@@ -62,13 +62,13 @@ void MethodGetReady(s_client_type*& client) {
 
 void ClientGet(struct kevent* event) {
 	s_client_type* client = static_cast<s_client_type*>(event->udata);
+	std::string uri(client->GetConvertedURI());
+	std::string dir(uri.substr(0, uri.rfind('/')));
 
 	if ((client->GetConfig().index_mode_ != off) || (client->GetLocationConfig().index_mode_ != off))
 	{
-		std::string uri(client->GetConvertedURI());
 		if (uri.find(".html") != std::string::npos) // TODO : 디렉 구조일땐?
 		{
-			std::string dir(uri.substr(0, uri.rfind('/')));
 			MakeAutoindexPage(client->GetResponse(), dir);
 
 			client->SetMimeType(uri);
@@ -83,10 +83,26 @@ void ClientGet(struct kevent* event) {
 		}
 	}
 
-	// TODO : delete
-	// delete 찾아줘야함
-	// config delete.html로 수정될거임
-	// auto index랑 비슷햐  
+    // TODO : delete
+    // delete 찾아줘야함
+    if (uri.find("/delete") != std::string::npos)
+    {
+    // config delete.html
+        printf("here\n");
+        // MakeDeletePage(client, client->GetResponse(), uri);
+        MakeDeletePage(client, client->GetResponse(), dir);
+        printf("here2\n");
+
+        client->SetMimeType(uri);
+        client->SetErrorCode(OK);
+        client->SetStage(GET_FIN);
+        ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
+                                                                client);
+        ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
+                                                                client);
+        return ;
+    }
+    // auto index랑 비슷햐  
 
 	 config_map config = client->GetLocationConfig().main_config_;
 	 if (config.find("redirection") != config.end()) {
