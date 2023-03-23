@@ -9,8 +9,6 @@ class ServerConfig;
 typedef struct s_server t_server;
 typedef struct s_loc t_loc;
 
-#define BUF_SIZE 1024
-
 /**
  * @brief 이벤트 type을 정의하기 위한 enum
  *
@@ -335,6 +333,8 @@ class s_client_type : public s_base_type {
   void SetChunkStage(s_stage num);
   const size_t& GetSentLength(void);
   void SetSentLength(size_t length);
+
+  void DeleteDataPtr(void);
 
   void PrintClientStatus(void);
 };

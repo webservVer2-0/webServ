@@ -1,4 +1,3 @@
-
 #include "../../include/config.hpp"
 #include "../../include/webserv.hpp"
 
@@ -8,7 +7,7 @@
 #define DOUBLE_CRLF_LEN 4
 #define MAX_HEADER_SIZE 4000
 
-std::string make_uri_path(std::vector<std::string>& vec) {
+std::string MakeUriPath(std::vector<std::string>& vec) {
   std::string ret;
 
   ret.append(".");
@@ -19,7 +18,7 @@ std::string make_uri_path(std::vector<std::string>& vec) {
   return ret;
 }
 
-t_error convert_uri(std::string rq_uri,
+t_error ConvertUri(std::string rq_uri,
                     std::map<std::string, t_loc*> location_config,
                     s_client_type& client) {
   std::vector<std::string> rq_path;
@@ -49,7 +48,7 @@ t_error convert_uri(std::string rq_uri,
     return FORBID;
   }
   client.SetConfigPtr((*loc_it).second);
-  client.GetRequest().init_line_["URI"] = make_uri_path(rq_path);
+  client.GetRequest().init_line_["URI"] = MakeUriPath(rq_path);
   // print_vector_path(rq_path);
   return NO_ERROR;
 }
@@ -168,8 +167,8 @@ t_error HeaderLineParser(s_client_type* client_type, t_http* http, std::string h
     if (colon_pos != std::string::npos) {
       key = line.substr(0, colon_pos);
       value = line.substr(colon_pos + CRLF_LEN);
-      if (key == "Cookie") SetPrevCookie(client_type, http);
       http->header_[key] = value;
+      if (key == "Cookie") SetPrevCookie(client_type, http);
     } else if (pos == end_pos) {
       break;
     } else {
@@ -226,7 +225,7 @@ int RequestHandler(struct kevent* curr_event) {
       if (double_crlf == NULL)
         return (RequestError(client_type, BAD_REQ, "DOUBLE CRLF가 없음"));
 
-      std::string top(buf, double_crlf);
+      std::string top(buf, double_crlf + DOUBLE_CRLF_LEN);
 
       const size_t first_crlf = top.find(CRLF);
       if (first_crlf == std::string::npos)
@@ -241,11 +240,12 @@ int RequestHandler(struct kevent* curr_event) {
 
       err_code = HeaderLineParser(client_type, http, header);
       if (err_code) return (RequestError(client_type, err_code, "RequestHandler.cpp/HeaderLineParser()"));
-      err_code = convert_uri(
+
+      err_code = ConvertUri(
         http->init_line_["URI"],
         client_type->GetParentServer().GetServerConfig().location_configs_,
         *client_type);
-      if (err_code) return (RequestError(client_type, err_code, "RequestHandler.cpp/convert_uri()"));
+      if (err_code) return (RequestError(client_type, err_code, "RequestHandler.cpp/ConvertUri()"));
 
       if (http->init_line_["METHOD"] == "POST") {
         err_code = EntityParser(http);
