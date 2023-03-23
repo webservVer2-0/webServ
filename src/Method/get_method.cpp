@@ -54,12 +54,6 @@ void MethodGetReady(s_client_type*& client) {
         static_cast<s_work_type*>(client->CreateWork(&uri, req_fd, file));
     work->ChangeClientEvent(EVFILT_READ, EV_DISABLE, 0, 0, client);
     ServerConfig::ChangeEvents(work->GetFD(), EVFILT_READ, EV_ADD, 0, 0, work);
-    // ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_ADD, 0, 0,
-    // client); ServerConfig::ChangeEvents(req_fd, EVFILT_READ, EV_DISABLE,
-    // 0, 0,
-    //  client);
-    // ServerConfig::ChangeEvents(req_fd, EVFILT_WRITE, EV_DISABLE, 0, 0,
-    //  client);
     client->SetErrorCode(OK);
     client->SetStage(GET_START);
   }
@@ -73,13 +67,15 @@ void ClientGet(struct kevent* event) {
   // auto index
   if ((client->GetConfig().index_mode_ != off) ||
       (client->GetLocationConfig().index_mode_ != off)) {
+
     //.html->(ok) -> 진행
-    // printf("v\n");
     std::string uri(client->GetConvertedURI());
     // if (std::string::npos != uri.rfind('.'))  // 확장자 있
-    // {
     if (uri.find(".html") != std::string::npos) {
-      std::string dir(uri.substr(0, uri.substr(0, uri.size() - 5).size()));
+      std::cout << "uri : " << uri << std::endl;
+      std::string dir(uri.substr(0, uri.rfind('/')));
+      // autoindex 만든다
+      std::cout << "dir : " << dir << std::endl;
       MakeAutoindexPage(client->GetResponse(), dir);
       client->SetMimeType(uri);
       client->SetStage(GET_FIN);
@@ -88,17 +84,20 @@ void ClientGet(struct kevent* event) {
                                  client);
       ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
                                  client);
+      // 이벤트 -> read 끄고, write 켜기
       return;
     }
-    // }
-    // autoindex 만든다
-    // 이벤트 -> read 끄고, write 켜기
   }
-  // config_map config = client->GetLocationConfig().main_config_; if
-  // (config.find("redirection") != config.end()) {
-  //   // redir;
-  //   // TODO : redir도 나중에
-  // }
+  //TODO : delete
+   // delete 찾아줘야함
+   // config delete.html로 수정될거임
+   // auto index랑 비슷햐  
+
+   config_map config = client->GetLocationConfig().main_config_;
+   if (config.find("redirection") != config.end()) {
+     // redir;
+     // TODO : redir도 나중에
+   }
   MethodGetReady(client);
 }
 
