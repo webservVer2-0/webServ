@@ -32,6 +32,8 @@ void ServerBind(ServerConfig& config) {
   int server_number = config.GetServerNumber();
   int ret;
 
+  SetSockoptReuseaddr(socket_list, server_number);
+
   for (int i = 0; i < server_number; i++) {
     ret = bind(socket_list[i], reinterpret_cast<struct sockaddr*>(&sock_ptr[i]),
                sizeof(sock_ptr[i]));
@@ -69,7 +71,7 @@ void ServerKinit(ServerConfig& config) {
     PrintError(2, WEBSERV, "Server kque is malfunctioned");
   }
 
-  SetSockoptReuseaddr(server_socket, server_number);
+  //   SetSockoptReuseaddr(server_socket, server_number);
 
   for (int i = 0; i < server_number; i++) {
     s_server_type* udata = new s_server_type(config, i, server_socket[i]);
@@ -113,8 +115,10 @@ void ServerRun(ServerConfig& config) {
                       << " / Task FD : " << ft_filter->GetFD() << std::endl;
             if (work_type->GetClientStage() == GET_START)
               WorkGet(curr_event);
-            else if (work_type->GetClientStage() == POST_START)
+            else if (work_type->GetClientStage() == POST_START) {
+              std::cout << "post start!!! " << std::endl;
               WorkFilePost(curr_event);
+            }
           } else if (work_type->GetWorkType() == cgi)
             WorkCGIPost(curr_event);
           // std::cout << "cgi steps" << std::endl;
@@ -122,34 +126,33 @@ void ServerRun(ServerConfig& config) {
         case CLIENT: {
           if (curr_event->filter == EVFILT_READ) {
             {
-              std::cout << "READ steps"
-                        << " / Task FD : " << ft_filter->GetFD() << std::endl;
+              // std::cout << "READ steps"
+              //           << " / Task FD : " << ft_filter->GetFD() <<
+              //           std::endl;
               if (curr_event->data == 0) {
                 continue;
               } else {
-                char* client_msg = new char[curr_event->data];
-                int ret =
-                    recv(curr_event->ident, client_msg, curr_event->data, 0);
-                if (ret == -1) {
-                  // 임시
-                }
-                if (ret == 0) {
-                  continue;
-                }
-                RequestHandler(curr_event->data, curr_event->udata, client_msg);
-                delete[] client_msg;
+                int result = 0;
+                result = RequestHandler(curr_event);
+                if (result == -1) continue;
               }
+
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
                 case GET_READY: {
                   ClientGet(curr_event);
                   break;
                 }
                 case POST_READY: {
-                  if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
-                      file)
-                    ClientFilePost(curr_event);
-                  else
-                    ClientCGIPost(curr_event);
+                  std::cout << "post r\n";
+                  // if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
+                  //     file)
+                  //     {
+                  //       std::cout << "file!!!!!!!!!!!!!!!!!!\n";
+                  //       ClientFilePost(curr_event);
+                  //     }
+                  // else
+                  //   ClientCGIPost(curr_event);
+                  ClientFilePost(curr_event);
                   break;
                 }
                 case DELETE_READY: {
@@ -168,7 +171,24 @@ void ServerRun(ServerConfig& config) {
             std::cout << "WRITE steps"
                       << " / Task FD : " << ft_filter->GetFD() << std::endl;
 
-            if (client->GetStage() == RES_SEND) {
+            t_send* send = &client->GetSend();
+            switch (send->flags) {
+              case 0:  // Make header(header + body)
+                client->SetResponse();
+                send->header = MakeTopMessage(client);
+              case 1:  // Make send message(no header, only body)
+                send->send_msg = MakeSendMessage(client, send->header);
+                SendMessageLength(client);
+                SendProcess(curr_event, client);
+                break;
+              case 2:  // send failed(char * &sendmsg)
+                SendProcess(curr_event, client);
+                break;
+              default:
+
+                SendFin(curr_event, client);
+            }
+            /*if (client->GetStage() == RES_SEND) {
               SendProcess(curr_event, client);
             } else {
               char* msg_top = strdup("");
@@ -186,7 +206,7 @@ void ServerRun(ServerConfig& config) {
               SendProcess(curr_event, client);
               if (client->GetStage() == RES_SEND) continue;
               SendFin(curr_event, client);
-            }
+            }*/
           } else if (curr_event->filter == EVFILT_TIMER ||
                      curr_event->flags & EV_EOF) {
             DeleteUdata(ft_filter);
@@ -218,8 +238,8 @@ void ServerRun(ServerConfig& config) {
           s_client_type* client =
               static_cast<s_client_type*>(server->CreateClient(client_fd));
           client->SetIP(ip_str);
-          ServerConfig::ChangeEvents(client_fd, EVFILT_READ, EV_ADD | EV_EOF, 0,
-                                     0, client);
+          ServerConfig::ChangeEvents(client_fd, EVFILT_READ, EV_ADD, 0, 0,
+                                     client);
 
           ServerConfig::ChangeEvents(client_fd, EVFILT_WRITE,
                                      EV_ADD | EV_DISABLE, 0, 0, client);

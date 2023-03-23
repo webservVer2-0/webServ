@@ -9,8 +9,6 @@ class ServerConfig;
 typedef struct s_server t_server;
 typedef struct s_loc t_loc;
 
-#define BUF_SIZE 1024
-
 /**
  * @brief 이벤트 type을 정의하기 위한 enum
  *
@@ -24,6 +22,7 @@ typedef enum s_event_type { SERVER, CLIENT, WORK, LOGGER } t_event;
 typedef enum s_stage {
   DEF,
   REQ_READY,
+  REQ_ING,
   ERR_READY,
   GET_READY,
   GET_START,
@@ -40,7 +39,7 @@ typedef enum s_stage {
   ERR_FIN,  // error case로 page를 전달해야 할 때 체크해야할 enum
   RES_SEND,
   RES_CHUNK,
-  RES_FIN,
+  CHUNK_FIN,
   END
 } t_stage;
 
@@ -71,7 +70,32 @@ typedef struct s_http {
   size_t entity_length_;
   char* entity_;
   std::vector<char> msg_;
+  int temp_len_;
 } t_http;
+
+typedef struct s_send {
+  /**
+   * @brief
+   * flags 는 0, 1, 2 3개로만 구분되며, 각각 Header, only body, send failed를
+   * 가르킵니다.
+   */
+  int flags;
+  /**
+   * @brief
+   * response initline과 header부분만을 char*로 변환시킨 변수
+   */
+  char* header;
+  /**
+   * @brief
+   * header 와 body(entity)를 char*로 병합시킨 변수
+   */
+  char* send_msg;
+  /**
+   * @brief
+   * content Length + char* header 길이를 나타내는 변수
+   */
+  size_t send_len;
+} t_send;
 
 /**
  * @brief 다형성을 활용하여 제작한 클래스입니다. 해당 클래스는 type과 fd 를 갖고
@@ -113,6 +137,7 @@ class s_work_type : public s_base_type {
   s_base_type* client_ptr_;
   s_chore work_type_;
   t_http& response_msg_;
+  std::vector<char> vec_;  // read()시 buffer에 담기는 내용 계속 담는 용
 
   s_work_type(const s_work_type& target);
   s_work_type& operator=(const s_work_type& target);
@@ -143,6 +168,7 @@ class s_work_type : public s_base_type {
 
   t_stage GetClientStage(void);
   void SetClientStage(t_stage val);
+  std::vector<char>& GetVec(void);
 };
 
 typedef enum s_log_type { logger, error } t_log_type;
@@ -208,6 +234,7 @@ class s_client_type : public s_base_type {
   std::string origin_uri_;
   t_http request_msg_;   // request 메시지
   t_http response_msg_;  // response 메시지
+  t_send send_;
   size_t sent_size_;
   std::string mime_;
 
@@ -218,11 +245,11 @@ class s_client_type : public s_base_type {
   t_error status_code_;     // HTTP status를 확인하는 용
   std::string err_custom_;  // custom msg 보관용
   int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다.
-  size_t msg_length;  //
-  char* write_buf_;   // write
-  s_stage send_num;
-  size_t send_length;
-  std::vector<char> vec_; // read()시 buffer에 담기는 내용 계속 담는 용
+  size_t msg_length;  // get에서는 임시 길이
+                      // response에서는 headers를 char*화 했을때 길이
+  s_stage chunk_stage_;  // chunk_stage들 처리할때 temp stage 역할
+  size_t sent_length;    // send 실패시 일부만 보내진 길이
+  std::vector<char> vec_;  // read()시 buffer에 담기는 내용 계속 담는 용
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);
@@ -247,6 +274,7 @@ class s_client_type : public s_base_type {
   t_http& GetRequest(void);
   t_http& GetResponse(void);
   void SetResponse(void);
+  t_send& GetSend(void);
 
   size_t& GetMessageLength(void);
   void SetMessageLength(size_t);
@@ -270,7 +298,7 @@ class s_client_type : public s_base_type {
   bool IsChunked(void);
   size_t GetChunkSize(void);
 
-  std::vector<char>&  GetVec(void);
+  std::vector<char>& GetVec(void);
 
   /**
    * @brief 전달한 사이즈만큼과 실제 전체 entity_length_를 비교하여 값을
@@ -301,12 +329,12 @@ class s_client_type : public s_base_type {
   bool SetMimeType(std::string converted_uri);
   std::string& GetMimeType(void);
 
-  const char* GetBuf(void);
-  void SetBuf(char* buf);
-  const s_stage& GetSendNum(void);
-  void SetSendNum(s_stage num);
-  const size_t& GetSendLength(void);
-  void SetSendLength(size_t length);
+  const s_stage& GetChunkStage(void);
+  void SetChunkStage(s_stage num);
+  const size_t& GetSentLength(void);
+  void SetSentLength(size_t length);
+
+  void DeleteDataPtr(void);
 
   void PrintClientStatus(void);
 };

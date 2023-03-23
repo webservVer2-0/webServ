@@ -30,14 +30,14 @@
 
 			<label for="email">이메일 :</label>
 			<input type="email" id="email" name="email" style="width:300px"><br>
-			
+
 			<button type="submit">제출</button>
 		</fieldset>
 	</form>
 	<form method="POST" action="/post" name="file_upload" enctype="multipart/form-data">
 		<fieldset style="width:400px;">
 		<label for="file" style="margin:10px 0px 10px 0px;">업로드할 사진을 선택하세요(png)</label>
-	  	<input type="file" id="file" style="margin:10px 0px 10px 0px;" accept=".png">
+	  	<input type="file" name="file" style="margin:10px 0px 10px 0px;" >
 		<input type="submit" value="upload">
 		</fieldset>
 	</form>
