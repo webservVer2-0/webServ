@@ -85,14 +85,9 @@ void ClientGet(struct kevent* event) {
     }
   }
 
-  std::cout << "uri : " << dir << std::endl;
   if (uri.find("/delete") != std::string::npos) {
-    // config delete.html
-    printf("here\n");
-    // MakeDeletePage(client, client->GetResponse(), uri);
-    std::cout << dir << std::endl;
-    MakeDeletePage(client, client->GetResponse(), dir);
-    printf("here2\n");
+    MakeDeletePage(client, client->GetResponse(),
+                   client->GetConfig().main_config_.at("upload_path"));
 
     client->SetMimeType(uri);
     client->SetErrorCode(OK);
