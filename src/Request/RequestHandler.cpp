@@ -28,16 +28,12 @@ t_error convert_uri(std::string rq_uri,
 
   std::string token = rq_uri;
 
-  std::cout << "origin uri is: " << token << std::endl;
-
   while ((pos = rq_uri.find('/')) != std::string::npos) {
     token = rq_uri.substr(0, pos);
     if (token != "" && token != ".") rq_path.push_back(token);
     rq_uri.erase(0, pos + 1);
   }
-  std::cout << "remain uri is " << rq_uri << std::endl;
   if (rq_uri != ".") rq_path.push_back(rq_uri);
-  std::cout << "front is " << rq_path.front() << std::endl;
   loc_it = location_config.find(("/" + rq_path.front()));
   if (loc_it == location_config.end()) {
     loc_it = location_config.find("/");
@@ -45,7 +41,6 @@ t_error convert_uri(std::string rq_uri,
   } else {
     rq_path.front() = (*loc_it).second->main_config_[ROOT];
   }
-  std::cout << "size: " << rq_path.size() << std::endl;
   if (rq_path.size() == 1)
     rq_path.push_back((*loc_it).second->main_config_[DEFFILE]);
 
@@ -98,7 +93,7 @@ static void SetClientStage(s_client_type* client, t_http* http) {
   const std::string method = http->init_line_["METHOD"];
 
   if (method == "GET")
-    client->SetStage(GET_READY); 
+    client->SetStage(GET_READY);
   else if (method == "POST") {
     if (http->msg_.size() == http->entity_length_)
       client->SetStage(POST_READY);
@@ -193,10 +188,10 @@ t_error EntityParser(t_http *http) {
     return (BAD_REQ);
   if ((*chunked_it).second == "chunked")
     return (NO_ERROR);
-  
+
   std::string len = (*content_it).second;
   size_t entity_len;
-  try { 
+  try {
     entity_len = std::stol(len);
     if (entity_len <= 0)
        return (BAD_REQ);
@@ -217,34 +212,18 @@ int RequestHandler(struct kevent* curr_event) {
   s_client_type* client_type = static_cast<s_client_type*>(curr_event->udata);
   t_http* http = &(client_type->GetRequest());
   char buf[MAX_HEADER_SIZE + 1];
-  
+  std::memset(buf, -1, MAX_HEADER_SIZE + 1);
+
   switch (client_type->GetStage()) {
     case DEF: {
       // -1 = 다 보냈을 때, 아직 읽을 준비가 안 됐을때, 읽을 것이 없을 때
       int result = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
-      if (result == -1) 
+      if (result == -1)
         return (-1);
-      //if (buf[0] == 'P')
-      //{
-      //  std::ofstream os("hi");
-      //  std::ofstream os2("hi2");
-      //  std::cout << "size: " << result << std::endl;
-      //  os << buf;
-      //  //for (int i = 0; i < MAX_HEADER_SIZE; ++i)
-      //  //{
-      //  //    os << buf[i];
-      //  //}
-      //  result = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
-      //  std::cout << "size: " << result << std::endl;
-      //  for (int i = 0; i < MAX_HEADER_SIZE; ++i)
-      //  {
-      //      os2 << buf[i];
-      //  }
-      //}
-      buf[MAX_HEADER_SIZE] = '\0';
       // 4000만큼 읽었는데 헤더가 끝나지 않는 경우 -> BAD_REQ
-      char* double_crlf = strstr(buf, DOUBLE_CRLF);
-      if (double_crlf == nullptr)
+      char* double_crlf = strnstr(buf, DOUBLE_CRLF, result);
+
+      if (double_crlf == NULL)
         return (RequestError(client_type, BAD_REQ, "DOUBLE CRLF가 없음"));
 
       std::string top(buf, double_crlf);
@@ -252,7 +231,7 @@ int RequestHandler(struct kevent* curr_event) {
       const size_t first_crlf = top.find(CRLF);
       if (first_crlf == std::string::npos)
         return (RequestError(client_type, BAD_REQ, "CRLF가 없음"));
-        
+
       std::string init_line = top.substr(0, first_crlf);
       std::string header = top.substr(first_crlf + CRLF_LEN, top.size() - (first_crlf + CRLF_LEN));
       t_error err_code = NO_ERROR;
@@ -262,21 +241,32 @@ int RequestHandler(struct kevent* curr_event) {
 
       err_code = HeaderLineParser(client_type, http, header);
       if (err_code) return (RequestError(client_type, err_code, "RequestHandler.cpp/HeaderLineParser()"));
-
-      if (http->init_line_["METHOD"] == "POST") {
-        err_code = EntityParser(http);
-        if (err_code) return (RequestError(client_type, err_code, "RequestHandler.cpp/EntityParser()"));
-  
-        http->msg_.insert(http->msg_.end(), double_crlf + DOUBLE_CRLF_LEN, buf + MAX_HEADER_SIZE);
-        if (http->msg_.size() == http->entity_length_)
-          client_type->SetStage(POST_READY);
-      }
       err_code = convert_uri(
         http->init_line_["URI"],
         client_type->GetParentServer().GetServerConfig().location_configs_,
         *client_type);
       if (err_code) return (RequestError(client_type, err_code, "RequestHandler.cpp/convert_uri()"));
-      SetClientStage(client_type, http);
+
+      if (http->init_line_["METHOD"] == "POST") {
+        err_code = EntityParser(http);
+        if (err_code) return (RequestError(client_type, err_code, "RequestHandler.cpp/EntityParser()"));
+
+        if (result > (double_crlf + DOUBLE_CRLF_LEN) - buf)
+        {
+          http->msg_.insert(http->msg_.end(), double_crlf + DOUBLE_CRLF_LEN, double_crlf + DOUBLE_CRLF_LEN + (result - (double_crlf + DOUBLE_CRLF_LEN - buf)));
+          http->entity_ = http->msg_.begin().base();
+          if (http->msg_.size() == http->entity_length_)
+            client_type->SetStage(POST_READY);
+        }
+        else
+        {
+          client_type->SetStage(REQ_ING);
+        }
+      }
+      else
+      {
+        SetClientStage(client_type, http);
+      }
     } break;
     case REQ_ING : {
       int result = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
@@ -284,13 +274,24 @@ int RequestHandler(struct kevent* curr_event) {
         return (-1);
       http->temp_len_ -= result;
       http->msg_.insert(http->msg_.end(), buf, buf + result);
-/*
-      content-length
-      result 나오면
-*/    
-      std::cout << "ING!!!" << std::endl;
-      if (http->temp_len_ <= 0)
+      if (http->temp_len_ <= 0) {
+        http->entity_ = strstr(http->msg_.begin().base(), DOUBLE_CRLF) + DOUBLE_CRLF_LEN;
+        char* found = NULL;
+
+        const std::string boundary = "boundary=";
+        std::string key = http->header_["Content-Type"].substr(http->header_["Content-Type"].find(boundary) + boundary.size());
+        std::cout << key << std::endl;
+        for (size_t i = 0; i < http->entity_length_ - key.size() + 1; i++)
+        {
+            if (std::memcmp(&http->entity_[i], key.c_str(), key.size()) == 0)
+            {
+                found = &http->entity_[i];
+                break;
+            }
+        }
+        http->entity_length_ = found - http->entity_ - 5;
         client_type->SetStage(POST_READY);
+      }
       }  break;
 
     default:
