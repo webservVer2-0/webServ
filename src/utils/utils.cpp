@@ -112,11 +112,6 @@ pos_t FindValueLength(std::string& str, pos_t& pos) {
 void DeleteUdata(s_base_type* data) {
   s_client_type* temp = static_cast<s_client_type*>(data);
   std::cout << "DELETE Client : " << temp->GetFD() << std::endl;
-  //   s_work_type* file = temp->GetChildWork();
-  //   if (file != NULL) {
-  //     delete file;
-  //   }
-
   if (temp->GetRequest().entity_length_ != 0)
     delete[] temp->GetRequest().entity_;
   temp->GetRequest().entity_length_ = 0;
@@ -172,7 +167,5 @@ void ResetConnection(s_client_type* udata) {
   udata->SetStage(DEF);
   udata->SetErrorCode(NO_ERROR);
   udata->SetErrorString(0, std::string());
-  if (udata->GetChildWork() != NULL) {
-    delete udata->GetChildWork();
-  }
+  udata->DeleteDataPtr();
 }

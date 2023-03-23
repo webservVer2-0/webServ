@@ -332,6 +332,8 @@ class s_client_type : public s_base_type {
   const size_t& GetSentLength(void);
   void SetSentLength(size_t length);
 
+  void DeleteDataPtr(void);
+
   void PrintClientStatus(void);
 };
 
