@@ -264,28 +264,6 @@ ssize_t ServerConfig::PrintServerConfig() {
             }
           }
         }
-        // pos_t limit = it.operator->()->second.size();
-        // pos_t cnt = 0;
-        // pos_t pos = 0;
-        // pos_t skip_white_space = 0;
-        // std::string temp = it.operator->()->second;
-        // while (cnt < limit) {
-        //   skip_white_space = 0;
-        //   while (cnt < limit) {
-        //     if (temp.at(cnt) == ' ') {
-        //       skip_white_space++;
-        //       if (skip_white_space == 2) {
-        //         break;
-        //       }
-        //     }
-        //     if (cnt == limit) {
-        //       break;
-        //     }
-        //     cnt++;
-        //   }
-        //   cnt++;
-        //   pos = cnt;
-        // }
       }
       it++;
     }
@@ -439,7 +417,8 @@ bool ServerConfig::ValidConfigCGIFile(conf_iterator& target,
   struct stat s;
   std::string temp_path;
   temp_path.append("./");
-  temp_path.append(location.main_config_.at(std::string(ROOT)));
+  temp_path.append(
+      location.main_config_.find(std::string(ROOT)).operator->()->second);
   temp_path.append("/");
   temp_path.append(target.operator->()->second);
   if (stat(temp_path.c_str(), &s) == 0) {
@@ -719,10 +698,15 @@ bool ServerConfig::ValidCheckLocation(int server_number,
                              ->location_configs_.at(location_name)
                              ->main_config_.begin();
   conf_iterator end = server_list_.at(server_number)
-                          ->location_configs_.at(location_name)
-                          ->main_config_.end();
-  t_loc* target_location =
-      server_list_.at(server_number)->location_configs_.at(location_name);
+                          ->location_configs_.find(location_name)
+                          .
+                          operator->()
+                          ->second->main_config_.end();
+  t_loc* target_location = server_list_.at(server_number)
+                               ->location_configs_.find(location_name)
+                               .
+                               operator->()
+                               ->second;
   for (int i = 0; i < 3; i++) {
     target_location->loc_type_[0] = T_NULL;
   }
@@ -817,8 +801,11 @@ void ServerConfig::ServerEventInit() {
   int connect_value = 0;
 
   for (int i = 0; i < limit; i++) {
-    connect_value +=
-        atoi(server_list_.at(i)->main_config_.at("max_connect").c_str());
+    connect_value += atoi(server_list_.at(i)
+                              ->main_config_.find("max_connect")
+                              .
+                              operator->()
+                              ->second.c_str());
   }
   this->event_list_ = new struct kevent[connect_value];
   if (!this->event_list_) {
