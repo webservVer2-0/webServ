@@ -58,13 +58,8 @@ server  {
 	# POST 기능용
 	location /post {
 		root storage/static;
-<<<<<<< HEAD
-		default_file test_post.html;
-		# post 메서드로 들어오면 해당 entity는 root를 접근하는 것이 아니라, upload path를 활용한다.
-=======
 		default_file post.html;
-		# post 메서드로 들어오면 해당 entity는 root를 접근하는 것이 아니라, upload path를 활용한다. 
->>>>>>> develop
+		# post 메서드로 들어오면 해당 entity는 root를 접근하는 것이 아니라, upload path를 활용한다.
 		method GET POST;
 		auto_index off;
 	}
