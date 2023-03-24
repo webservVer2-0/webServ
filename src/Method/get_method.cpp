@@ -89,11 +89,8 @@ void ClientGet(struct kevent* event) {
   }
   //   std::cout << "v3" << std::endl;
   if (uri.find("/delete") != std::string::npos) {
-    // std::cout << "v4" << std::endl;
-    MakeDeletePage(
-        client, client->GetResponse(),
-        server_config.main_config_.at("upload_path"));  // TODO : at 쓰면 안됨
-
+    MakeDeletePage(client, client->GetResponse(),
+                   server_config.main_config_.find(UPLOAD)->second);
     client->SetMimeType(uri);
     client->SetErrorCode(OK);
     client->SetStage(GET_FIN);
@@ -101,9 +98,9 @@ void ClientGet(struct kevent* event) {
                                client);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
                                client);
+
     return;
   }
-  // auto index랑 비슷햐
 
   if (loc_config.main_config_.find("redirection") !=
       loc_config.main_config_.end()) {
@@ -116,19 +113,19 @@ void ClientGet(struct kevent* event) {
 
     return;
   }
+
   MethodGetReady(client);
 }
 
 void WorkGet(struct kevent* event) {
   s_work_type* work = static_cast<s_work_type*>(event->udata);
-  s_client_type* client =
-      static_cast<s_client_type*>(work->GetClientPtr());  // client->base
+  s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
 
   int file_fd = work->GetFD();
   t_http* response = &(work->GetResponseMsg());
   size_t idx;
   size_t read_ret = 0;
-  read_ret = read(file_fd, response->entity_, response->entity_length_);  //
+  read_ret = read(file_fd, response->entity_, response->entity_length_);
   if (read_ret == (size_t)-1 || read_ret) {
     for (idx = 0; (idx < read_ret) && (idx < response->entity_length_); idx++) {
       work->GetVec().push_back(response->entity_[idx]);
@@ -144,6 +141,9 @@ void WorkGet(struct kevent* event) {
 
     return;
   }
+  client->SetErrorCode(OK);
+  client->SetMimeType(work->GetUri());
+
   std::vector<char>::iterator it = work->GetVec().begin();
   for (idx = 0; idx < response->entity_length_; idx += 2) {
     response->entity_[idx] = *(it++);
@@ -151,9 +151,6 @@ void WorkGet(struct kevent* event) {
       response->entity_[idx + 1] = *(it++);
     }
   }
-
-  client->SetErrorCode(OK);
-  client->SetMimeType(work->GetUri());
 
   size_t chunk_size =
       atoi(client->GetConfig().main_config_.find(BODY)->second.c_str());
