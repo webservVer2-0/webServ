@@ -40,6 +40,7 @@ void MethodGetReady(s_client_type*& client) {
     return;
   } else  // 일반파일인경우
   {
+    // std::cout << uri << std::endl;
     int file_fd = open(uri.c_str(), O_RDONLY | O_NONBLOCK);
     if (file_fd == -1) {
       client->SetErrorString(errno,
@@ -73,7 +74,7 @@ void ClientGet(struct kevent* event) {
   if ((server_config.index_mode_ == on) || (loc_config.index_mode_ == on)) {
     if (uri.find(".html") != std::string::npos)  // TODO : 디렉 구조일땐?
     {
-      MakeAutoindexPage(client->GetResponse(), dir);
+      MakeAutoindexPage(client, client->GetResponse(), dir);
       //   std::cout << "v2" << std::endl;
 
       client->SetMimeType(uri);
