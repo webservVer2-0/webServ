@@ -133,14 +133,14 @@ void ServerRun(ServerConfig& config) {
               //   std::cout << "READ steps"
               //             << " / Task FD : " << ft_filter->GetFD() <<
               //             std::endl;
-              //   if (curr_event->data == 0) {
-              //     std::cout << "no data" << std::endl;
-              //     continue;
-              //   } else {
-              int result = 0;
-              result = RequestHandler(curr_event);
-              if (result == -1) continue;
-              //   }
+              if (curr_event->data == 0) {
+                //     std::cout << "no data" << std::endl;
+                continue;
+              } else {
+                int result = 0;
+                result = RequestHandler(curr_event);
+                if (result == -1) continue;
+              }
 
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {
                 case GET_READY: {
@@ -148,8 +148,8 @@ void ServerRun(ServerConfig& config) {
                   break;
                 }
                 case POST_READY: {
-                  std::cout << "post r\n";
-                  // if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
+                  // if (static_cast<s_work_type*>(ft_filter)->GetWorkType()
+                  // ==
                   //     file)
                   //     {
                   //       ClientFilePost(curr_event);
@@ -230,7 +230,8 @@ void ServerRun(ServerConfig& config) {
         default: {  // Server case
           sockaddr_in* addr_info = config.GetServerAddress();
           //   std::cout << "SERVER steps"
-          //             << " / Task FD : " << ft_filter->GetFD() << std::endl;
+          //             << " / Task FD : " << ft_filter->GetFD() <<
+          //             std::endl;
           socklen_t addrlen = sizeof(addr_info);
           int client_fd(accept(curr_event->ident,
                                reinterpret_cast<sockaddr*>(addr_info),
