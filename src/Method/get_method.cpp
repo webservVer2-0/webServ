@@ -69,7 +69,7 @@ void ClientGet(struct kevent* event) {
   t_server server_config = client->GetConfig();
   t_loc loc_config = client->GetLocationConfig();
 
-  if ((server_config.index_mode_ != off) || (loc_config.index_mode_ != off)) {
+  if ((server_config.index_mode_ == on) || (loc_config.index_mode_ == on)) {
     if (uri.find(".html") != std::string::npos)  // TODO : 디렉 구조일땐?
     {
       MakeAutoindexPage(client->GetResponse(), dir);
