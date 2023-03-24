@@ -38,27 +38,40 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
             "<img src=\"/asset/folder.png\" "
             "alt=\"아이콘\" width=\"32\" "
             "height=\"32\">");
+        entity.append("<span><a href=\"");
+        if (ent->d_namlen < 2) {
+          std::string name(ent->d_name);
+          if (name.find(".") == 0) {
+            entity.append(directory_path);
+          } else if (name.find("..") == 0) {
+            std::string temp = directory_path;
+            size_t pos = temp.rfind('\\');
+            entity.append(temp.substr(0, pos));
+          }
+          entity.append("\"style=\"margin-left:10px;\">");
+          entity.append(ent->d_name);
+
+        } else {
+          std::string temp = client->GetLocationConfig().location_;
+          if (temp.compare("/") == 0) {
+            temp.append("localhost/");
+            temp.append(ent->d_name);
+          } else {
+            temp.append("/");
+            temp.append(ent->d_name);
+          }
+          entity.append(temp.c_str());
+          entity.append("\"style=\"margin-left:10px;\">");
+          entity.append(ent->d_name);
+        }
       } else if (IsFile(ent)) {
         entity.append(
             "    <img "
             "src=\"/asset/file.png\" "
             "alt=\"아이콘\" width=\"32\" "
             "height=\"32\">");
-      }
-      entity.append("<span><a href=\"");
-      if (ent->d_namlen < 2) {
-        std::string name(ent->d_name);
-        if (name.find(".") == 0) {
-          entity.append(directory_path);
-        } else if (name.find("..") == 0) {
-          std::string temp = directory_path;
-          size_t pos = temp.rfind('\\');
-          entity.append(temp.substr(0, pos));
-        }
-        entity.append("\"style=\"margin-left:10px;\">");
-        entity.append(ent->d_name);
+        entity.append("<span><a href=\"");
 
-      } else {
         std::string temp = client->GetLocationConfig().location_;
         temp.append("/");
         temp.append(ent->d_name);
@@ -68,6 +81,8 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
       }
       entity.append("</a></span>");
       entity.append("</div>");
+
+      //   entity.append("<span><a href=\"");
 
       ent = readdir(dir);
     }

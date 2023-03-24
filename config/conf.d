@@ -14,7 +14,7 @@ server  {
 	server_name RyujeansToday;
 	timeout 1;
 	# TODO: auto index 전체
-	auto_index off;
+	auto_index on;
 
 	# 메서드는 구현하기로 한 GET, POST, DELETE 왜에는 에러처리
 	method GET POST DELETE;
