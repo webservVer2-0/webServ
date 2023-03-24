@@ -72,7 +72,6 @@ inline void SetPrevCookie(s_client_type* client_type, t_http* http) {
 
   std::string prev_id =
       cookie_line.substr(equal_pos + 1, cookie_line.size() - equal_pos + 1);
-  /* 동일한 쿠키가 들어오고 타임아웃이 됐으면 TIMER SET */
   int timer = atoi(client_type->GetConfig().main_config_.at(TIMEOUT).c_str());
   if (timer != 0) {
     ServerConfig::ChangeEvents(client_type->GetFD(), EVFILT_TIMER, EV_CLEAR,
