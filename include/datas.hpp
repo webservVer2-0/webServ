@@ -69,8 +69,8 @@ typedef struct s_http {
   http_line header_;
   size_t entity_length_;
   char* entity_;
-  std::vector<char> msg_;
-  int temp_len_;
+  std::vector<char> temp_entity_;
+  size_t content_len_;
 } t_http;
 
 typedef struct s_send {

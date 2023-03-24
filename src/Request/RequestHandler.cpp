@@ -7,6 +7,16 @@
 #define DOUBLE_CRLF_LEN 4
 #define MAX_HEADER_SIZE 4000
 
+inline long StringToLong(std::string str) {
+  char* end;
+  const int decimal = 10;
+  long num = std::strtol(str.c_str(), &end, decimal);
+  if (end == str.c_str() + str.length())
+    return (num);
+  else
+    return (0);
+}
+
 std::string MakeUriPath(std::vector<std::string>& vec) {
   std::string ret;
 
@@ -19,8 +29,8 @@ std::string MakeUriPath(std::vector<std::string>& vec) {
 }
 
 t_error ConvertUri(std::string rq_uri,
-                    std::map<std::string, t_loc*> location_config,
-                    s_client_type& client) {
+                   std::map<std::string, t_loc*> location_config,
+                   s_client_type& client) {
   std::vector<std::string> rq_path;
   size_t pos;
   std::map<std::string, t_loc*>::iterator loc_it;
@@ -74,7 +84,7 @@ inline void SetPrevCookie(s_client_type* client_type, t_http* http) {
  * @return t_error 발생한 에러
  */
 static int RequestError(s_client_type* client_type, t_error err_code,
-                            std::string msg) {
+                        std::string msg) {
   int errno_ = errno;
   client_type->SetErrorString(errno_, msg);
   client_type->SetErrorCode(err_code);
@@ -94,12 +104,11 @@ static void SetClientStage(s_client_type* client, t_http* http) {
   if (method == "GET")
     client->SetStage(GET_READY);
   else if (method == "POST") {
-    if (http->msg_.size() == http->entity_length_)
+    if (http->temp_entity_.size() == http->entity_length_)
       client->SetStage(POST_READY);
     else
       client->SetStage(REQ_ING);
-  }
-  else if (method == "DELETE")
+  } else if (method == "DELETE")
     client->SetStage(DELETE_READY);
   return;
 }
@@ -108,8 +117,7 @@ static int MethodParser(std::string s) {
   const std::string requisite[3] = {"GET", "POST", "DELETE"};
 
   for (int i = 0; i < 3; ++i) {
-    if (s.find(requisite[i]) != std::string::npos)
-      return (0);
+    if (s.find(requisite[i]) != std::string::npos) return (0);
   }
   return (1);
 }
@@ -134,7 +142,7 @@ t_error InitLineParser(t_http* http, std::string line) {
   */
   try {
     http->init_line_["URI"] =
-       line.substr(first_space + 1, second_space - first_space - 1);
+        line.substr(first_space + 1, second_space - first_space - 1);
     /* TODO: delete일때 작동 확인 */
     if (http->init_line_["METHOD"] == "GET" &&
         http->init_line_["URI"].find("/delete?") != std::string::npos) {
@@ -154,7 +162,8 @@ t_error InitLineParser(t_http* http, std::string line) {
   return (NO_ERROR);
 }
 
-t_error HeaderLineParser(s_client_type* client_type, t_http* http, std::string header_line) {
+t_error HeaderLineParser(s_client_type* client_type, t_http* http,
+                         std::string header_line) {
   size_t pos = 0;
   size_t end_pos;
   std::string key;
@@ -179,28 +188,25 @@ t_error HeaderLineParser(s_client_type* client_type, t_http* http, std::string h
   return (NO_ERROR);
 }
 
-t_error EntityParser(t_http *http) {
-  std::map<std::string, std::string>::iterator content_it = http->header_.find("Content-Length");
-  std::map<std::string, std::string>::iterator chunked_it = http->header_.find("Transfer-encoding");
+t_error EntityParser(t_http* http) {
+  std::map<std::string, std::string>::iterator content_it =
+      http->header_.find("Content-Length");
+  std::map<std::string, std::string>::iterator chunked_it =
+      http->header_.find("Transfer-encoding");
 
   if (content_it == http->header_.end() && chunked_it == http->header_.end())
     return (BAD_REQ);
-  if ((*chunked_it).second == "chunked")
-    return (NO_ERROR);
+  if ((*chunked_it).second == "chunked") return (NO_ERROR);
 
   std::string len = (*content_it).second;
-  size_t entity_len;
+  const long entity_len = StringToLong(len);
+  if (entity_len <= 0) return (BAD_REQ);
+
   try {
-    entity_len = std::stol(len);
-    if (entity_len <= 0)
-       return (BAD_REQ);
-  } catch (std::invalid_argument const& ex) {
-    return (BAD_REQ);
-  }
-  try {
-    http->msg_.reserve(entity_len);
+    http->temp_entity_.reserve(entity_len);
+
     http->entity_length_ = entity_len;
-    http->temp_len_ = entity_len;
+    http->content_len_ = entity_len;
   } catch (const std::bad_alloc& e) {
     return (SYS_ERR);
   }
@@ -216,11 +222,10 @@ int RequestHandler(struct kevent* curr_event) {
   switch (client_type->GetStage()) {
     case DEF: {
       // -1 = 다 보냈을 때, 아직 읽을 준비가 안 됐을때, 읽을 것이 없을 때
-      int result = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
-      if (result == -1)
-        return (-1);
+      int read_byte = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
+      if (read_byte == -1) return (-1);
       // 4000만큼 읽었는데 헤더가 끝나지 않는 경우 -> BAD_REQ
-      char* double_crlf = strnstr(buf, DOUBLE_CRLF, result);
+      char* double_crlf = strnstr(buf, DOUBLE_CRLF, read_byte);
 
       if (double_crlf == NULL)
         return (RequestError(client_type, BAD_REQ, "DOUBLE CRLF가 없음"));
@@ -232,67 +237,82 @@ int RequestHandler(struct kevent* curr_event) {
         return (RequestError(client_type, BAD_REQ, "CRLF가 없음"));
 
       std::string init_line = top.substr(0, first_crlf);
-      std::string header = top.substr(first_crlf + CRLF_LEN, top.size() - (first_crlf + CRLF_LEN));
+      std::string header = top.substr(first_crlf + CRLF_LEN,
+                                      top.size() - (first_crlf + CRLF_LEN));
       t_error err_code = NO_ERROR;
 
       err_code = InitLineParser(http, init_line);
-      if (err_code) return (RequestError(client_type, err_code, "RequestHandler.cpp/InitLineParser()"));
+      if (err_code)
+        return (RequestError(client_type, err_code,
+                             "RequestHandler.cpp/InitLineParser()"));
 
       err_code = HeaderLineParser(client_type, http, header);
-      if (err_code) return (RequestError(client_type, err_code, "RequestHandler.cpp/HeaderLineParser()"));
+      if (err_code)
+        return (RequestError(client_type, err_code,
+                             "RequestHandler.cpp/HeaderLineParser()"));
 
       err_code = ConvertUri(
-        http->init_line_["URI"],
-        client_type->GetParentServer().GetServerConfig().location_configs_,
-        *client_type);
-      if (err_code) return (RequestError(client_type, err_code, "RequestHandler.cpp/ConvertUri()"));
+          http->init_line_["URI"],
+          client_type->GetParentServer().GetServerConfig().location_configs_,
+          *client_type);
+      if (err_code)
+        return (RequestError(client_type, err_code,
+                             "RequestHandler.cpp/ConvertUri()"));
 
       if (http->init_line_["METHOD"] == "POST") {
         err_code = EntityParser(http);
-        if (err_code) return (RequestError(client_type, err_code, "RequestHandler.cpp/EntityParser()"));
+        if (err_code)
+          return (RequestError(client_type, err_code,
+                               "RequestHandler.cpp/EntityParser()"));
 
-        if (result > (double_crlf + DOUBLE_CRLF_LEN) - buf)
-        {
-          http->msg_.insert(http->msg_.end(), double_crlf + DOUBLE_CRLF_LEN, double_crlf + DOUBLE_CRLF_LEN + (result - (double_crlf + DOUBLE_CRLF_LEN - buf)));
-          http->entity_ = http->msg_.begin().base();
-          if (http->msg_.size() == http->entity_length_)
+        const bool entity_exist =
+            (double_crlf + DOUBLE_CRLF_LEN) - buf < read_byte;
+        if (entity_exist) {
+          // entity가 있을 때, buf에 남아있는 entity를 temp_entity_에 넣어둔다.
+          http->temp_entity_.insert(
+              http->temp_entity_.end(), double_crlf + DOUBLE_CRLF_LEN,
+              double_crlf + DOUBLE_CRLF_LEN +
+                  (read_byte - (double_crlf + DOUBLE_CRLF_LEN - buf)));
+
+          // entity_에 temp_entity_의 시작 주소 대입
+          http->entity_ = http->temp_entity_.begin().base();
+
+          // entity_length_와 temp_entity_의 크기가 같으면 POST_READY로
+          // TODO: 추후 boundary= 떼어주는 작업 수정
+          if (http->temp_entity_.size() == http->entity_length_)
             client_type->SetStage(POST_READY);
-        }
-        else
-        {
+        } else {
           client_type->SetStage(REQ_ING);
         }
-      }
-      else
-      {
+      } else {
         SetClientStage(client_type, http);
       }
     } break;
-    case REQ_ING : {
-      int result = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
-      if (result == -1)
-        return (-1);
-      http->temp_len_ -= result;
-      http->msg_.insert(http->msg_.end(), buf, buf + result);
-      if (http->temp_len_ <= 0) {
-        http->entity_ = strstr(http->msg_.begin().base(), DOUBLE_CRLF) + DOUBLE_CRLF_LEN;
+    case REQ_ING: {
+      int read_byte = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
+      if (read_byte == -1) return (-1);
+
+      http->content_len_ -= read_byte;
+      http->temp_entity_.insert(http->temp_entity_.end(), buf, buf + read_byte);
+
+      if (http->content_len_ <= 0) {
+        http->entity_ = strstr(http->temp_entity_.begin().base(), DOUBLE_CRLF) +
+                        DOUBLE_CRLF_LEN;
         char* found = NULL;
 
         const std::string boundary = "boundary=";
-        std::string key = http->header_["Content-Type"].substr(http->header_["Content-Type"].find(boundary) + boundary.size());
-        std::cout << key << std::endl;
-        for (size_t i = 0; i < http->entity_length_ - key.size() + 1; i++)
-        {
-            if (std::memcmp(&http->entity_[i], key.c_str(), key.size()) == 0)
-            {
-                found = &http->entity_[i];
-                break;
-            }
+        std::string key = http->header_["Content-Type"].substr(
+            http->header_["Content-Type"].find(boundary) + boundary.size());
+        for (size_t i = 0; i < http->entity_length_ - key.size() + 1; i++) {
+          if (std::memcmp(&http->entity_[i], key.c_str(), key.size()) == 0) {
+            found = &http->entity_[i];
+            break;
+          }
         }
         http->entity_length_ = found - http->entity_ - 5;
         client_type->SetStage(POST_READY);
       }
-      }  break;
+    } break;
 
     default:
       break;

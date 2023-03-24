@@ -112,7 +112,6 @@ void WorkFilePost(struct kevent* event) {
   s_work_type* work = static_cast<s_work_type*>(event->udata);
   s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
 
-  std::cout << "write!!!\n";
   int write_result = write(work->GetFD(), client->GetRequest().entity_,
                            client->GetRequest().entity_length_);
   size_t total_write_len =
