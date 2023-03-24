@@ -1,13 +1,5 @@
 #include "../../include/webserv.hpp"
 
-/*
-GET ~~~/delete?delete_target=137_file.png HTTP/1.1
-GET upload_path/137_file.png HTTP/1.1
-enitity
-entity_length_
-MiME
-*/
-
 /**
  * @brief Request에서 변경한 URI에서 "?delete_target=" 문자열을
  * 제거한 문자열(삭제 파일 경로)을 생성하는 함수입니다.

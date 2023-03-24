@@ -159,6 +159,7 @@ void ServerRun(ServerConfig& config) {
                   break;
                 }
                 case DELETE_READY: {
+                  ClientDelete(curr_event);
                   break;
                 }
                 case ERR_READY: {
