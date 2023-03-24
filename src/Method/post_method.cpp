@@ -128,23 +128,21 @@ void WorkFilePost(struct kevent* event) {
     if (write_result != -1) client->SetMessageLength(total_write_len);
     return;
   } else {
+    work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
     ServerConfig::ChangeEvents(work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0,
                                NULL);
-    work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
-
     close(work->GetFD());
 
     std::string upload_path =
-        client->GetConfig().main_config_.find("upload_path")->second;
+        client->GetConfig().main_config_.at("upload_path");
 
     MakeDeletePage(client, client->GetResponse(), upload_path);
 
     client->SetMimeType(upload_path.append("/delete.html"));
     client->SetErrorCode(OK);
     client->SetStage(POST_FIN);
-    client->SetMessageLength(0);
+    // client->SetMessageLength(0); // 필요없어서 넣어줌(send 파트에서 사용)
   }
-  // TODO: POST 파일 저장 후 검사가 필요한지 확인하기
   return;
 }
 

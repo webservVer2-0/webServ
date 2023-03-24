@@ -34,7 +34,7 @@ void MakeDeleteBody(s_client_type* client, std::string directory_path,
     ent = readdir(dir);
     while (ent != NULL) {
       if (IsDirectory(ent)) {
-        continue;
+        ;
       } else if (IsFile(ent) &&
                  (std::string(ent->d_name).find(client->GetCookieId()) == 0)) {
         entity.append("  <div class=\"grid-item\">");
