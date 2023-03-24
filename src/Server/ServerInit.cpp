@@ -77,10 +77,12 @@ void ServerKinit(ServerConfig& config) {
     s_server_type* udata = new s_server_type(config, i, server_socket[i]);
     ServerConfig::ChangeEvents(server_socket[i], EVFILT_READ,
                                EV_ADD | EV_ENABLE, 0, 0, udata);
-    std::cout << "[ Server(" << GREEN << std::setw(10) << std::right
-              << config.GetServerList(i).main_config_.at("server_name") << RESET
-              << ") : " << std::setw(30) << std::right << "Port is activated ]"
-              << std::endl;
+    // std::cout << "[ Server(" << GREEN << std::setw(10) << std::right
+    //           << config.GetServerList(i).main_config_.at("server_name") <<
+    //           RESET
+    //           << ") : " << std::setw(30) << std::right << "Port is activated
+    //           ]"
+    //           << std::endl;
   }
   return;
 }
@@ -114,8 +116,8 @@ void ServerRun(ServerConfig& config) {
         case WORK: {
           s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
           if (work_type->GetWorkType() == file) {
-            std::cout << "FILE steps"
-                      << " / Task FD : " << ft_filter->GetFD() << std::endl;
+            // std::cout << "FILE steps"
+            //           << " / Task FD : " << ft_filter->GetFD() << std::endl;
             if (work_type->GetClientStage() == GET_START)
               WorkGet(curr_event);
             else if (work_type->GetClientStage() == POST_START) {
@@ -128,10 +130,11 @@ void ServerRun(ServerConfig& config) {
         case CLIENT: {
           if (curr_event->filter == EVFILT_READ) {
             {
-              // std::cout << "READ steps"
-              //           << " / Task FD : " << ft_filter->GetFD() <<
-              //           std::endl;
+              //   std::cout << "READ steps"
+              //             << " / Task FD : " << ft_filter->GetFD() <<
+              //             std::endl;
               if (curr_event->data == 0) {
+                //     std::cout << "no data" << std::endl;
                 continue;
               } else {
                 int result = 0;
@@ -145,7 +148,8 @@ void ServerRun(ServerConfig& config) {
                   break;
                 }
                 case POST_READY: {
-                  // if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
+                  // if (static_cast<s_work_type*>(ft_filter)->GetWorkType()
+                  // ==
                   //     file)
                   //     {
                   //       ClientFilePost(curr_event);
@@ -168,8 +172,9 @@ void ServerRun(ServerConfig& config) {
             }
           } else if (curr_event->filter == EVFILT_WRITE) {
             s_client_type* client = static_cast<s_client_type*>(ft_filter);
-            // std::cout << "WRITE steps"
-            //           << " / Task FD : " << ft_filter->GetFD() << std::endl;
+            // // std::cout << "WRITE steps"
+            // //           << " / Task FD : " << ft_filter->GetFD() <<
+            // std::endl;
 
             t_send* send = &client->GetSend();
             switch (send->flags) {
@@ -214,17 +219,19 @@ void ServerRun(ServerConfig& config) {
         } break;
         case LOGGER: {
           if (curr_event->filter == EVFILT_WRITE) {
-            std::cout << "Logger steps"
-                      << " / Task FD : "
-                      << static_cast<s_logger_type*>(curr_event->udata)->GetFD()
-                      << std::endl;
+            // std::cout << "Logger steps"
+            //           << " / Task FD : "
+            //           <<
+            //           static_cast<s_logger_type*>(curr_event->udata)->GetFD()
+            //           << std::endl;
             static_cast<s_logger_type*>(ft_filter)->PushData();
           }
         } break;
         default: {  // Server case
           sockaddr_in* addr_info = config.GetServerAddress();
-          std::cout << "SERVER steps"
-                    << " / Task FD : " << ft_filter->GetFD() << std::endl;
+          //   std::cout << "SERVER steps"
+          //             << " / Task FD : " << ft_filter->GetFD() <<
+          //             std::endl;
           socklen_t addrlen = sizeof(addr_info);
           int client_fd(accept(curr_event->ident,
                                reinterpret_cast<sockaddr*>(addr_info),

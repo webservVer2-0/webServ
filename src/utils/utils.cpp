@@ -111,7 +111,7 @@ pos_t FindValueLength(std::string& str, pos_t& pos) {
 
 void DeleteUdata(s_base_type* data) {
   s_client_type* temp = static_cast<s_client_type*>(data);
-  std::cout << "DELETE Client : " << temp->GetFD() << std::endl;
+  //   std::cout << "DELETE Client : " << temp->GetFD() << std::endl;
   temp->GetRequest().entity_length_ = 0;
   temp->GetRequest().header_.clear();
   temp->GetRequest().init_line_.clear();
