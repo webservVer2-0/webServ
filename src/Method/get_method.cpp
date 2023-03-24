@@ -25,6 +25,7 @@ void MethodGetSetEntity(s_client_type*& client) {
 void MethodGetReady(s_client_type*& client) {
   std::string uri = client->GetConvertedURI();
   t_http& response = client->GetResponse();
+  //   std::cout << "GET_READY? " << std::endl;
 
   if (client->GetCachePage(uri, response))  // 캐시파일인경우
   {
@@ -66,14 +67,14 @@ void ClientGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
   std::string uri(client->GetConvertedURI());
   std::string dir(uri.substr(0, uri.rfind('/')));
-  t_server    server_config = client->GetConfig();
-  t_loc       loc_config = client->GetLocationConfig();
+  t_server server_config = client->GetConfig();
+  t_loc loc_config = client->GetLocationConfig();
 
-  if ((server_config.index_mode_ != off) ||
-      (loc_config.index_mode_ != off)) {
+  if ((server_config.index_mode_ == on) || (loc_config.index_mode_ == on)) {
     if (uri.find(".html") != std::string::npos)  // TODO : 디렉 구조일땐?
     {
       MakeAutoindexPage(client->GetResponse(), dir);
+      //   std::cout << "v2" << std::endl;
 
       client->SetMimeType(uri);
       client->SetErrorCode(OK);
@@ -86,10 +87,12 @@ void ClientGet(struct kevent* event) {
       return;
     }
   }
-
+  //   std::cout << "v3" << std::endl;
   if (uri.find("/delete") != std::string::npos) {
-    MakeDeletePage(client, client->GetResponse(),
-                   server_config.main_config_.at("upload_path")); // TODO : at 쓰면 안됨
+    // std::cout << "v4" << std::endl;
+    MakeDeletePage(
+        client, client->GetResponse(),
+        server_config.main_config_.at("upload_path"));  // TODO : at 쓰면 안됨
 
     client->SetMimeType(uri);
     client->SetErrorCode(OK);
@@ -102,7 +105,8 @@ void ClientGet(struct kevent* event) {
   }
   // auto index랑 비슷햐
 
-  if (loc_config.main_config_.find("redirection") != loc_config.main_config_.end()) {
+  if (loc_config.main_config_.find("redirection") !=
+      loc_config.main_config_.end()) {
     client->SetErrorCode(MOV_PERMAN);
     client->SetStage(GET_FIN);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
@@ -110,7 +114,7 @@ void ClientGet(struct kevent* event) {
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
                                client);
 
-    return ;
+    return;
   }
   MethodGetReady(client);
 }
