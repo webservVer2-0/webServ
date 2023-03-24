@@ -52,7 +52,7 @@ typedef enum s_stage {
 typedef enum s_error {
   NO_ERROR = 0,
   OK = 200,
-  MOV_PERMAN = 308,
+  MOV_PERMAN = 301,
   BAD_REQ = 400,
   FORBID = 403,
   NOT_FOUND = 404,
@@ -245,8 +245,8 @@ class s_client_type : public s_base_type {
   t_error status_code_;     // HTTP status를 확인하는 용
   std::string err_custom_;  // custom msg 보관용
   int errno_;  // errno 발생시 해당 errno 를 넣어서 입력한다.
-  size_t msg_length;  // get에서는 임시 길이
-                      // response에서는 headers를 char*화 했을때 길이
+  size_t msg_length_;  // get에서는 임시 길이
+                       // response에서는 headers를 char*화 했을때 길이
   s_stage chunk_stage_;  // chunk_stage들 처리할때 temp stage 역할
   size_t sent_length;    // send 실패시 일부만 보내진 길이
   std::vector<char> vec_;  // read()시 buffer에 담기는 내용 계속 담는 용

@@ -12,7 +12,7 @@ void MethodGetSetEntity(s_client_type*& client) {
     client->SetErrorString(errno,
                            "get_method.cpp / MethodGetSetEntity안의 new()");
     client->SetErrorCode(SYS_ERR);
-    client->SetStage(ERR_FIN);
+    client->SetStage(GET_FIN);
   }
 }
 
@@ -47,7 +47,7 @@ void MethodGetReady(s_client_type*& client) {
       client->SetErrorString(errno,
                              "get_method.cpp / MethodGetReady()안의 open()");
       client->SetErrorCode(SYS_ERR);
-      client->SetStage(ERR_FIN);
+      client->SetStage(GET_FIN);
 
       return;
     }
@@ -69,9 +69,10 @@ void ClientGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
   std::string uri(client->GetConvertedURI());
   std::string dir(uri.substr(0, uri.rfind('/')));
-  if ((client->GetConfig().index_mode_ == on) ||
-      (client->GetLocationConfig().index_mode_ == on)) {
-    // std::cout << "v1" << std::endl;
+  t_server server_config = client->GetConfig();
+  t_loc loc_config = client->GetLocationConfig();
+
+  if ((server_config.index_mode_ == on) || (loc_config.index_mode_ == on)) {
     if (uri.find(".html") != std::string::npos)  // TODO : 디렉 구조일땐?
     {
       MakeAutoindexPage(client->GetResponse(), dir);
@@ -91,8 +92,9 @@ void ClientGet(struct kevent* event) {
   //   std::cout << "v3" << std::endl;
   if (uri.find("/delete") != std::string::npos) {
     // std::cout << "v4" << std::endl;
-    MakeDeletePage(client, client->GetResponse(),
-                   client->GetConfig().main_config_.at("upload_path"));
+    MakeDeletePage(
+        client, client->GetResponse(),
+        server_config.main_config_.at("upload_path"));  // TODO : at 쓰면 안됨
 
     client->SetMimeType(uri);
     client->SetErrorCode(OK);
@@ -104,12 +106,17 @@ void ClientGet(struct kevent* event) {
     return;
   }
   // auto index랑 비슷햐
-  //   std::cout << "v5" << std::endl;
-  config_map config = client->GetLocationConfig().main_config_;
-  if (config.find("redirection") != config.end()) {
-    // redir;
-    // std::cout << "v6" << std::endl;
-    // TODO : redir
+
+  if (loc_config.main_config_.find("redirection") !=
+      loc_config.main_config_.end()) {
+    client->SetErrorCode(MOV_PERMAN);
+    client->SetStage(GET_FIN);
+    ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
+                               client);
+    ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
+                               client);
+
+    return;
   }
   MethodGetReady(client);
 }
@@ -135,7 +142,7 @@ void WorkGet(struct kevent* event) {
   if (work->GetVec().size() != response->entity_length_) {
     client->SetErrorString(errno, "get_method.cpp / WorkGet()안의 read()");
     client->SetErrorCode(SYS_ERR);
-    client->SetStage(ERR_FIN);
+    client->SetStage(GET_FIN);
 
     return;
   }
