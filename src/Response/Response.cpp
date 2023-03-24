@@ -10,6 +10,8 @@ std::string EnumToString(int code) {
       return "0 NO_ERROR";
     case OK:
       return "200 OK";
+    case MOV_PERMAN:
+      return "301 MOV_PERMAN";
     case BAD_REQ:
       return "400 BAD_REQ";
     case FORBID:
@@ -118,7 +120,7 @@ inline t_http MakeResInitHeader(s_client_type* client, t_http msg,
       std::make_pair(std::string("Server: "),
                      client->GetConfig().main_config_.at("server_name")));
   std::string cookie_id = client->GetCookieId();
-  std::cout << "cookie_id : " << cookie_id << std::endl;
+  //   std::cout << "cookie_id : " << cookie_id << std::endl;
   std::snprintf(buf, 1024, "id=%s; HttpOnly;", cookie_id.c_str());
   std::string set_cookie = std::string(buf);
   msg.header_.insert(std::make_pair(std::string("Set-Cookie: "), set_cookie));
@@ -277,9 +279,16 @@ void SendProcess(struct kevent* event, s_client_type* client) {
   }
 }
 
+static bool ConnectionClose(s_client_type* client) {
+  t_http* request = &(client->GetRequest());
+  std::string keep_alive = request->header_["Connection"];
+  if (keep_alive == "close") return true;
+  return false;
+}
+
 void SendFin(struct kevent* event, s_client_type* client) {
   client->SendLogs();
-  if (client->GetStage() == END) {
+  if (client->GetStage() == END || ConnectionClose(client)) {
     ServerConfig::ChangeEvents(event->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
     close(event->ident);
     ResetConnection(static_cast<s_client_type*>(event->udata));

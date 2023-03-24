@@ -25,9 +25,11 @@ void MethodGetSetEntity(s_client_type*& client) {
 void MethodGetReady(s_client_type*& client) {
   std::string uri = client->GetConvertedURI();
   t_http& response = client->GetResponse();
+  //   std::cout << "GET_READY? " << std::endl;
 
   if (client->GetCachePage(uri, response))  // 캐시파일인경우
   {
+    // std::cout << "uri : " << uri << std::endl;
     client->SetMimeType(uri);
     client->SetErrorCode(OK);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
@@ -39,6 +41,7 @@ void MethodGetReady(s_client_type*& client) {
     return;
   } else  // 일반파일인경우
   {
+    std::cout << "file : " << uri << std::endl;
     int file_fd = open(uri.c_str(), O_RDONLY | O_NONBLOCK);
     if (file_fd == -1) {
       client->SetErrorString(errno,
@@ -66,12 +69,13 @@ void ClientGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
   std::string uri(client->GetConvertedURI());
   std::string dir(uri.substr(0, uri.rfind('/')));
-
-  if ((client->GetConfig().index_mode_ != off) ||
-      (client->GetLocationConfig().index_mode_ != off)) {
+  if ((client->GetConfig().index_mode_ == on) ||
+      (client->GetLocationConfig().index_mode_ == on)) {
+    // std::cout << "v1" << std::endl;
     if (uri.find(".html") != std::string::npos)  // TODO : 디렉 구조일땐?
     {
       MakeAutoindexPage(client->GetResponse(), dir);
+      //   std::cout << "v2" << std::endl;
 
       client->SetMimeType(uri);
       client->SetErrorCode(OK);
@@ -84,8 +88,9 @@ void ClientGet(struct kevent* event) {
       return;
     }
   }
-
+  //   std::cout << "v3" << std::endl;
   if (uri.find("/delete") != std::string::npos) {
+    // std::cout << "v4" << std::endl;
     MakeDeletePage(client, client->GetResponse(),
                    client->GetConfig().main_config_.at("upload_path"));
 
@@ -99,10 +104,11 @@ void ClientGet(struct kevent* event) {
     return;
   }
   // auto index랑 비슷햐
-
+  //   std::cout << "v5" << std::endl;
   config_map config = client->GetLocationConfig().main_config_;
   if (config.find("redirection") != config.end()) {
     // redir;
+    // std::cout << "v6" << std::endl;
     // TODO : redir
   }
   MethodGetReady(client);
