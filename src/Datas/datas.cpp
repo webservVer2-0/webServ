@@ -278,7 +278,7 @@ void s_client_type::SendLogs(void) {
         break;
       }
       case MOV_PERMAN: {
-        logging_data.append("308 Permanent Redirect");
+        logging_data.append("301 Permanent Redirect");
         break;
       }
       default: {
