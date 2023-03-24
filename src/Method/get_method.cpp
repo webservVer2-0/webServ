@@ -66,11 +66,10 @@ void ClientGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
   std::string uri(client->GetConvertedURI());
   std::string dir(uri.substr(0, uri.rfind('/')));
-  t_server    server_config = client->GetConfig();
-  t_loc       loc_config = client->GetLocationConfig();
+  t_server server_config = client->GetConfig();
+  t_loc loc_config = client->GetLocationConfig();
 
-  if ((server_config.index_mode_ != off) ||
-      (loc_config.index_mode_ != off)) {
+  if ((server_config.index_mode_ != off) || (loc_config.index_mode_ != off)) {
     if (uri.find(".html") != std::string::npos)  // TODO : 디렉 구조일땐?
     {
       MakeAutoindexPage(client->GetResponse(), dir);
@@ -89,8 +88,7 @@ void ClientGet(struct kevent* event) {
 
   if (uri.find("/delete") != std::string::npos) {
     MakeDeletePage(client, client->GetResponse(),
-                   server_config.main_config_.at("upload_path")); // TODO : at 쓰면 안됨
-
+                   server_config.main_config_.find(UPLOAD)->second);
     client->SetMimeType(uri);
     client->SetErrorCode(OK);
     client->SetStage(GET_FIN);
@@ -98,11 +96,12 @@ void ClientGet(struct kevent* event) {
                                client);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
                                client);
+
     return;
   }
-  // auto index랑 비슷햐
 
-  if (loc_config.main_config_.find("redirection") != loc_config.main_config_.end()) {
+  if (loc_config.main_config_.find("redirection") !=
+      loc_config.main_config_.end()) {
     client->SetErrorCode(MOV_PERMAN);
     client->SetStage(GET_FIN);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
@@ -110,21 +109,21 @@ void ClientGet(struct kevent* event) {
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
                                client);
 
-    return ;
+    return;
   }
+
   MethodGetReady(client);
 }
 
 void WorkGet(struct kevent* event) {
   s_work_type* work = static_cast<s_work_type*>(event->udata);
-  s_client_type* client =
-      static_cast<s_client_type*>(work->GetClientPtr());  // client->base
+  s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
 
   int file_fd = work->GetFD();
   t_http* response = &(work->GetResponseMsg());
   size_t idx;
   size_t read_ret = 0;
-  read_ret = read(file_fd, response->entity_, response->entity_length_);  //
+  read_ret = read(file_fd, response->entity_, response->entity_length_);
   if (read_ret == (size_t)-1 || read_ret) {
     for (idx = 0; (idx < read_ret) && (idx < response->entity_length_); idx++) {
       work->GetVec().push_back(response->entity_[idx]);
@@ -140,6 +139,9 @@ void WorkGet(struct kevent* event) {
 
     return;
   }
+  client->SetErrorCode(OK);
+  client->SetMimeType(work->GetUri());
+
   std::vector<char>::iterator it = work->GetVec().begin();
   for (idx = 0; idx < response->entity_length_; idx += 2) {
     response->entity_[idx] = *(it++);
@@ -147,9 +149,6 @@ void WorkGet(struct kevent* event) {
       response->entity_[idx + 1] = *(it++);
     }
   }
-
-  client->SetErrorCode(OK);
-  client->SetMimeType(work->GetUri());
 
   size_t chunk_size =
       atoi(client->GetConfig().main_config_.find(BODY)->second.c_str());
