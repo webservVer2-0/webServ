@@ -40,7 +40,6 @@ void MethodGetReady(s_client_type*& client) {
     return;
   } else  // 일반파일인경우
   {
-    std::cout << "file : " << uri << std::endl;
     int file_fd = open(uri.c_str(), O_RDONLY | O_NONBLOCK);
     if (file_fd == -1) {
       client->SetErrorString(errno,
