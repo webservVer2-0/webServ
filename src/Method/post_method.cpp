@@ -68,7 +68,7 @@ const char* AppendNumSuffix(std::string& uri) {
       uri.erase(suffix_pos, suffix_len);
     }
     file_suffix << "(" << file_no << ")";
-    uri.insert(uri.find('.'), file_suffix.str());
+    uri.insert(uri.rfind('.'), file_suffix.str());
     suffix_len = file_suffix.str().length();
     file_suffix.str("");
     file_no++;
@@ -112,30 +112,23 @@ void WorkFilePost(struct kevent* event) {
   s_work_type* work = static_cast<s_work_type*>(event->udata);
   s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
 
-  std::cout << "write!!!\n";
-  int write_result = write(work->GetFD(), client->GetRequest().entity_,
-                           client->GetRequest().entity_length_);
-  size_t total_write_len =
-      client->GetMessageLength() + static_cast<size_t>(write_result);
+  ssize_t write_result = write(work->GetFD(), client->GetRequest().entity_,
+                               client->GetRequest().entity_length_);
+  if (write_result >= 0)
+    client->SetMessageLength(client->GetMessageLength() +
+                             static_cast<size_t>(write_result));
+  size_t total_write_len = client->GetMessageLength();
   size_t entity_len = client->GetRequest().entity_length_;
 
-  if (total_write_len > entity_len) {
-    client->SetErrorString(errno, "post_method.cpp / write()");
-    client->SetErrorCode(SYS_ERR);
-    client->SetStage(ERR_FIN);
-    return;
-  } else if (total_write_len < entity_len) {
-    if (write_result != -1) client->SetMessageLength(total_write_len);
+  if (total_write_len < entity_len) {
     return;
   } else {
+    work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
     ServerConfig::ChangeEvents(work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0,
                                NULL);
-    work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
-
     close(work->GetFD());
-
     std::string upload_path =
-        client->GetConfig().main_config_.find("upload_path")->second;
+        client->GetConfig().main_config_.at("upload_path");
 
     MakeDeletePage(client, client->GetResponse(), upload_path);
 
@@ -144,7 +137,6 @@ void WorkFilePost(struct kevent* event) {
     client->SetStage(POST_FIN);
     client->SetMessageLength(0);
   }
-  // TODO: POST 파일 저장 후 검사가 필요한지 확인하기
   return;
 }
 
