@@ -29,7 +29,6 @@ void MethodGetReady(s_client_type*& client) {
 
   if (client->GetCachePage(uri, response))  // 캐시파일인경우
   {
-    // std::cout << "uri : " << uri << std::endl;
     client->SetMimeType(uri);
     client->SetErrorCode(OK);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
