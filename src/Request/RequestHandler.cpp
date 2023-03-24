@@ -246,6 +246,7 @@ inline int RefineEntity(s_client_type* client_type, t_http* http) {
   // 크롬/사파리의 기준 key값
   // TODO : 크롬/사파리 외에도 테스트 필요
   const std::string boundary = "boundary=----WebKitFormBoundary";
+
   // boundary=-- 이후의 문자열을 key로 사용
   std::string key = http->header_["Content-Type"].substr(
       http->header_["Content-Type"].find(boundary) + boundary.size());
@@ -275,6 +276,7 @@ int RequestHandler(struct kevent* curr_event) {
   switch (client_type->GetStage()) {
     case DEF: {
       // -1 = 다 보냈을 때, 아직 읽을 준비가 안 됐을때, 읽을 것이 없을 때
+
       int read_byte = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
       if (read_byte == -1) return (-1);
       // 4000만큼 읽었는데 헤더가 끝나지 않는 경우 -> BAD_REQ
@@ -312,6 +314,7 @@ int RequestHandler(struct kevent* curr_event) {
         return (RequestError(client_type, err_code,
                              "RequestHandler.cpp/ConvertUri()"));
 
+      // TODO: PostHandler()함수 분리
       if (http->init_line_["METHOD"] == "POST") {
         err_code = EntityParser(http);
         if (err_code)
@@ -341,10 +344,9 @@ int RequestHandler(struct kevent* curr_event) {
           } else {
             client_type->SetStage(REQ_ING);
           }
-        } else {
-          SetClientStage(client_type, http);
         }
       }
+      SetClientStage(client_type, http);
     } break;
     case REQ_ING: {
       int read_byte = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
