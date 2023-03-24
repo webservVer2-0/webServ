@@ -12,9 +12,7 @@ typedef t_cache::iterator cache_iterator;
 
 void SetCache(t_server& target, t_cache& static_pages, t_cache& error_pages) {
   SetStatic(target.location_configs_, static_pages);
-  std::cout << "11기?" << std::endl;
-  SetError(target.main_config_.find("error").operator->()->second, error_pages);
-  std::cout << "12기?" << std::endl;
+  SetError(target.main_config_.at("error"), error_pages);
 }
 
 void SetStatic(location_list& location_configs, t_cache& static_pages) {

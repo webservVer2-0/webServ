@@ -3,8 +3,8 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+#include "../../include/RequestHandler.hpp"
 #include "../../include/config.hpp"
-#include "../../include/request_handler.hpp"
 #include "../../include/utils.hpp"
 #include "../../include/webserv.hpp"
 
@@ -122,7 +122,6 @@ void ServerRun(ServerConfig& config) {
             if (work_type->GetClientStage() == GET_START)
               WorkGet(curr_event);
             else if (work_type->GetClientStage() == POST_START) {
-              std::cout << "post start!!! " << std::endl;
               WorkFilePost(curr_event);
             }
           } else if (work_type->GetWorkType() == cgi)
@@ -138,6 +137,8 @@ void ServerRun(ServerConfig& config) {
               if (curr_event->data == 0) {
                 continue;
               } else {
+                static_cast<s_client_type*>(ft_filter)->GetTimeData()[0] =
+                    std::time(NULL);
                 int result = 0;
                 result = RequestHandler(curr_event);
                 if (result == -1) continue;
@@ -149,11 +150,9 @@ void ServerRun(ServerConfig& config) {
                   break;
                 }
                 case POST_READY: {
-                  std::cout << "post r\n";
                   // if (static_cast<s_work_type*>(ft_filter)->GetWorkType() ==
                   //     file)
                   //     {
-                  //       std::cout << "file!!!!!!!!!!!!!!!!!!\n";
                   //       ClientFilePost(curr_event);
                   //     }
                   // else
@@ -174,8 +173,8 @@ void ServerRun(ServerConfig& config) {
             }
           } else if (curr_event->filter == EVFILT_WRITE) {
             s_client_type* client = static_cast<s_client_type*>(ft_filter);
-            std::cout << "WRITE steps"
-                      << " / Task FD : " << ft_filter->GetFD() << std::endl;
+            // std::cout << "WRITE steps"
+            //           << " / Task FD : " << ft_filter->GetFD() << std::endl;
 
             t_send* send = &client->GetSend();
             switch (send->flags) {

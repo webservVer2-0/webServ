@@ -6,8 +6,5 @@
 #include "webserv.hpp"
 
 int RequestHandler(struct kevent* curr_event);
-t_error convert_uri(std::string rq_uri,
-                    const std::map<std::string, t_loc*>& location_config,
-                    s_client_type& client);
 
 #endif

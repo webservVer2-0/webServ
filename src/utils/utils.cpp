@@ -153,9 +153,6 @@ void ResetConnection(s_client_type* udata) {
   const_cast<std::string&>(udata->GetOriginURI()).clear();
 
   t_http* temp_http = &(udata->GetRequest());
-  // if (temp_http->entity_length_ != 0) {
-  //   delete[] temp_http->entity_;
-  // }
   temp_http->entity_length_ = 0;
   temp_http->header_.clear();
   temp_http->init_line_.clear();

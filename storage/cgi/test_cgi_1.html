@@ -6,8 +6,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" type="text/css" href="/asset/style.css">
 	<title>류진스의 길었던 하류</title>
-	<link rel="icon" type="image/png" sizes="32x32" href="/asset/favicon_io//favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="/asset/favicon_io//favicon-16x16.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/asset/favicon_io/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/asset/favicon_io/favicon-16x16.png">
 	<link rel="manifest" href="/asset/favicon_io/site.webmanifest">
 </head>
 <body>
@@ -39,7 +39,7 @@
 			const asciiData = form.elements['ascii-data'].value;
 			
 			// 서버로 요청 보내기
-			const response = await fetch('example_cgi_script.cgi', {
+			const response = await fetch('/cgi_1/cgi.py', {
 				method: 'POST',
 				body: new URLSearchParams({ 'ascii-data': asciiData })
 			});
