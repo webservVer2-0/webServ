@@ -52,7 +52,7 @@ typedef enum s_stage {
 typedef enum s_error {
   NO_ERROR = 0,
   OK = 200,
-  MOV_PERMAN = 308,
+  MOV_PERMAN = 301,
   BAD_REQ = 400,
   FORBID = 403,
   NOT_FOUND = 404,
