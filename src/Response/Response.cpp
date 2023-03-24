@@ -10,6 +10,8 @@ std::string EnumToString(int code) {
       return "0 NO_ERROR";
     case OK:
       return "200 OK";
+    case MOV_PERMAN:
+      return "301 MOV_PERMAN";
     case BAD_REQ:
       return "400 BAD_REQ";
     case FORBID:

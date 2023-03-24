@@ -103,6 +103,9 @@ void ServerRun(ServerConfig& config) {
 
     for (int i = 0; i < new_event_number; i++) {
       curr_event = &config.event_list_[i];
+      if (curr_event->udata == NULL) {
+        continue;
+      }
       s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
       if (ft_filter == NULL) {
         continue;
@@ -240,9 +243,8 @@ void ServerRun(ServerConfig& config) {
 
           ServerConfig::ChangeEvents(client_fd, EVFILT_WRITE,
                                      EV_ADD | EV_DISABLE, 0, 0, client);
-          int timer = atoi(client->GetConfig()
-                               .main_config_.at(TIMEOUT)
-                               .c_str());  // refactoring
+          int timer =
+              atoi(client->GetConfig().main_config_.at(TIMEOUT).c_str());
           if (timer != 0) {
             ServerConfig::ChangeEvents(client_fd, EVFILT_TIMER, EV_ADD,
                                        NOTE_SECONDS, timer, client);

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" type="text/css" href="/asset/style.css">
+	<title>류진스의 길었던 하류</title>
+	<link rel="icon" type="image/png" sizes="32x32" href="/asset/favicon_io/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/asset/favicon_io/favicon-16x16.png">
+	<link rel="manifest" href="/asset/favicon_io/site.webmanifest">
+</head>
+<body>
+	<div id="background"><img src="/asset/wallpaper.jpeg" id="back_img"></img></div>
+	<div class="box" >
+	<a href="/">
+		<h1 id="banner" ">류진스의 길었던 하류</h1>
+		<h2 id="banner_mid" >Webserv Project</h2>
+		<span id="banner_under">우리는 생각한다. 고로 웹서브를 해낸다</span>
+		</a>
+	</div>
+	<h1>POST Method Test</h1>
+	<form method="POST" action="/post" name="person_info" accept-charset="ASCII" enctype="application/x-www-form-urlencoded">
+		<fieldset style="width:400px">
+			<label for="name">이름 :</label>
+			<input type="text" id="name" name="name"  style="margin-bottom: 10px;">
+			<br>
+			<label for="age">나이 :</label>
+			<input type="number" id="age" name="age" min="0" max="100"><br><br>
+
+			<label for="email">이메일 :</label>
+			<input type="email" id="email" name="email" style="width:300px"><br>
+
+			<button type="submit">제출</button>
+		</fieldset>
+	</form>
+	<form method="POST" action="/post" name="file_upload" enctype="multipart/form-data">
+		<fieldset style="width:400px;">
+		<label for="file" style="margin:10px 0px 10px 0px;">업로드할 사진을 선택하세요(png)</label>
+	  	<input type="file" name="file" style="margin:10px 0px 10px 0px;">
+		<input type="submit" value="upload">
+		</fieldset>
+	</form>
+
+	<a href="/"><img src="./asset/home.png" id="home"></img></a>
+</body>
+</html>
