@@ -114,18 +114,13 @@ void WorkFilePost(struct kevent* event) {
 
   ssize_t write_result = write(work->GetFD(), client->GetRequest().entity_,
                                client->GetRequest().entity_length_);
-  if (!(write_result < 0))
+  if (write_result >= 0)
     client->SetMessageLength(client->GetMessageLength() +
                              static_cast<size_t>(write_result));
   size_t total_write_len = client->GetMessageLength();
   size_t entity_len = client->GetRequest().entity_length_;
 
-  if (total_write_len > entity_len) {
-    client->SetErrorString(errno, "post_method.cpp / write()");
-    client->SetErrorCode(SYS_ERR);
-    client->SetStage(ERR_FIN);
-    return;
-  } else if (total_write_len < entity_len) {
+  if (total_write_len < entity_len) {
     return;
   } else {
     work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
@@ -140,7 +135,7 @@ void WorkFilePost(struct kevent* event) {
     client->SetMimeType(upload_path.append("/delete.html"));
     client->SetErrorCode(OK);
     client->SetStage(POST_FIN);
-    // client->SetMessageLength(0); // 필요없어서 넣어줌(send 파트에서 사용)
+    client->SetMessageLength(0);
   }
   return;
 }
