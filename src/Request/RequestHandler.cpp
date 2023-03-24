@@ -59,7 +59,6 @@ t_error ConvertUri(std::string rq_uri,
   }
   client.SetConfigPtr((*loc_it).second);
   client.GetRequest().init_line_["URI"] = MakeUriPath(rq_path);
-  // print_vector_path(rq_path);
   return NO_ERROR;
 }
 
@@ -67,10 +66,18 @@ inline void SetPrevCookie(s_client_type* client_type, t_http* http) {
   std::string cookie_line = http->header_["Cookie"];
   size_t equal_pos = cookie_line.find("=");
   if (equal_pos == std::string::npos) return;
+
   /* 발급 받은 Cookie가 없을 경우. (예: Cookie: id=) */
   if (equal_pos + 1 == cookie_line.size()) return;
+
   std::string prev_id =
       cookie_line.substr(equal_pos + 1, cookie_line.size() - equal_pos + 1);
+  /* 동일한 쿠키가 들어오고 타임아웃이 됐으면 TIMER SET */
+  int timer = atoi(client_type->GetConfig().main_config_.at(TIMEOUT).c_str());
+  if (timer != 0) {
+    ServerConfig::ChangeEvents(client_type->GetFD(), EVFILT_TIMER, EV_CLEAR,
+                               NOTE_SECONDS, timer, client_type);
+  }
   client_type->SetCookieId(prev_id);
   return;
 }
@@ -213,6 +220,52 @@ t_error EntityParser(t_http* http) {
   return (NO_ERROR);
 }
 
+/**
+ * @brief buf를 붙인 벡터에서 boundary를 제외하고 entity만 분리하는 함수
+ *
+ * @param client_type
+ * @param http
+ * @return int 에러가 있으면 1 return, 없으면 0 return
+ */
+inline int RefineEntity(s_client_type* client_type, t_http* http) {
+  // char* entity_start =
+  //     strstr(http->temp_entity_.begin().base(), DOUBLE_CRLF) +
+  //     DOUBLE_CRLF_LEN;
+  char* double_crlf_temp_entity =
+      strnstr(http->temp_entity_.begin().base(), DOUBLE_CRLF,
+              http->temp_entity_.size());
+  /* boundary=와 entity를 분리하는 DOUBLE_CRLF가 없다면 */
+  if (double_crlf_temp_entity == NULL) {
+    http->temp_entity_.clear();
+    return (RequestError(client_type, BAD_REQ,
+                         "RequestHandler.cpp/RefineEntity() Error"));
+  }
+  // temp_entity에서 double_crlf 이후를 entity에 대입
+  http->entity_ = double_crlf_temp_entity += DOUBLE_CRLF_LEN;
+
+  // 크롬/사파리의 기준 key값
+  // TODO : 크롬/사파리 외에도 테스트 필요
+  const std::string boundary = "boundary=----WebKitFormBoundary";
+  // boundary=-- 이후의 문자열을 key로 사용
+  std::string key = http->header_["Content-Type"].substr(
+      http->header_["Content-Type"].find(boundary) + boundary.size());
+  char* found = NULL;
+  for (size_t i = 0; i < http->entity_length_ - key.size() + 1; ++i) {
+    if (std::memcmp(&http->entity_[i], key.c_str(), key.size()) == 0) {
+      found = &http->entity_[i];
+      break;
+    }
+  }
+  // entity에서 key를 찾지 못했을 경우 (key로 끝나지 않을 경우)
+  if (found == NULL) {
+    http->temp_entity_.clear();
+    return (RequestError(client_type, BAD_REQ,
+                         "RequestHandler.cpp/RefineEntity() Error"));
+  }
+  http->entity_length_ = found - http->entity_ - 5;
+  return (0);
+}
+
 int RequestHandler(struct kevent* curr_event) {
   s_client_type* client_type = static_cast<s_client_type*>(curr_event->udata);
   t_http* http = &(client_type->GetRequest());
@@ -265,6 +318,7 @@ int RequestHandler(struct kevent* curr_event) {
           return (RequestError(client_type, err_code,
                                "RequestHandler.cpp/EntityParser()"));
 
+        // 처음 읽은 buf에서 entity까지 있는 경우
         const bool entity_exist =
             (double_crlf + DOUBLE_CRLF_LEN) - buf < read_byte;
         if (entity_exist) {
@@ -278,38 +332,36 @@ int RequestHandler(struct kevent* curr_event) {
           http->entity_ = http->temp_entity_.begin().base();
 
           // entity_length_와 temp_entity_의 크기가 같으면 POST_READY로
-          // TODO: 추후 boundary= 떼어주는 작업 수정
-          if (http->temp_entity_.size() == http->entity_length_)
+          if (http->temp_entity_.size() == http->entity_length_) {
+            if (RefineEntity(client_type, http)) {
+              return (RequestError(client_type, BAD_REQ,
+                                   "RequestHandler.cpp/RefineEntity()"));
+            }
             client_type->SetStage(POST_READY);
+          } else {
+            client_type->SetStage(REQ_ING);
+          }
         } else {
-          client_type->SetStage(REQ_ING);
+          SetClientStage(client_type, http);
         }
-      } else {
-        SetClientStage(client_type, http);
       }
     } break;
     case REQ_ING: {
       int read_byte = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
       if (read_byte == -1) return (-1);
 
+      // 읽은만큼 content_len_에서 빼줌
       http->content_len_ -= read_byte;
+
+      // 벡터 뒤에 buf를 붙임
       http->temp_entity_.insert(http->temp_entity_.end(), buf, buf + read_byte);
 
+      // 다 읽었으면 'boundary=----WebKitFormBoundary' 떼어주고 POST_READY로
       if (http->content_len_ <= 0) {
-        http->entity_ = strstr(http->temp_entity_.begin().base(), DOUBLE_CRLF) +
-                        DOUBLE_CRLF_LEN;
-        char* found = NULL;
-
-        const std::string boundary = "boundary=";
-        std::string key = http->header_["Content-Type"].substr(
-            http->header_["Content-Type"].find(boundary) + boundary.size());
-        for (size_t i = 0; i < http->entity_length_ - key.size() + 1; i++) {
-          if (std::memcmp(&http->entity_[i], key.c_str(), key.size()) == 0) {
-            found = &http->entity_[i];
-            break;
-          }
+        if (RefineEntity(client_type, http)) {
+          return (RequestError(client_type, BAD_REQ,
+                               "RequestHandler.cpp/RefineEntity()"));
         }
-        http->entity_length_ = found - http->entity_ - 5;
         client_type->SetStage(POST_READY);
       }
     } break;
@@ -317,5 +369,6 @@ int RequestHandler(struct kevent* curr_event) {
     default:
       break;
   }
+
   return (0);
 }

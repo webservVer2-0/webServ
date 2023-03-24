@@ -165,8 +165,8 @@ void ServerRun(ServerConfig& config) {
             }
           } else if (curr_event->filter == EVFILT_WRITE) {
             s_client_type* client = static_cast<s_client_type*>(ft_filter);
-            std::cout << "WRITE steps"
-                      << " / Task FD : " << ft_filter->GetFD() << std::endl;
+            // std::cout << "WRITE steps"
+            //           << " / Task FD : " << ft_filter->GetFD() << std::endl;
 
             t_send* send = &client->GetSend();
             switch (send->flags) {
