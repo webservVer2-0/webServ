@@ -128,7 +128,7 @@ void WorkFilePost(struct kevent* event) {
                                NULL);
     close(work->GetFD());
     std::string upload_path =
-        client->GetConfig().main_config_.at("upload_path");
+        client->GetConfig().main_config_.find("upload_path")->second;
 
     MakeDeletePage(client, client->GetResponse(), upload_path);
 
