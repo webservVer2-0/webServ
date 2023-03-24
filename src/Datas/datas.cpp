@@ -76,6 +76,7 @@ s_client_type::s_client_type(t_server* config, int client_fd,
   sent_length = 0;
   send_.flags = 0;
   send_.send_len = 0;
+  msg_length_ = 0;
 }
 
 s_client_type::~s_client_type() {}
@@ -103,8 +104,8 @@ void s_client_type::SetResponse(void) {
   this->response_msg_ = MakeResponseMessages(this);
 }
 
-size_t& s_client_type::GetMessageLength(void) { return this->msg_length; }
-void s_client_type::SetMessageLength(size_t size) { this->msg_length = size; }
+size_t& s_client_type::GetMessageLength(void) { return this->msg_length_; }
+void s_client_type::SetMessageLength(size_t size) { this->msg_length_ = size; }
 t_send& s_client_type::GetSend(void) { return this->send_; }
 const s_stage& s_client_type::GetChunkStage(void) { return this->chunk_stage_; }
 void s_client_type::SetChunkStage(s_stage num) { this->chunk_stage_ = num; }
