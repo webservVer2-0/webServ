@@ -332,13 +332,12 @@ int RequestHandler(struct kevent* curr_event) {
           // entity_에 temp_entity_의 시작 주소 대입
           http->entity_ = http->temp_entity_.begin().base();
 
-          // entity_length_와 temp_entity_의 크기가 같으면 POST_READY로
+          // content_length_와 temp_entity_의 크기가 같으면
+          // ENTITY를 가공할 필요 없으니 바로 POST_READY
           if (http->temp_entity_.size() == http->entity_length_) {
-            if (RefineEntity(client_type, http)) {
-              return (RequestError(client_type, BAD_REQ,
-                                   "RequestHandler.cpp/RefineEntity()"));
-            }
             client_type->SetStage(POST_READY);
+          } else {
+            client_type->SetStage(REQ_ING);
           }
         } else {
           client_type->SetStage(REQ_ING);
