@@ -7,6 +7,13 @@
 #define DOUBLE_CRLF_LEN 4
 #define MAX_HEADER_SIZE 4000
 
+inline void show_map(std::map<std::string, std::string> myMap) {
+  for (std::map<std::string, std::string>::iterator it = myMap.begin();
+       it != myMap.end(); ++it) {
+    std::cout << it->first << " : " << it->second << std::endl;
+  }
+}
+
 inline long StringToLong(std::string str) {
   char* end;
   const int decimal = 10;
@@ -227,17 +234,12 @@ t_error EntityParser(t_http* http) {
  * @return int 에러가 있으면 1 return, 없으면 0 return
  */
 inline int RefineEntity(s_client_type* client_type, t_http* http) {
-  // char* entity_start =
-  //     strstr(http->temp_entity_.begin().base(), DOUBLE_CRLF) +
-  //     DOUBLE_CRLF_LEN;
   char* double_crlf_temp_entity =
       strnstr(http->temp_entity_.begin().base(), DOUBLE_CRLF,
               http->temp_entity_.size());
-  /* boundary=와 entity를 분리하는 DOUBLE_CRLF가 없다면 */
+
   if (double_crlf_temp_entity == NULL) {
-    http->temp_entity_.clear();
-    return (RequestError(client_type, BAD_REQ,
-                         "RequestHandler.cpp/RefineEntity() Error"));
+    return (0);
   }
   // temp_entity에서 double_crlf 이후를 entity에 대입
   http->entity_ = double_crlf_temp_entity += DOUBLE_CRLF_LEN;
@@ -245,7 +247,6 @@ inline int RefineEntity(s_client_type* client_type, t_http* http) {
   // 크롬/사파리의 기준 key값
   // TODO : 크롬/사파리 외에도 테스트 필요
   const std::string boundary = "boundary=----WebKitFormBoundary";
-
   // boundary=-- 이후의 문자열을 key로 사용
   std::string key = http->header_["Content-Type"].substr(
       http->header_["Content-Type"].find(boundary) + boundary.size());
@@ -258,7 +259,6 @@ inline int RefineEntity(s_client_type* client_type, t_http* http) {
   }
   // entity에서 key를 찾지 못했을 경우 (key로 끝나지 않을 경우)
   if (found == NULL) {
-    http->temp_entity_.clear();
     return (RequestError(client_type, BAD_REQ,
                          "RequestHandler.cpp/RefineEntity() Error"));
   }
@@ -275,7 +275,6 @@ int RequestHandler(struct kevent* curr_event) {
   switch (client_type->GetStage()) {
     case DEF: {
       // -1 = 다 보냈을 때, 아직 읽을 준비가 안 됐을때, 읽을 것이 없을 때
-
       int read_byte = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
       if (read_byte == -1) return (-1);
       // 4000만큼 읽었는데 헤더가 끝나지 않는 경우 -> BAD_REQ
@@ -313,7 +312,6 @@ int RequestHandler(struct kevent* curr_event) {
         return (RequestError(client_type, err_code,
                              "RequestHandler.cpp/ConvertUri()"));
 
-      // TODO: PostHandler()함수 분리
       if (http->init_line_["METHOD"] == "POST") {
         err_code = EntityParser(http);
         if (err_code)
@@ -324,7 +322,8 @@ int RequestHandler(struct kevent* curr_event) {
         const bool entity_exist =
             (double_crlf + DOUBLE_CRLF_LEN) - buf < read_byte;
         if (entity_exist) {
-          // entity가 있을 때, buf에 남아있는 entity를 temp_entity_에 넣어둔다.
+          // entity가 있을 때, buf에 남아있는 entity를 temp_entity_에
+          // 넣어둔다.
           http->temp_entity_.insert(
               http->temp_entity_.end(), double_crlf + DOUBLE_CRLF_LEN,
               double_crlf + DOUBLE_CRLF_LEN +
@@ -340,9 +339,9 @@ int RequestHandler(struct kevent* curr_event) {
                                    "RequestHandler.cpp/RefineEntity()"));
             }
             client_type->SetStage(POST_READY);
-          } else {
-            client_type->SetStage(REQ_ING);
           }
+        } else {
+          client_type->SetStage(REQ_ING);
         }
       }
       SetClientStage(client_type, http);
