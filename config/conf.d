@@ -98,6 +98,12 @@ server  {
 		auto_index off;
 	}
 
+#location /chunked {
+#		root storage/static;
+#		default_file chunked.html;
+#		method GET POST;
+#		auto_index off;
+#	}
 }
 
 server  {
