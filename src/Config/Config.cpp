@@ -15,6 +15,9 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   ParssingServer(config_data);
   delete[] config_data;
 
+  CheckMultiPort();
+  // TODO : SamePortMultiServer Checking Function
+
   // Valid Checker for Config Validation
   ValidCheckMain();
 
@@ -323,8 +326,6 @@ ssize_t ServerConfig::PrintServerConfig() {
 void ServerConfig::ServerConfig::ValidCheckMain(void) {
   int64_t i = 0;
   conf_iterator* error_value;
-
-  // TODO : SamePortMultiServer Checking Function
 
   while (i < server_number_) {
     if (!ValidCheckServer(i)) {
@@ -871,5 +872,41 @@ void ServerConfig::ChangeEvents(uintptr_t ident, int16_t filter, uint16_t flags,
   EV_SET(&temp, ident, filter, flags, fflags, data, udata);
   kevent(g_kq, &temp, 1, NULL, 0, NULL);
   ServerConfig::change_list_.push_back(temp);
+  return;
+}
+
+void ServerConfig::CheckMultiPort(void) {
+  int64_t serv_i = 0;
+  int64_t serv_j;
+  int64_t serv_limit = this->server_number_;
+
+  while (serv_i < serv_limit) {
+    std::string target = this->server_list_.at(serv_i)->port_;
+    serv_j = serv_i + 1;
+    while (serv_j < serv_limit) {
+      if (target == this->server_list_.at(serv_j)->port_) {
+        std::cout << "port : " << target << std::endl;
+        std::cout << "same server port : " << serv_j << std::endl;
+        location_list::iterator it =
+            server_list_.at(serv_j)->location_configs_.begin();
+        location_list::iterator it_end =
+            server_list_.at(serv_j)->location_configs_.end();
+        while (it != it_end) {
+          delete it->second;
+          it++;
+        }
+        server_list_.at(serv_j)->location_configs_.clear();
+        delete this->server_list_.at(serv_j);
+        this->server_list_.erase(this->server_list_.begin() + serv_j);
+        serv_limit--;
+        serv_j = serv_i + 1;
+      } else {
+        serv_j++;
+      }
+    }
+    serv_i++;
+  }
+
+  this->server_number_ = serv_limit;
   return;
 }
