@@ -1,4 +1,5 @@
 #include "../../include/webserv.hpp"
+#include "dirent.h"
 
 // TODO : seterrorcode, setstage 묶는 함수 / error 처리 과정 묶 함수 만들까 고민
 
@@ -69,10 +70,16 @@ void ClientGet(struct kevent* event) {
   t_server server_config = client->GetConfig();
   t_loc loc_config = client->GetLocationConfig();
   // std::cout << "loc_config.location_ : " <<  loc_config.location_ << std::endl;
-  // std::cout << "converted uri : " << uri << std::endl;
+  std::cout << "converted uri : " << uri << std::endl;
+  std::cout << "dir : " << dir << std::endl;
+  // DIR* dirr;
   if ((server_config.index_mode_ == on) || (loc_config.index_mode_ == on)) {
-    if (uri.find(".html") != std::string::npos)  // TODO : 디렉 구조일땐?
+    if (opendir(uri.c_str()) != NULL)  // TODO : 디렉 구조일땐?
     {
+      // struct dirent* ent;
+ // ent = readdir(dirr);
+
+      std::cout << "make auto page " << std::endl;
       MakeAutoindexPage(client, client->GetResponse(), dir);
 
       client->SetMimeType(uri);

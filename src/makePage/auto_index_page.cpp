@@ -41,12 +41,16 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
         entity.append("<span><a href=\"");
         if (ent->d_namlen < 2) {
           std::string name(ent->d_name);
-          if (name.find(".") == 0) {
-            entity.append(directory_path);
-          } else if (name.find("..") == 0) {
-            std::string temp = directory_path;
-            size_t pos = temp.rfind('\\');
+          std::cout << "dname is " << name << std::endl;
+          if (name.find("..") == 0) {
+            // std::string temp = directory_path;
+            std::cout << "find .. " << std::endl;
+            std::string temp = client->GetOriginURI();
+            size_t pos = temp.rfind('/');
             entity.append(temp.substr(0, pos));
+          } else if (name.find(".") == 0) {
+            // entity.append(directory_path);
+            entity.append(client->GetOriginURI());
           }
           entity.append("\"style=\"margin-left:10px;\">");
           entity.append(ent->d_name);
@@ -60,6 +64,7 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
             temp.append("/");
             temp.append(ent->d_name);
           }
+          temp.append("/");
           entity.append(temp.c_str());
           entity.append("\"style=\"margin-left:10px;\">");
           entity.append(ent->d_name);
@@ -72,8 +77,13 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
             "height=\"32\">");
         entity.append("<span><a href=\"");
 
-        std::string temp = client->GetLocationConfig().location_;
-        temp.append("/");
+        // std::string temp = client->GetLocationConfig().location_;
+        std::string temp;
+        // temp.append("/");
+        // std::cout << ent->d_name << std::endl;
+        // std::cout << directory_path << std::endl;
+        // std::cout << client->GetOriginURI() << std::endl;
+        temp.append(client->GetOriginURI());
         temp.append(ent->d_name);
         entity.append(temp.c_str());
         entity.append("\"style=\"margin-left:10px;\"download>");
