@@ -1,6 +1,6 @@
 #include "../../include/webserv.hpp"
 
-// TODO: CGI 관련 사항 질문
+extern char** environ;  // TODO: 임시로 여기 적어 놓은거 헤더에 놓기
 
 /**
  * @brief POST 작업을 할 파일이 텍스트 파일인지 아닌지 판단하는 함수입니다.
@@ -101,8 +101,44 @@ void ClientFilePost(struct kevent* event) {
   return;
 }
 
+char* ExtractAsciiData(char* raw_entity, size_t entity_len) {
+  char* data_start = strchr(raw_entity, '=') + 1;
+  // TODO: = 뒤에 결과가 없을 경우 고려
+  size_t data_len = (raw_entity + entity_len) - data_start;
+  char* ascii_data = new char[data_len + 1];
+  memmove(ascii_data, data_start, data_len);
+  ascii_data[data_len] = '\0';
+  return ascii_data;
+}
+
 void ClientCGIPost(struct kevent* event) {
-  (void)event;
+  s_client_type* client = static_cast<s_client_type*>(event->udata);
+
+  char** args = new char*[3];
+  args[0] = const_cast<char*>(client->GetCookieId().c_str());
+  args[1] = ExtractAsciiData(client->GetRequest().entity_,
+                             client->GetRequest().entity_length_);
+  args[2] = NULL;
+
+  int io_pipe[2];
+  if (pipe(io_pipe)) {
+    // TODO: event disable?
+    client->SetErrorString(errno, "post_method.cpp / pipe()");
+    client->SetErrorCode(SYS_ERR);
+    client->SetStage(POST_FIN);
+  }
+  pid_t child_pid = fork();
+  if (child_pid == -1) {
+    client->SetErrorString(errno, "post_method.cpp / fork()");
+    client->SetErrorCode(SYS_ERR);
+    client->SetStage(POST_FIN);
+  } else if (child_pid == 0) {  // child process
+    dup2(io_pipe[1], STDOUT_FILENO);
+    close(io_pipe[1]);
+    execve("(cgi path)", args, environ);
+  } else {
+    close(io_pipe[1]);
+  }
   return;
 }
 
