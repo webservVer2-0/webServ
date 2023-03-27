@@ -110,6 +110,9 @@ class ServerConfig {
   pos_t ParssingServerLine(std::string& config_string, pos_t init_pos);
   config_map* GetServerConfigByPort(int Port);
   config_map& GetLocationConfigByPort(int Port, const std::string& uri);
+
+  void CheckMultiPort(void);
+
   void ValidCheckMain(void);
   bool ValidCheckServer(int server_number);
   bool ValidCheckLocation(int server_number, std::string location_name,
