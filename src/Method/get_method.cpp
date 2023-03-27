@@ -36,10 +36,10 @@ void MethodGetReady(s_client_type*& client) {
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
                                client);
     client->SetStage(GET_FIN);
-
     return;
   } else  // 일반파일인경우
   {
+
     // std::cout << uri << std::endl;
     int file_fd = open(uri.c_str(), O_RDONLY | O_NONBLOCK);
     if (file_fd == -1) {
@@ -67,12 +67,11 @@ void ClientGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
   std::string uri(client->GetConvertedURI());
   std::string dir(uri.substr(0, uri.rfind('/')));
+  std::cout << "converted uri : " << uri << std::endl;
+  std::cout << "dir : " << dir << std::endl;
   t_server server_config = client->GetConfig();
   t_loc loc_config = client->GetLocationConfig();
   // std::cout << "loc_config.location_ : " <<  loc_config.location_ << std::endl;
-  std::cout << "converted uri : " << uri << std::endl;
-  std::cout << "dir : " << dir << std::endl;
-  // DIR* dirr;
   if ((server_config.index_mode_ == on) || (loc_config.index_mode_ == on)) {
     if (opendir(uri.c_str()) != NULL)  // TODO : 디렉 구조일땐?
     {

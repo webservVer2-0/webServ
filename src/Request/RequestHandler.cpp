@@ -52,10 +52,6 @@ t_error ConvertUri(std::string rq_uri,
     http.entity_ = http.temp_entity_.begin().base();
     rq_uri = rq_uri.substr(0, query_index);
   }
-  if (rq_uri != "/" && client.GetConfig().index_mode_ == on)
-  {
-    return NO_ERROR;
-  }
   std::string token = rq_uri;
   while ((pos = rq_uri.find('/')) != std::string::npos) {
     token = rq_uri.substr(0, pos);

@@ -22,7 +22,8 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
   delete[] response.entity_;
 
   entity.append("	<h1>");
-  entity.append(directory_path);
+  // entity.append(directory_path);
+  entity.append(client->GetOriginURI());
   entity.append("</h1>\n");
 
   entity.append("<div class=\"grid-container\">");
@@ -41,7 +42,6 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
         entity.append("<span><a href=\"");
         if (ent->d_namlen <= 2) {
           std::string name(ent->d_name);
-          std::cout << "dname is " << name << std::endl;
           if (name.find("..") == 0) {
             // std::string temp = directory_path;
             std::cout << "find .. " << std::endl;
@@ -56,7 +56,8 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
           entity.append(ent->d_name);
 
         } else {
-          std::string temp = client->GetLocationConfig().location_;
+          // std::string temp = client->GetLocationConfig().location_;
+          std::string temp = client->GetOriginURI();
           if (temp.compare("/") == 0) {
             temp.append("localhost/");
             temp.append(ent->d_name);
@@ -80,9 +81,6 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
         // std::string temp = client->GetLocationConfig().location_;
         std::string temp;
         // temp.append("/");
-        // std::cout << ent->d_name << std::endl;
-        // std::cout << directory_path << std::endl;
-        // std::cout << client->GetOriginURI() << std::endl;
         temp.append(client->GetOriginURI());
         temp.append("/");
         temp.append(ent->d_name);
