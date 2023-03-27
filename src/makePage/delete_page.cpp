@@ -12,23 +12,25 @@ void MakeDeletePage(s_client_type* client, t_http& response,
 void MakeDeleteBody(s_client_type* client, std::string directory_path,
                     t_http& response) {
   std::string entity;
+  std::string pre_entity;
 
   for (size_t i = 0; i < response.entity_length_; i += 2) {
-    entity.push_back(response.entity_[i]);
+    pre_entity.push_back(response.entity_[i]);
     if (i + 1 < response.entity_length_) {
-      entity.push_back(response.entity_[i + 1]);
+      pre_entity.push_back(response.entity_[i + 1]);
     }
   }
   delete[] response.entity_;
 
-  entity.append("	<h1>");
-  entity.append("DELETE_PAGE");
-  entity.append("</h1>\n");
+  pre_entity.append("	<h1>");
+  pre_entity.append("DELETE_PAGE");
+  pre_entity.append("</h1>\n");
 
-  entity.append("<div class=\"grid-container\">");
+  pre_entity.append("<div class=\"grid-container\">");
 
   DIR* dir;
   struct dirent* ent;
+  std::map<std::string, std::string> file_mapping;
   dir = opendir(directory_path.c_str());
   if (dir != NULL) {
     ent = readdir(dir);
@@ -39,7 +41,7 @@ void MakeDeleteBody(s_client_type* client, std::string directory_path,
                  (std::string(ent->d_name).find(client->GetCookieId()) == 0)) {
         entity.append("  <div class=\"grid-item\">");
         entity.append(
-            "<img src = \"./asset/folder.png\" alt = \"아이콘\" width=\"32\" "
+            "<img src = \"./asset/file.png\" alt = \"아이콘\" width=\"32\" "
             "height=\"32\">");
         entity.append("    <span style=\"margin-left:10px;\">");
 
@@ -56,10 +58,20 @@ void MakeDeleteBody(s_client_type* client, std::string directory_path,
         entity.append(
             "<button type=\"submit\"><img src=\"./asset/bin.png\" "
             "style=\"margin-left: 10px; margin-top: 5px;\" "
-            "width=\"16px;\"></button></form>");
+            "width=\"16px;\"></button></form></div>");
+        file_mapping.insert(std::make_pair(std::string(ent->d_name),
+                                           std::string(entity.c_str())));
       }
+      entity.clear();
       ent = readdir(dir);
     }
+  }
+  entity.append(pre_entity);
+  std::map<std::string, std::string>::iterator it = file_mapping.begin();
+  std::map<std::string, std::string>::iterator end = file_mapping.end();
+  while (it != end) {
+    entity.append(it->second);
+    it++;
   }
   entity.append("</div>");
 
