@@ -264,13 +264,13 @@ void s_client_type::SendLogs(void) {
     logging_data.append(this->GetIP());
     logging_data.append(" [");
     logging_data.append(msg1);
-    logging_data.append("] ");
+    logging_data.append("] [");
     logging_data.append("HTTP/1.1");
     logging_data.append(" ");
     logging_data.append(this->origin_uri_);
     logging_data.append(" ");
     logging_data.append(this->request_msg_.init_line_.at("METHOD"));
-    logging_data.append(" ");
+    logging_data.append("] ");
     t_error temp = this->GetErrorCode();
     switch (temp) {
       case OK: {
@@ -294,12 +294,14 @@ void s_client_type::SendLogs(void) {
     logging_data.append(this->GetIP());
     logging_data.append(" [");
     logging_data.append(msg1);
-    logging_data.append("] ");
+    logging_data.append("] [");
 
+    logging_data.append(this->GetOriginURI());
+    logging_data.append(" ");
     logging_data.append(this->response_msg_.init_line_.at("code"));
     logging_data.append(" ");
     logging_data.append(this->response_msg_.init_line_.at("version"));
-    logging_data.append(" [ERR_TIME ");
+    logging_data.append("] [ERR_TIME ");
     logging_data.append(msg2);
     logging_data.append("] [");
     t_error temp = this->GetErrorCode();

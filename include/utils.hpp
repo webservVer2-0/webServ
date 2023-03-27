@@ -104,8 +104,10 @@ void MakeDeletePage(s_client_type* client, t_http& response,
 void MakeDeleteBody(s_client_type* client, std::string directory_path,
                     t_http& response);
 
-void MakeAutoindexPage(t_http& response, std::string directory_path);
-void MakeAutoindexBody(t_http& response, std::string directory_path);
+void MakeAutoindexPage(s_client_type* client, t_http& response,
+                       std::string directory_path);
+void MakeAutoindexBody(s_client_type* client, t_http& response,
+                       std::string directory_path);
 
 std::string MakeNameWithoutID(std::string cookie_id, std::string file_name);
 bool IsFile(struct dirent* target);

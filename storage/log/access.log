@@ -1,5 +1,0 @@
-127.0.0.1 [Mon Mar 27 16:14:24 2023] HTTP/1.1 /cgi_1 GET 200 Ok [Path : ./storage/cgi/test_cgi_1.html]
-127.0.0.1 [Mon Mar 27 16:14:24 2023] HTTP/1.1 /asset/style.css GET 200 Ok [Path : ./storage/static/asset/style.css]
-127.0.0.1 [Mon Mar 27 16:14:24 2023] HTTP/1.1 /asset/home.png GET 200 Ok [Path : ./storage/static/asset/home.png]
-127.0.0.1 [Mon Mar 27 16:14:24 2023] HTTP/1.1 /asset/favicon_io/site.webmanifest GET 200 Ok [Path : ./storage/static/asset/favicon_io/site.webmanifest]
-127.0.0.1 [Mon Mar 27 16:14:25 2023] HTTP/1.1 /asset/favicon_io/favicon-32x32.png GET 200 Ok [Path : ./storage/static/asset/favicon_io/favicon-32x32.png]
