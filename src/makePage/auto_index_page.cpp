@@ -39,7 +39,7 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
             "alt=\"아이콘\" width=\"32\" "
             "height=\"32\">");
         entity.append("<span><a href=\"");
-        if (ent->d_namlen < 2) {
+        if (ent->d_namlen <= 2) {
           std::string name(ent->d_name);
           std::cout << "dname is " << name << std::endl;
           if (name.find("..") == 0) {
@@ -64,7 +64,7 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
             temp.append("/");
             temp.append(ent->d_name);
           }
-          temp.append("/");
+          // temp.append("/");
           entity.append(temp.c_str());
           entity.append("\"style=\"margin-left:10px;\">");
           entity.append(ent->d_name);
@@ -84,6 +84,7 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
         // std::cout << directory_path << std::endl;
         // std::cout << client->GetOriginURI() << std::endl;
         temp.append(client->GetOriginURI());
+        temp.append("/");
         temp.append(ent->d_name);
         entity.append(temp.c_str());
         entity.append("\"style=\"margin-left:10px;\"download>");

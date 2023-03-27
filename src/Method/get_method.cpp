@@ -80,7 +80,7 @@ void ClientGet(struct kevent* event) {
  // ent = readdir(dirr);
 
       std::cout << "make auto page " << std::endl;
-      MakeAutoindexPage(client, client->GetResponse(), dir);
+      MakeAutoindexPage(client, client->GetResponse(), uri);
 
       client->SetMimeType(uri);
       client->SetErrorCode(OK);
