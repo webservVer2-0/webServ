@@ -44,16 +44,15 @@ t_error ConvertUri(std::string rq_uri,
   size_t query_index;
 
   if ((query_index = rq_uri.find('?')) != std::string::npos) {
-    std::string query = rq_uri.substr(query_index + 1);
-    client.GetRequest().entity_length_ = query.length();
-    client.GetRequest().temp_entity_.reserve(query.length());
-    client.GetRequest().entity_ = client.GetRequest().temp_entity_.begin().base();
+    t_http& http = client.GetRequest();
+    const std::string& query = rq_uri.substr(query_index + 1);
+    http.entity_length_ = query.length();
+    http.temp_entity_.reserve(http.entity_length_);
+    http.temp_entity_.insert(http.temp_entity_.end(), query.begin(), query.end());
+    http.entity_ = http.temp_entity_.begin().base();
     rq_uri = rq_uri.substr(0, query_index);
   }
   std::string token = rq_uri;
-
-  std::cout << rq_uri << std::endl;
-
   while ((pos = rq_uri.find('/')) != std::string::npos) {
     token = rq_uri.substr(0, pos);
     if (token != "" && token != ".") rq_path.push_back(token);
