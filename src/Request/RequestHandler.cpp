@@ -305,6 +305,8 @@ int RequestHandler(struct kevent* curr_event) {
         return (RequestError(client_type, err_code,
                              "RequestHandler.cpp/HeaderLineParser()"));
 
+      client_type->SetOriginURI(http->init_line_.at("URI"));
+
       err_code = ConvertUri(
           http->init_line_["URI"],
           client_type->GetParentServer().GetServerConfig().location_configs_,

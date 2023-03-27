@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" type="text/css" href="/asset/style.css">
+	<title>류진스의 길었던 하류</title>
+	<link rel="icon" type="image/png" sizes="32x32" href="/asset/favicon_io/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/asset/favicon_io/favicon-16x16.png">
+	<link rel="manifest" href="/asset/favicon_io/site.webmanifest">
+</head>
+<body>
+	<div id="background"><img src="/asset/wallpaper.jpeg" id="back_img"></img></div>
+	<div class="box" >
+	<a href="/">
+		<h1 id="banner" ">류진스의 길었던 하류</h1>
+		<h2 id="banner_mid" >Webserv Project</h2>
+		<span id="banner_under">우리는 생각한다. 고로 웹서브를 해낸다</span>
+		</a>
+	</div>
+	<h1>CGI Method Test 1</h1>
+<h1>ASCII 데이터 전송하기</h1>
+	<form action="/cgi_test.py" method="POST">
+		<label for="ascii-data">ASCII 데이터:</label>
+		<input type="text" name="ascii-data" id="ascii-data">
+		<br>
+		<input type="submit" value="전송">
+	</form>
+	<div id="result"></div>
+	<script>
+		const form = document.querySelector('form');
+		const resultDiv = document.querySelector('#result');
+		
+		form.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			
+			// 입력한 데이터 가져오기
+			const asciiData = form.elements['ascii-data'].value;
+			
+			// 서버로 요청 보내기
+			const response = await fetch('/cgi_1/cgi.py', {
+				method: 'POST',
+				body: new URLSearchParams({ 'ascii-data': asciiData })
+			});
+			
+			// 받은 데이터 출력하기
+			const responseText = await response.text();
+			resultDiv.innerText = responseText;
+		});
+	</script>
+	<a href="/"><img src="/asset/home.png" id="home"></img></a>
+</body>
+</html>
