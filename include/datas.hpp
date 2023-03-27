@@ -69,8 +69,8 @@ typedef struct s_http {
   http_line header_;
   size_t entity_length_;
   char* entity_;
-  std::vector<char> msg_;
-  int temp_len_;
+  std::vector<char> temp_entity_;
+  size_t content_len_;
 } t_http;
 
 typedef struct s_send {
@@ -319,8 +319,6 @@ class s_client_type : public s_base_type {
   const std::string& GetIP(void);
 
   std::time_t* GetTimeData(void);
-  void SetAccessTime(void);
-  void SetFinishTime(void);
 
   void SendLogs(void);
 

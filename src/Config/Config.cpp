@@ -15,6 +15,9 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   ParssingServer(config_data);
   delete[] config_data;
 
+  CheckMultiPort();
+  // TODO : SamePortMultiServer Checking Function
+
   // Valid Checker for Config Validation
   ValidCheckMain();
 
@@ -264,28 +267,6 @@ ssize_t ServerConfig::PrintServerConfig() {
             }
           }
         }
-        // pos_t limit = it.operator->()->second.size();
-        // pos_t cnt = 0;
-        // pos_t pos = 0;
-        // pos_t skip_white_space = 0;
-        // std::string temp = it.operator->()->second;
-        // while (cnt < limit) {
-        //   skip_white_space = 0;
-        //   while (cnt < limit) {
-        //     if (temp.at(cnt) == ' ') {
-        //       skip_white_space++;
-        //       if (skip_white_space == 2) {
-        //         break;
-        //       }
-        //     }
-        //     if (cnt == limit) {
-        //       break;
-        //     }
-        //     cnt++;
-        //   }
-        //   cnt++;
-        //   pos = cnt;
-        // }
       }
       it++;
     }
@@ -439,7 +420,8 @@ bool ServerConfig::ValidConfigCGIFile(conf_iterator& target,
   struct stat s;
   std::string temp_path;
   temp_path.append("./");
-  temp_path.append(location.main_config_.at(std::string(ROOT)));
+  temp_path.append(
+      location.main_config_.find(std::string(ROOT)).operator->()->second);
   temp_path.append("/");
   temp_path.append(target.operator->()->second);
   if (stat(temp_path.c_str(), &s) == 0) {
@@ -719,10 +701,15 @@ bool ServerConfig::ValidCheckLocation(int server_number,
                              ->location_configs_.at(location_name)
                              ->main_config_.begin();
   conf_iterator end = server_list_.at(server_number)
-                          ->location_configs_.at(location_name)
-                          ->main_config_.end();
-  t_loc* target_location =
-      server_list_.at(server_number)->location_configs_.at(location_name);
+                          ->location_configs_.find(location_name)
+                          .
+                          operator->()
+                          ->second->main_config_.end();
+  t_loc* target_location = server_list_.at(server_number)
+                               ->location_configs_.find(location_name)
+                               .
+                               operator->()
+                               ->second;
   for (int i = 0; i < 3; i++) {
     target_location->loc_type_[0] = T_NULL;
   }
@@ -817,8 +804,11 @@ void ServerConfig::ServerEventInit() {
   int connect_value = 0;
 
   for (int i = 0; i < limit; i++) {
-    connect_value +=
-        atoi(server_list_.at(i)->main_config_.at("max_connect").c_str());
+    connect_value += atoi(server_list_.at(i)
+                              ->main_config_.find("max_connect")
+                              .
+                              operator->()
+                              ->second.c_str());
   }
   this->event_list_ = new struct kevent[connect_value];
   if (!this->event_list_) {
@@ -882,5 +872,41 @@ void ServerConfig::ChangeEvents(uintptr_t ident, int16_t filter, uint16_t flags,
   EV_SET(&temp, ident, filter, flags, fflags, data, udata);
   kevent(g_kq, &temp, 1, NULL, 0, NULL);
   ServerConfig::change_list_.push_back(temp);
+  return;
+}
+
+void ServerConfig::CheckMultiPort(void) {
+  int64_t serv_i = 0;
+  int64_t serv_j;
+  int64_t serv_limit = this->server_number_;
+
+  while (serv_i < serv_limit) {
+    std::string target = this->server_list_.at(serv_i)->port_;
+    serv_j = serv_i + 1;
+    while (serv_j < serv_limit) {
+      if (target == this->server_list_.at(serv_j)->port_) {
+        std::cout << "port : " << target << std::endl;
+        std::cout << "same server port : " << serv_j << std::endl;
+        location_list::iterator it =
+            server_list_.at(serv_j)->location_configs_.begin();
+        location_list::iterator it_end =
+            server_list_.at(serv_j)->location_configs_.end();
+        while (it != it_end) {
+          delete it->second;
+          it++;
+        }
+        server_list_.at(serv_j)->location_configs_.clear();
+        delete this->server_list_.at(serv_j);
+        this->server_list_.erase(this->server_list_.begin() + serv_j);
+        serv_limit--;
+        serv_j = serv_i + 1;
+      } else {
+        serv_j++;
+      }
+    }
+    serv_i++;
+  }
+
+  this->server_number_ = serv_limit;
   return;
 }

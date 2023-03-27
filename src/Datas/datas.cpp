@@ -250,8 +250,8 @@ void s_client_type::SendLogs(void) {
   const std::time_t* time = this->GetTimeData();
   char msg1[30];
   char msg2[30];
-  std::strftime(msg1, 30, "%d/%b/%Y:%H:%M:%S + 0900", std::localtime(&time[0]));
-  std::strftime(msg2, 30, "%d/%b/%Y:%H:%M:%S + 0900", std::localtime(&time[1]));
+  std::strftime(msg1, 30, "%a %b %d %H:%M:%S %Y", std::localtime(&time[0]));
+  std::strftime(msg2, 30, "%a %b %d %H:%M:%S %Y", std::localtime(&time[1]));
   s_logger_type* temp;
   if (GetErrorCode() == OK || GetErrorCode() == MOV_PERMAN) {
     temp = &(static_cast<s_server_type*>(parent_ptr_))->GetLogger();
@@ -370,14 +370,6 @@ bool s_client_type::SetMimeType(std::string converted_uri) {
   return (true);
 }
 std::string& s_client_type::GetMimeType(void) { return this->mime_; }
-
-void s_client_type::SetAccessTime(void) {
-  this->time_data_[0] = std::time(NULL);
-}
-
-void s_client_type::SetFinishTime(void) {
-  this->time_data_[0] = std::time(NULL);
-}
 
 std::vector<char>& s_client_type::GetVec(void) { return this->vec_; }
 
