@@ -41,8 +41,18 @@ t_error ConvertUri(std::string rq_uri,
   std::vector<std::string> rq_path;
   size_t pos;
   std::map<std::string, t_loc*>::iterator loc_it;
+  size_t query_index;
 
+  if ((query_index = rq_uri.find('?')) != std::string::npos) {
+    std::string query = rq_uri.substr(query_index + 1);
+    client.GetRequest().entity_length_ = query.length();
+    client.GetRequest().temp_entity_.reserve(query.length());
+    client.GetRequest().entity_ = client.GetRequest().temp_entity_.begin().base();
+    rq_uri = rq_uri.substr(0, query_index);
+  }
   std::string token = rq_uri;
+
+  std::cout << rq_uri << std::endl;
 
   while ((pos = rq_uri.find('/')) != std::string::npos) {
     token = rq_uri.substr(0, pos);
