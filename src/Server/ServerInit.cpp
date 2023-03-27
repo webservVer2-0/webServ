@@ -51,8 +51,11 @@ void ServerListen(ServerConfig& config) {
   int ret;
 
   for (int i = 0; i < server_number; i++) {
-    max_connect =
-        atoi(config.GetServerList(i).main_config_.at("max_connect").c_str());
+    max_connect = atoi(config.GetServerList(i)
+                           .main_config_.find("max_connect")
+                           .
+                           operator->()
+                           ->second.c_str());
     ret = listen(socket_list[i], max_connect);
     if (ret == -1) {
       PrintError(2, WEBSERV, "Server socket listening is failed");
@@ -137,6 +140,8 @@ void ServerRun(ServerConfig& config) {
                 //     std::cout << "no data" << std::endl;
                 continue;
               } else {
+                static_cast<s_client_type*>(ft_filter)->GetTimeData()[0] =
+                    std::time(NULL);
                 int result = 0;
                 result = RequestHandler(curr_event);
                 if (result == -1) continue;
@@ -250,8 +255,11 @@ void ServerRun(ServerConfig& config) {
 
           ServerConfig::ChangeEvents(client_fd, EVFILT_WRITE,
                                      EV_ADD | EV_DISABLE, 0, 0, client);
-          int timer =
-              atoi(client->GetConfig().main_config_.at(TIMEOUT).c_str());
+          int timer = atoi(client->GetConfig()
+                               .main_config_.find(TIMEOUT)
+                               .
+                               operator->()
+                               ->second.c_str());
           if (timer != 0) {
             ServerConfig::ChangeEvents(client_fd, EVFILT_TIMER, EV_ADD,
                                        NOTE_SECONDS, timer, client);

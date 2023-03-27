@@ -319,8 +319,6 @@ class s_client_type : public s_base_type {
   const std::string& GetIP(void);
 
   std::time_t* GetTimeData(void);
-  void SetAccessTime(void);
-  void SetFinishTime(void);
 
   void SendLogs(void);
 
