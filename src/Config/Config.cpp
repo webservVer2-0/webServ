@@ -324,6 +324,8 @@ void ServerConfig::ServerConfig::ValidCheckMain(void) {
   int64_t i = 0;
   conf_iterator* error_value;
 
+  // TODO : SamePortMultiServer Checking Function
+
   while (i < server_number_) {
     if (!ValidCheckServer(i)) {
       ;
