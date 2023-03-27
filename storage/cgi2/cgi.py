@@ -24,20 +24,6 @@ for i in range(0, len(binary_string), 8):
     hashed_string += hashed_char
 
 # 해싱된 문자열을 출력합니다.
+print("Content-type: text/plain")
+print()
 print(hashed_string)
-
-
-# import pyfiglet
-
-# ## CGI 2 
-# ## pyfiglet 을 활용한 ASCII 값의 변환 
-# # while True:
-#     # get user input
-#     # text = input("Enter some text: ")
-# text = input()
-
-#     # generate ASCII art using pyfiglet
-# ascii_art = pyfiglet.figlet_format(text, "doh")
-
-#     # print the ASCII art
-# print(ascii_art)
