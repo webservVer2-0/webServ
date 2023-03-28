@@ -39,6 +39,12 @@ void MethodGetReady(s_client_type*& client) {
     return;
   } else  // 일반파일인경우
   {
+    if (opendir(uri.c_str()) != NULL) { //auto index 꺼져있고 default file 없을때
+      client->SetErrorCode(FORBID);
+      client->SetStage(GET_FIN);
+
+      return;
+    }
     int file_fd = open(uri.c_str(), O_RDONLY | O_NONBLOCK);
     if (file_fd == -1) {
       client->SetErrorString(errno,
