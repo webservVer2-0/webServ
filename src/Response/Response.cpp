@@ -195,7 +195,6 @@ t_http MakeResponseMessages(s_client_type* client) {
   if (client->GetStage() == POST_FIN ||
       uri.find("/delete") != std::string::npos) {
     msg = MakeFin(client, msg);
-    return (msg);
   }
   if (client->GetResponse().entity_) {
     msg = MakeEntityHeader(client, msg);
