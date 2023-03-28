@@ -33,6 +33,7 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
   if (dir != NULL) {
     ent = readdir(dir);
     while (ent != NULL) {
+      // std::cout << "ent->d_name : " << ent->d_name << std::endl;
       if (IsDirectory(ent)) {
         std::string location(client->GetLocationConfig().location_);
         std::string dot(".");
@@ -54,12 +55,9 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
           if (name.find("..") == 0) {
             size_t pos = origin_uri.rfind('/');
             entity.append(origin_uri.substr(0, pos));
-          } else if (name.find(".") == 0) {
-            entity.append(origin_uri);
           }
           entity.append("\"style=\"margin-left:10px;\">");
           entity.append(ent->d_name);
-
         } else {
           std::string temp = origin_uri;
           if (temp.compare("/") == 0) {
