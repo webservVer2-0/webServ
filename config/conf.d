@@ -76,7 +76,7 @@ server  {
 	# AutoIndex 기능용
 	location /auto_index {
 		root storage/static;
-		default_file auto_index.html;
+		#default_file auto_index.html;
 		method GET;
 		auto_index on;
 	}
