@@ -114,11 +114,12 @@ char* ExtractAsciiData(char* raw_entity, size_t entity_len) {
 void ClientCGIPost(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
 
-  char** args = new char*[3];
-  args[0] = const_cast<char*>(client->GetCookieId().c_str());
-  args[1] = ExtractAsciiData(client->GetRequest().entity_,
+  char** args = new char*[4];
+  args[0] = const_cast<char*>(client->GetConvertedURI().c_str());
+  args[1] = const_cast<char*>(client->GetCookieId().c_str());
+  args[2] = ExtractAsciiData(client->GetRequest().entity_,
                              client->GetRequest().entity_length_);
-  args[2] = NULL;
+  args[3] = NULL;
 
   int cgi_pipe[2];
   if (pipe(cgi_pipe)) {
@@ -137,7 +138,7 @@ void ClientCGIPost(struct kevent* event) {
   } else if (child_pid == 0) {  // child process
     dup2(cgi_pipe[1], STDOUT_FILENO);
     close(cgi_pipe[1]);
-    execve("(cgi path)", args, environ);
+    execve(args[0], args, environ);
     return;
   }
   close(cgi_pipe[1]);
@@ -148,6 +149,25 @@ void ClientCGIPost(struct kevent* event) {
                              client);
   client->SetErrorCode(OK);
   client->SetStage(POST_START);
+  return;
+}
+
+void ProcCGIPost(struct kevent* event) {
+  s_client_type* client = static_cast<s_client_type*>(event->udata);
+  int exit_status = event->data;
+  int pipe_read = client->GetResponse().entity_length_;
+  std::string cgi_path = client->GetConvertedURI();
+
+  if (exit_status != 0) {
+    // error
+    client->SetErrorCode(SYS_ERR);
+    close(pipe_read);  // close pipe;
+  } else {
+    // ok
+    client->CreateWork(&cgi_path, pipe_read, cgi);
+    client->SetErrorCode(OK);
+    client->SetStage(POST_CGI);
+  }
   return;
 }
 
@@ -171,7 +191,7 @@ void WorkFilePost(struct kevent* event) {
                                NULL);
     close(work->GetFD());
     std::string upload_path =
-        client->GetConfig().main_config_.at("upload_path");
+        client->GetConfig().main_config_.find("upload_path")->second;
 
     MakeDeletePage(client, client->GetResponse(), upload_path);
 
