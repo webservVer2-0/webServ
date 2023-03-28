@@ -1,1 +1,0 @@
-ERR : 127.0.0.1 [Tue Mar 28 17:29:01 2023] [/www.daum.net 500 SYS_ERR HTTP/1.1 ] [ERR_TIME Tue Mar 28 17:29:01 2023] [500 Interneal Server Error] [2 : No such file or directory] [msg : get_method.cpp / MethodGetReady()안의 open()]
