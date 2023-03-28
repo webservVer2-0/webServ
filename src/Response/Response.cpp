@@ -155,6 +155,20 @@ inline t_http MakeEntityHeader(s_client_type* client, t_http msg) {
   return (msg);
 }
 
+inline t_http MakePostFin(s_client_type* client, t_http msg) {
+  client->SetErrorCode(MOV_PERMAN);
+  t_error code = client->GetErrorCode();
+  std::string str_code = EnumToString(code);
+  msg.init_line_.erase(std::string("code"));
+  msg.init_line_.insert(std::make_pair(std::string("code"), str_code));
+
+  msg.header_.insert(
+      std::make_pair(std::string("Location: "), std::string("delete")));
+  msg.header_.insert(
+      std::make_pair(std::string("Connection: "), std::string("Keep-Alive")));
+  return (msg);
+}
+
 t_http MakeResponseMessages(s_client_type* client) {
   t_error code = client->GetErrorCode();
   t_http msg = client->GetResponse();
@@ -174,9 +188,14 @@ t_http MakeResponseMessages(s_client_type* client) {
     msg = MakePermanHeader(client, msg);
     return (msg);
   }
+  if (client->GetStage() == POST_FIN) {
+    msg = MakePostFin(client, msg);
+    return (msg);
+  }
   if (client->GetResponse().entity_) {
     msg = MakeEntityHeader(client, msg);
   }
+
   if (client->GetStage() == END) {
     msg.header_.insert(
         std::make_pair(std::string("Connection: "), std::string("Closed")));
