@@ -25,7 +25,6 @@ void MethodGetSetEntity(s_client_type*& client) {
 void MethodGetReady(s_client_type*& client) {
   std::string uri = client->GetConvertedURI();
   t_http& response = client->GetResponse();
-  //   std::cout << "GET_READY? " << std::endl;
 
   if (client->GetCachePage(uri, response))  // 캐시파일인경우
   {
@@ -40,6 +39,7 @@ void MethodGetReady(s_client_type*& client) {
     return;
   } else  // 일반파일인경우
   {
+    // std::cout << uri << std::endl;
     int file_fd = open(uri.c_str(), O_RDONLY | O_NONBLOCK);
     if (file_fd == -1) {
       client->SetErrorString(errno,
@@ -49,7 +49,6 @@ void MethodGetReady(s_client_type*& client) {
 
       return;
     }
-    // kick
     MethodGetSetEntity(client);
     client->SetErrorCode(OK);
     client->SetStage(GET_START);
@@ -69,12 +68,12 @@ void ClientGet(struct kevent* event) {
   std::string dir(uri.substr(0, uri.rfind('/')));
   t_server server_config = client->GetConfig();
   t_loc loc_config = client->GetLocationConfig();
-
+  // std::cout << "loc_config.location_ : " <<  loc_config.location_ << std::endl;
+  // std::cout << "converted uri : " << uri << std::endl;
   if ((server_config.index_mode_ == on) || (loc_config.index_mode_ == on)) {
     if (uri.find(".html") != std::string::npos)  // TODO : 디렉 구조일땐?
     {
-      MakeAutoindexPage(client->GetResponse(), dir);
-      //   std::cout << "v2" << std::endl;
+      MakeAutoindexPage(client, client->GetResponse(), dir);
 
       client->SetMimeType(uri);
       client->SetErrorCode(OK);
@@ -87,13 +86,9 @@ void ClientGet(struct kevent* event) {
       return;
     }
   }
-  //   std::cout << "v3" << std::endl;
   if (uri.find("/delete") != std::string::npos) {
-    // std::cout << "v4" << std::endl;
-    MakeDeletePage(
-        client, client->GetResponse(),
-        server_config.main_config_.at("upload_path"));  // TODO : at 쓰면 안됨
-
+    MakeDeletePage(client, client->GetResponse(),
+                   server_config.main_config_.find(UPLOAD)->second);
     client->SetMimeType(uri);
     client->SetErrorCode(OK);
     client->SetStage(GET_FIN);
@@ -101,9 +96,9 @@ void ClientGet(struct kevent* event) {
                                client);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
                                client);
+
     return;
   }
-  // auto index랑 비슷햐
 
   if (loc_config.main_config_.find("redirection") !=
       loc_config.main_config_.end()) {
@@ -116,19 +111,19 @@ void ClientGet(struct kevent* event) {
 
     return;
   }
+
   MethodGetReady(client);
 }
 
 void WorkGet(struct kevent* event) {
   s_work_type* work = static_cast<s_work_type*>(event->udata);
-  s_client_type* client =
-      static_cast<s_client_type*>(work->GetClientPtr());  // client->base
+  s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
 
   int file_fd = work->GetFD();
   t_http* response = &(work->GetResponseMsg());
   size_t idx;
   size_t read_ret = 0;
-  read_ret = read(file_fd, response->entity_, response->entity_length_);  //
+  read_ret = read(file_fd, response->entity_, response->entity_length_);
   if (read_ret == (size_t)-1 || read_ret) {
     for (idx = 0; (idx < read_ret) && (idx < response->entity_length_); idx++) {
       work->GetVec().push_back(response->entity_[idx]);
@@ -144,6 +139,9 @@ void WorkGet(struct kevent* event) {
 
     return;
   }
+  client->SetErrorCode(OK);
+  client->SetMimeType(work->GetUri());
+
   std::vector<char>::iterator it = work->GetVec().begin();
   for (idx = 0; idx < response->entity_length_; idx += 2) {
     response->entity_[idx] = *(it++);
@@ -151,9 +149,6 @@ void WorkGet(struct kevent* event) {
       response->entity_[idx + 1] = *(it++);
     }
   }
-
-  client->SetErrorCode(OK);
-  client->SetMimeType(work->GetUri());
 
   size_t chunk_size =
       atoi(client->GetConfig().main_config_.find(BODY)->second.c_str());
