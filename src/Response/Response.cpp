@@ -155,15 +155,18 @@ inline t_http MakeEntityHeader(s_client_type* client, t_http msg) {
   return (msg);
 }
 
-inline t_http MakePostFin(s_client_type* client, t_http msg) {
-  client->SetErrorCode(MOV_PERMAN);
-  t_error code = client->GetErrorCode();
-  std::string str_code = EnumToString(code);
-  msg.init_line_.erase(std::string("code"));
-  msg.init_line_.insert(std::make_pair(std::string("code"), str_code));
-
+inline t_http MakeFin(s_client_type* client, t_http msg) {
+  if (client->GetStage() == POST_FIN) {
+    client->SetErrorCode(MOV_PERMAN);
+    t_error code = client->GetErrorCode();
+    std::string str_code = EnumToString(code);
+    msg.init_line_.erase(std::string("code"));
+    msg.init_line_.insert(std::make_pair(std::string("code"), str_code));
+    msg.header_.insert(
+        std::make_pair(std::string("Location: "), std::string("delete")));
+  }
   msg.header_.insert(
-      std::make_pair(std::string("Location: "), std::string("delete")));
+      std::make_pair(std::string("Cache-Control: "), std::string("no-cache")));
   msg.header_.insert(
       std::make_pair(std::string("Connection: "), std::string("Keep-Alive")));
   return (msg);
@@ -174,6 +177,7 @@ t_http MakeResponseMessages(s_client_type* client) {
   t_http msg = client->GetResponse();
   std::string str_code = EnumToString(code);
   std::time_t now = std::time(NULL);
+  std::string uri = client->GetConvertedURI();
   std::string date_str = std::asctime(std::gmtime(&now));
   date_str.erase(date_str.length() - 1);
   char buf[1024];
@@ -188,8 +192,9 @@ t_http MakeResponseMessages(s_client_type* client) {
     msg = MakePermanHeader(client, msg);
     return (msg);
   }
-  if (client->GetStage() == POST_FIN) {
-    msg = MakePostFin(client, msg);
+  if (client->GetStage() == POST_FIN ||
+      uri.find("/delete") != std::string::npos) {
+    msg = MakeFin(client, msg);
     return (msg);
   }
   if (client->GetResponse().entity_) {
