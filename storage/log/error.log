@@ -1,2 +1,0 @@
-ERR : 127.0.0.1 [Mon Mar 27 20:41:29 2023] [/upload 403 FORBID HTTP/1.1 ] [ERR_TIME Mon Mar 27 20:41:29 2023] [403 Forbidden] [9 : Bad file descriptor] [msg : RequestHandler.cpp/ConvertUri()]
-ERR : 127.0.0.1 [Mon Mar 27 20:41:29 2023] [ 400 BAD_REQ HTTP/1.1 ] [ERR_TIME Mon Mar 27 20:41:29 2023] [400 BadRequest] [9 : Bad file descriptor] [msg : DOUBLE CRLF가 없음]
