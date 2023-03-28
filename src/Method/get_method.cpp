@@ -71,11 +71,9 @@ void ClientGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
   std::string uri(client->GetConvertedURI());
   std::string dir(uri.substr(0, uri.rfind('/')));
-  // std::cout << "converted uri : " << uri << std::endl;
-  // std::cout << "dir : " << dir << std::endl;
   t_server server_config = client->GetConfig();
   t_loc loc_config = client->GetLocationConfig();
-  if ((server_config.index_mode_ == on) || (loc_config.index_mode_ == on)) {
+  if (loc_config.index_mode_ == on) {
     if (opendir(uri.c_str()) != NULL)  // TODO : 디렉 구조일땐?
     {
       MakeAutoindexPage(client, client->GetResponse(), uri);

@@ -24,7 +24,7 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   // Server Config Mime type setting
   for (int i = 0; i < server_number_; i++) {
     SetMime(GetServerMimeByNumber(i),
-            GetServerConfigByNumber(i)->main_config_.at(INC));
+            GetServerConfigByNumber(i)->main_config_.at(INC));//map
   }
 
   // Server Config Cache setting
@@ -824,7 +824,7 @@ void ServerConfig::PrintTServer(int num) {
   std::cout << std::setw(10) << std::left << "Port : " << target->port_
             << std::endl;
   std::cout << std::setw(10) << std::left
-            << "Server Name : " << target->main_config_.at("server_name")
+            << "Server Name : " << target->main_config_.at("server_name") // map
             << std::endl;
 
   std::map<std::string, t_loc*>::iterator it =
