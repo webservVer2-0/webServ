@@ -167,8 +167,6 @@ inline t_http MakeFin(s_client_type* client, t_http msg) {
   }
   msg.header_.insert(
       std::make_pair(std::string("Cache-Control: "), std::string("no-cache")));
-  msg.header_.insert(
-      std::make_pair(std::string("Connection: "), std::string("Keep-Alive")));
   return (msg);
 }
 
