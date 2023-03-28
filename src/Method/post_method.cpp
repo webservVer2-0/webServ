@@ -101,6 +101,38 @@ void ClientFilePost(struct kevent* event) {
   return;
 }
 
+void WorkFilePost(struct kevent* event) {
+  s_work_type* work = static_cast<s_work_type*>(event->udata);
+  s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
+
+  ssize_t write_result = write(work->GetFD(), client->GetRequest().entity_,
+                               client->GetRequest().entity_length_);
+  if (write_result >= 0)
+    client->SetMessageLength(client->GetMessageLength() +
+                             static_cast<size_t>(write_result));
+  size_t total_write_len = client->GetMessageLength();
+  size_t entity_len = client->GetRequest().entity_length_;
+
+  if (total_write_len < entity_len) {
+    return;
+  } else {
+    work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
+    ServerConfig::ChangeEvents(work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0,
+                               NULL);
+    close(work->GetFD());
+    std::string upload_path =
+        client->GetConfig().main_config_.find("upload_path")->second;
+
+    MakeDeletePage(client, client->GetResponse(), upload_path);
+
+    client->SetMimeType(upload_path.append("/delete.html"));
+    client->SetErrorCode(OK);
+    client->SetStage(POST_FIN);
+    client->SetMessageLength(0);
+  }
+  return;
+}
+
 char* ExtractAsciiData(char* raw_entity, size_t entity_len) {
   char* data_start = strchr(raw_entity, '=') + 1;
   // TODO: = 뒤에 결과가 없을 경우 고려
@@ -167,38 +199,6 @@ void ProcCGIPost(struct kevent* event) {
     client->CreateWork(&cgi_path, pipe_read, cgi);
     client->SetErrorCode(OK);
     client->SetStage(POST_CGI);
-  }
-  return;
-}
-
-void WorkFilePost(struct kevent* event) {
-  s_work_type* work = static_cast<s_work_type*>(event->udata);
-  s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
-
-  ssize_t write_result = write(work->GetFD(), client->GetRequest().entity_,
-                               client->GetRequest().entity_length_);
-  if (write_result >= 0)
-    client->SetMessageLength(client->GetMessageLength() +
-                             static_cast<size_t>(write_result));
-  size_t total_write_len = client->GetMessageLength();
-  size_t entity_len = client->GetRequest().entity_length_;
-
-  if (total_write_len < entity_len) {
-    return;
-  } else {
-    work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
-    ServerConfig::ChangeEvents(work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0,
-                               NULL);
-    close(work->GetFD());
-    std::string upload_path =
-        client->GetConfig().main_config_.find("upload_path")->second;
-
-    MakeDeletePage(client, client->GetResponse(), upload_path);
-
-    client->SetMimeType(upload_path.append("/delete.html"));
-    client->SetErrorCode(OK);
-    client->SetStage(POST_FIN);
-    client->SetMessageLength(0);
   }
   return;
 }
