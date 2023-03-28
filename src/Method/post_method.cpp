@@ -63,11 +63,11 @@ const char* AppendNumSuffix(std::string& uri) {
   size_t suffix_pos;
 
   while (IsExistFile(uri.c_str())) {
-    suffix_pos = uri.find('(');
+    suffix_pos = uri.rfind('-');
     if (suffix_pos != std::string::npos) {
       uri.erase(suffix_pos, suffix_len);
     }
-    file_suffix << "(" << file_no << ")";
+    file_suffix << "-" << file_no;
     uri.insert(uri.rfind('.'), file_suffix.str());
     suffix_len = file_suffix.str().length();
     file_suffix.str("");
@@ -126,7 +126,7 @@ void WorkFilePost(struct kevent* event) {
                                NULL);
     close(work->GetFD());
     std::string upload_path =
-        client->GetConfig().main_config_.at("upload_path");
+        client->GetConfig().main_config_.find("upload_path")->second;
 
     MakeDeletePage(client, client->GetResponse(), upload_path);
 
