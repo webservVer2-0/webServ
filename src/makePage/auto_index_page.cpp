@@ -21,8 +21,9 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
   }
   delete[] response.entity_;
 
+  std::string origin_uri = client->GetOriginURI();
   entity.append("	<h1>");
-  entity.append(directory_path);
+  entity.append(origin_uri);
   entity.append("</h1>\n");
 
   entity.append("<div class=\"grid-container\">");
@@ -32,27 +33,33 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
   if (dir != NULL) {
     ent = readdir(dir);
     while (ent != NULL) {
-      entity.append("<div class=\"grid-item\">");
+      // std::cout << "ent->d_name : " << ent->d_name << std::endl;
       if (IsDirectory(ent)) {
+        std::string location(client->GetLocationConfig().location_);
+        std::string dot(".");
+        std::string dot2("..");
+        if ((strcmp(ent->d_name, dot.c_str()) == 0) ||
+            ((origin_uri == location) &&
+             (strcmp(ent->d_name, dot2.c_str()) == 0))) {
+          ent = readdir(dir);
+          continue;
+        }
+        entity.append("<div class=\"grid-item\">");
         entity.append(
             "<img src=\"/asset/folder.png\" "
             "alt=\"아이콘\" width=\"32\" "
             "height=\"32\">");
         entity.append("<span><a href=\"");
-        if (ent->d_namlen < 2) {
+        if (ent->d_namlen <= 2) {
           std::string name(ent->d_name);
-          if (name.find(".") == 0) {
-            entity.append(directory_path);
-          } else if (name.find("..") == 0) {
-            std::string temp = directory_path;
-            size_t pos = temp.rfind('\\');
-            entity.append(temp.substr(0, pos));
+          if (name.find("..") == 0) {
+            size_t pos = origin_uri.rfind('/');
+            entity.append(origin_uri.substr(0, pos));
           }
           entity.append("\"style=\"margin-left:10px;\">");
           entity.append(ent->d_name);
-
         } else {
-          std::string temp = client->GetLocationConfig().location_;
+          std::string temp = origin_uri;
           if (temp.compare("/") == 0) {
             temp.append("localhost/");
             temp.append(ent->d_name);
@@ -65,6 +72,7 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
           entity.append(ent->d_name);
         }
       } else if (IsFile(ent)) {
+        entity.append("<div class=\"grid-item\">");
         entity.append(
             "    <img "
             "src=\"/asset/file.png\" "
@@ -72,7 +80,8 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
             "height=\"32\">");
         entity.append("<span><a href=\"");
 
-        std::string temp = client->GetLocationConfig().location_;
+        std::string temp;
+        temp.append(origin_uri);
         temp.append("/");
         temp.append(ent->d_name);
         entity.append(temp.c_str());
@@ -81,8 +90,6 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
       }
       entity.append("</a></span>");
       entity.append("</div>");
-
-      //   entity.append("<span><a href=\"");
 
       ent = readdir(dir);
     }

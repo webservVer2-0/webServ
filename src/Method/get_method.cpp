@@ -1,4 +1,5 @@
 #include "../../include/webserv.hpp"
+#include "dirent.h"
 
 // TODO : seterrorcode, setstage 묶는 함수 / error 처리 과정 묶 함수 만들까 고민
 
@@ -35,11 +36,15 @@ void MethodGetReady(s_client_type*& client) {
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
                                client);
     client->SetStage(GET_FIN);
-
     return;
   } else  // 일반파일인경우
   {
-    // std::cout << uri << std::endl;
+    if (opendir(uri.c_str()) != NULL) { //auto index 꺼져있고 default file 없을때
+      client->SetErrorCode(FORBID);
+      client->SetStage(GET_FIN);
+
+      return;
+    }
     int file_fd = open(uri.c_str(), O_RDONLY | O_NONBLOCK);
     if (file_fd == -1) {
       client->SetErrorString(errno,
@@ -66,14 +71,14 @@ void ClientGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
   std::string uri(client->GetConvertedURI());
   std::string dir(uri.substr(0, uri.rfind('/')));
+  // std::cout << "converted uri : " << uri << std::endl;
+  // std::cout << "dir : " << dir << std::endl;
   t_server server_config = client->GetConfig();
   t_loc loc_config = client->GetLocationConfig();
-  // std::cout << "loc_config.location_ : " <<  loc_config.location_ << std::endl;
-  // std::cout << "converted uri : " << uri << std::endl;
   if ((server_config.index_mode_ == on) || (loc_config.index_mode_ == on)) {
-    if (uri.find(".html") != std::string::npos)  // TODO : 디렉 구조일땐?
+    if (opendir(uri.c_str()) != NULL)  // TODO : 디렉 구조일땐?
     {
-      MakeAutoindexPage(client, client->GetResponse(), dir);
+      MakeAutoindexPage(client, client->GetResponse(), uri);
 
       client->SetMimeType(uri);
       client->SetErrorCode(OK);
