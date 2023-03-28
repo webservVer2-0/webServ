@@ -12,7 +12,7 @@ server  {
 
 	# 서버명과 같은 것들은 모두 영어 + 숫자 + '_' 만 지원한다.
 	server_name RyujeansToday;
-	timeout 1;
+	timeout 30;
 
 	auto_index off;
 
