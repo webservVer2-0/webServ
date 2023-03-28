@@ -87,7 +87,7 @@ void ClientFilePost(struct kevent* event) {
   if (save_file_fd == -1) {
     client->SetErrorString(errno, "post_method.cpp / open()");
     client->SetErrorCode(SYS_ERR);
-    client->SetStage(ERR_FIN);
+    client->SetStage(POST_FIN);
     return;
   }
 
@@ -120,25 +120,34 @@ void ClientCGIPost(struct kevent* event) {
                              client->GetRequest().entity_length_);
   args[2] = NULL;
 
-  int io_pipe[2];
-  if (pipe(io_pipe)) {
+  int cgi_pipe[2];
+  if (pipe(cgi_pipe)) {
     // TODO: event disable?
     client->SetErrorString(errno, "post_method.cpp / pipe()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(POST_FIN);
+    return;
   }
   pid_t child_pid = fork();
   if (child_pid == -1) {
     client->SetErrorString(errno, "post_method.cpp / fork()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(POST_FIN);
+    return;
   } else if (child_pid == 0) {  // child process
-    dup2(io_pipe[1], STDOUT_FILENO);
-    close(io_pipe[1]);
+    dup2(cgi_pipe[1], STDOUT_FILENO);
+    close(cgi_pipe[1]);
     execve("(cgi path)", args, environ);
-  } else {
-    close(io_pipe[1]);
+    return;
   }
+  close(cgi_pipe[1]);
+  client->GetResponse().entity_length_ = cgi_pipe[0];
+  ServerConfig::ChangeEvents(child_pid, EVFILT_PROC, EV_ADD, NOTE_EXIT, 0,
+                             client);
+  ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
+                             client);
+  client->SetErrorCode(OK);
+  client->SetStage(POST_START);
   return;
 }
 
