@@ -101,59 +101,6 @@ void ClientFilePost(struct kevent* event) {
   return;
 }
 
-<<<<<<< HEAD
-=======
-char* ExtractAsciiData(char* raw_entity, size_t entity_len) {
-  char* data_start = strchr(raw_entity, '=') + 1;
-  // TODO: = 뒤에 결과가 없을 경우 고려
-  size_t data_len = (raw_entity + entity_len) - data_start;
-  char* ascii_data = new char[data_len + 1];
-  memmove(ascii_data, data_start, data_len);
-  ascii_data[data_len] = '\0';
-  return ascii_data;
-}
-
-void ClientCGIPost(struct kevent* event) {
-  s_client_type* client = static_cast<s_client_type*>(event->udata);
-
-  char** args = new char*[3];
-  args[0] = const_cast<char*>(client->GetCookieId().c_str());
-  args[1] = ExtractAsciiData(client->GetRequest().entity_,
-                             client->GetRequest().entity_length_);
-  args[2] = NULL;
-
-  int cgi_pipe[2];
-  if (pipe(cgi_pipe)) {
-    // TODO: event disable?
-    client->SetErrorString(errno, "post_method.cpp / pipe()");
-    client->SetErrorCode(SYS_ERR);
-    client->SetStage(POST_FIN);
-    return;
-  }
-  pid_t child_pid = fork();
-  if (child_pid == -1) {
-    client->SetErrorString(errno, "post_method.cpp / fork()");
-    client->SetErrorCode(SYS_ERR);
-    client->SetStage(POST_FIN);
-    return;
-  } else if (child_pid == 0) {  // child process
-    dup2(cgi_pipe[1], STDOUT_FILENO);
-    close(cgi_pipe[1]);
-    execve("(cgi path)", args, environ);
-    return;
-  }
-  close(cgi_pipe[1]);
-  client->GetResponse().entity_length_ = cgi_pipe[0];
-  ServerConfig::ChangeEvents(child_pid, EVFILT_PROC, EV_ADD, NOTE_EXIT, 0,
-                             client);
-  ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
-                             client);
-  client->SetErrorCode(OK);
-  client->SetStage(POST_START);
-  return;
-}
-
->>>>>>> d61e5ec93392a856c44a65a7f12591770847ad40
 void WorkFilePost(struct kevent* event) {
   s_work_type* work = static_cast<s_work_type*>(event->udata);
   s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
