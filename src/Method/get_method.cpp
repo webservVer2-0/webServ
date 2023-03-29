@@ -1,7 +1,4 @@
 #include "../../include/webserv.hpp"
-#include "dirent.h"
-
-// TODO : seterrorcode, setstage 묶는 함수 / error 처리 과정 묶 함수 만들까 고민
 
 void MethodGetSetEntity(s_client_type*& client) {
   client->GetResponse().entity_length_ =
@@ -13,7 +10,7 @@ void MethodGetSetEntity(s_client_type*& client) {
     client->SetErrorString(errno,
                            "get_method.cpp / MethodGetSetEntity안의 new()");
     client->SetErrorCode(SYS_ERR);
-    client->SetStage(GET_FIN);
+    client->SetStage(ERR_READY);
   }
 }
 
@@ -24,33 +21,33 @@ void MethodGetSetEntity(s_client_type*& client) {
  * @param client : udata를 s_client_type*&로 형변환한것
  */
 void MethodGetReady(s_client_type*& client) {
-  std::string uri = client->GetConvertedURI();
+  std::string converted_uri = client->GetConvertedURI();
   t_http& response = client->GetResponse();
 
-  if (client->GetCachePage(uri, response))  // 캐시파일인경우
+  if (client->GetCachePage(converted_uri, response))  // 캐시파일인경우
   {
-    client->SetMimeType(uri);
+    client->SetMimeType(converted_uri);
     client->SetErrorCode(OK);
+    client->SetStage(GET_FIN);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
                                client);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
                                client);
-    client->SetStage(GET_FIN);
     return;
   } else  // 일반파일인경우
   {
-    if (opendir(uri.c_str()) != NULL) { //auto index 꺼져있고 default file 없을때
+    if (opendir(converted_uri.c_str()) != NULL) { //auto index 꺼져있고 default file 없을때
       client->SetErrorCode(FORBID);
       client->SetStage(GET_FIN);
 
       return;
     }
-    int file_fd = open(uri.c_str(), O_RDONLY | O_NONBLOCK);
+    int file_fd = open(converted_uri.c_str(), O_RDONLY | O_NONBLOCK);
     if (file_fd == -1) {
       client->SetErrorString(errno,
                              "get_method.cpp / MethodGetReady()안의 open()");
       client->SetErrorCode(SYS_ERR);
-      client->SetStage(GET_FIN);
+      client->SetStage(ERR_READY);
 
       return;
     }
@@ -58,7 +55,7 @@ void MethodGetReady(s_client_type*& client) {
     client->SetErrorCode(OK);
     client->SetStage(GET_START);
     s_work_type* work =
-        static_cast<s_work_type*>(client->CreateWork(&uri, file_fd, file));
+        static_cast<s_work_type*>(client->CreateWork(&converted_uri, file_fd, file));
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
                                client);
     ServerConfig::ChangeEvents(file_fd, EVFILT_READ, EV_ADD, 0, 0, work);
@@ -69,18 +66,15 @@ void MethodGetReady(s_client_type*& client) {
 
 void ClientGet(struct kevent* event) {
   s_client_type* client = static_cast<s_client_type*>(event->udata);
-  std::string uri(client->GetConvertedURI());
-  std::string dir(uri.substr(0, uri.rfind('/')));
-  // std::cout << "converted uri : " << uri << std::endl;
-  // std::cout << "dir : " << dir << std::endl;
+  std::string converted_uri(client->GetConvertedURI());
   t_server server_config = client->GetConfig();
   t_loc loc_config = client->GetLocationConfig();
-  if ((server_config.index_mode_ == on) || (loc_config.index_mode_ == on)) {
-    if (opendir(uri.c_str()) != NULL)  // TODO : 디렉 구조일땐?
+  if (loc_config.index_mode_ == on) {
+    if (opendir(converted_uri.c_str()) != NULL)
     {
-      MakeAutoindexPage(client, client->GetResponse(), uri);
+      MakeAutoindexPage(client, client->GetResponse(), converted_uri);
 
-      client->SetMimeType(uri);
+      client->SetMimeType(converted_uri);
       client->SetErrorCode(OK);
       client->SetStage(GET_FIN);
       ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
@@ -91,10 +85,10 @@ void ClientGet(struct kevent* event) {
       return;
     }
   }
-  if (uri.find("/delete") != std::string::npos) {
+  if (converted_uri.find("/delete") != std::string::npos) {
     MakeDeletePage(client, client->GetResponse(),
                    server_config.main_config_.find(UPLOAD)->second);
-    client->SetMimeType(uri);
+    client->SetMimeType(converted_uri);
     client->SetErrorCode(OK);
     client->SetStage(GET_FIN);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
@@ -105,8 +99,7 @@ void ClientGet(struct kevent* event) {
     return;
   }
 
-  if (loc_config.main_config_.find("redirection") !=
-      loc_config.main_config_.end()) {
+  if (converted_uri.find("redirection") != std::string::npos) {
     client->SetErrorCode(MOV_PERMAN);
     client->SetStage(GET_FIN);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
@@ -127,8 +120,7 @@ void WorkGet(struct kevent* event) {
   int file_fd = work->GetFD();
   t_http* response = &(work->GetResponseMsg());
   size_t idx;
-  size_t read_ret = 0;
-  read_ret = read(file_fd, response->entity_, response->entity_length_);
+  size_t read_ret = read(file_fd, response->entity_, response->entity_length_);
   if (read_ret == (size_t)-1 || read_ret) {
     for (idx = 0; (idx < read_ret) && (idx < response->entity_length_); idx++) {
       work->GetVec().push_back(response->entity_[idx]);
@@ -138,9 +130,10 @@ void WorkGet(struct kevent* event) {
     }
   }
   if (work->GetVec().size() != response->entity_length_) {
+    work->GetVec().clear();
     client->SetErrorString(errno, "get_method.cpp / WorkGet()안의 read()");
     client->SetErrorCode(SYS_ERR);
-    client->SetStage(GET_FIN);
+    client->SetStage(ERR_READY);
 
     return;
   }
@@ -154,6 +147,7 @@ void WorkGet(struct kevent* event) {
       response->entity_[idx + 1] = *(it++);
     }
   }
+  work->GetVec().clear();
 
   size_t chunk_size =
       atoi(client->GetConfig().main_config_.find(BODY)->second.c_str());
