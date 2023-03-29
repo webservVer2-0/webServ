@@ -1,3 +1,5 @@
+#include <sys/wait.h>
+
 #include "../../include/webserv.hpp"
 
 extern char** environ;  // TODO: 임시로 여기 적어 놓은거 헤더에 놓기
@@ -170,21 +172,29 @@ void ClientCGIPost(struct kevent* event) {
     client->SetStage(POST_FIN);
     return;
   } else if (child_pid == 0) {  // child process
+    std::cout << ">>>> child" << std::endl;
+    close(cgi_pipe[0]);
     dup2(cgi_pipe[1], STDOUT_FILENO);
     close(cgi_pipe[1]);
-    execve(args[0], args, environ);
-    return;
+    if (execve(args[0], args, environ)) {
+      exit(EXIT_FAILURE);
+    }
   }
+  std::cout << ">>>> parent" << std::endl;
   close(cgi_pipe[1]);
+  waitpid(-1, 0, 0);
   client->GetResponse().entity_length_ = cgi_pipe[0];
-  ServerConfig::ChangeEvents(
-      child_pid, EVFILT_PROC, EV_ADD,
-      static_cast<uint16_t>(NOTE_EXIT) | static_cast<uint16_t>(NOTE_EXITSTATUS),
-      0, client);
+  //   ServerConfig::ChangeEvents(
+  //       child_pid, EVFILT_PROC, EV_ADD,
+  //       static_cast<uint16_t>(NOTE_EXIT) |
+  //       static_cast<uint16_t>(NOTE_EXITSTATUS), 0, client);
+  ServerConfig::ChangeEvents(child_pid, EVFILT_PROC, EV_ADD,
+                             static_cast<uint16_t>(NOTE_EXIT), 0, client);
   ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
                              client);
   client->SetErrorCode(OK);
   client->SetStage(POST_START);
+  std::cout << "end of client cgi" << std::endl;
   return;
 }
 
@@ -199,11 +209,16 @@ void ProcCGIPost(struct kevent* event) {
     // error
     close(pipe_read);  // close pipe;
     client->SetErrorString(errno, "post_method.cpp / CGI failed");
+    std::cout << "EXIT: " << exit_status << std::endl;
+    client->GetResponse().entity_length_ = 0;
     client->SetErrorCode(SYS_ERR);
     client->SetStage(POST_FIN);
   } else {
     // ok
-    client->CreateWork(&cgi_path, pipe_read, cgi);
+    s_base_type* new_work = client->CreateWork(&cgi_path, pipe_read, cgi);
+    ServerConfig::ChangeEvents(pipe_read, EVFILT_READ, EV_ADD, 0, 0, new_work);
+    ServerConfig::ChangeEvents(event->ident, EVFILT_PROC, EV_DELETE, 0, 0,
+                               NULL);
     client->SetErrorCode(OK);
     client->SetStage(POST_CGI);
   }
