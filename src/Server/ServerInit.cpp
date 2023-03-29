@@ -161,6 +161,9 @@ void ServerRun(ServerConfig& config) {
                 }
               }
             }
+          } else if (curr_event->filter == EVFILT_PROC) {
+            std::cout << "Enter Proc" << std::endl;
+            ProcCGIPost(curr_event);
           } else if (curr_event->filter == EVFILT_WRITE) {
             s_client_type* client = static_cast<s_client_type*>(ft_filter);
             t_send* send = &client->GetSend();
