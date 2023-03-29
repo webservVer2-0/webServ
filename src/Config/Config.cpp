@@ -491,32 +491,32 @@ bool ServerConfig::ValidConfigHTML(conf_iterator& target) {
   return (true);
 }
 
-bool ServerConfig::ValidConfigAutoindex(conf_iterator& target,
-                                        int server_number) {
-  std::string temp = target.operator->()->second;
-  server_list_.at(server_number)->index_mode_ = autodef;
-  if (temp.size() == 2) {
-    if (temp == "on") {
-      server_list_.at(server_number)->index_mode_ = on;
-    }
-  } else if (temp.size() == 3) {
-    if (temp == "off") {
-      server_list_.at(server_number)->index_mode_ = off;
-    }
-  } else {
-    PrintError(4, WEBSERV, "Location Config Error11",
-               target.operator->()->first.c_str(),
-               target.operator->()->second.c_str());
-    return (false);
-  }
-  if (server_list_.at(server_number)->index_mode_ == autodef) {
-    PrintError(4, WEBSERV, "Location Config Error12",
-               target.operator->()->first.c_str(),
-               target.operator->()->second.c_str());
-    return (false);
-  }
-  return (true);
-}
+// bool ServerConfig::ValidConfigAutoindex(conf_iterator& target,
+//                                         int server_number) {
+//   std::string temp = target.operator->()->second;
+//   server_list_.at(server_number)->index_mode_ = autodef;
+//   if (temp.size() == 2) {
+//     if (temp == "on") {
+//       server_list_.at(server_number)->index_mode_ = on;
+//     }
+//   } else if (temp.size() == 3) {
+//     if (temp == "off") {
+//       server_list_.at(server_number)->index_mode_ = off;
+//     }
+//   } else {
+//     PrintError(4, WEBSERV, "Location Config Error11",
+//                target.operator->()->first.c_str(),
+//                target.operator->()->second.c_str());
+//     return (false);
+//   }
+//   if (server_list_.at(server_number)->index_mode_ == autodef) {
+//     PrintError(4, WEBSERV, "Location Config Error12",
+//                target.operator->()->first.c_str(),
+//                target.operator->()->second.c_str());
+//     return (false);
+//   }
+//   return (true);
+// }
 
 bool ServerConfig::ValidConfigAutoindexLocation(conf_iterator& target,
                                                 conf_iterator& error_log,
@@ -660,10 +660,6 @@ bool ServerConfig::ValidCheckServer(int server_number) {
       }
     } else if (temp.compare(TIMEOUT) == 0) {
       if (!ValidConfigNumber(target, TIMEOUT)) {
-        return (false);
-      }
-    } else if (temp.compare(AUTOINDEX) == 0) {
-      if (!ValidConfigAutoindex(target, server_number)) {
         return (false);
       }
     } else if (temp.compare(METHOD) == 0) {
