@@ -1,7 +1,6 @@
 #include "../../include/datas.hpp"
 #include "../../include/utils.hpp"
 #include "../../include/webserv.hpp"
-#include "dirent.h"
 
 void MakeHead(t_http& response) {
   std::string entity;

@@ -116,8 +116,8 @@ void DeleteUdata(s_base_type* data) {
   temp->GetRequest().entity_length_ = 0;
   temp->GetRequest().header_.clear();
   temp->GetRequest().init_line_.clear();
-  if (temp->GetRequest().temp_entity_.size() != 0)
-    temp->GetRequest().temp_entity_.clear();
+  //   if (temp->GetRequest().temp_entity_.size() != 0)
+  //     temp->GetRequest().temp_entity_.clear();
   if (temp->GetResponse().entity_length_ != 0)
     delete[] temp->GetResponse().entity_;
   temp->GetResponse().entity_length_ = 0;
@@ -165,10 +165,6 @@ void ResetConnection(s_client_type* udata) {
   temp_http->header_.clear();
   temp_http->init_line_.clear();
   temp_http->content_len_ = 0;
-  if (temp_http->temp_entity_.size() != 0) {
-    temp_http->temp_entity_.clear();
-  }
-
   temp_http = &((udata)->GetResponse());
   if (temp_http->entity_length_ != 0) {
     delete[] temp_http->entity_;

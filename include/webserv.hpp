@@ -19,6 +19,7 @@
 // #include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
 
 /********************************************/
 // C++ headers
@@ -35,6 +36,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <set>
 
 /********************************************/
 // self headers
