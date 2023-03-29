@@ -162,7 +162,6 @@ void ServerRun(ServerConfig& config) {
               }
             }
           } else if (curr_event->filter == EVFILT_PROC) {
-            std::cout << "Enter Proc" << std::endl;
             ProcCGIPost(curr_event);
           } else if (curr_event->filter == EVFILT_WRITE) {
             s_client_type* client = static_cast<s_client_type*>(ft_filter);
@@ -186,7 +185,7 @@ void ServerRun(ServerConfig& config) {
                      curr_event->flags & EV_EOF) {
             s_client_type* client =
                 static_cast<s_client_type*>(curr_event->udata);
-            if (client->GetStage() != DEF || client->GetStage() != END) {
+            if (client->GetStage() != DEF && client->GetStage() != END) {
               int timer = atoi(client->GetConfig()
                                    .main_config_.find("timeout")
                                    ->second.c_str());

@@ -1,8 +1,6 @@
 #include "../../include/webserv.hpp"
 #include "dirent.h"
 
-// TODO : seterrorcode, setstage 묶는 함수 / error 처리 과정 묶 함수 만들까 고민
-
 void MethodGetSetEntity(s_client_type*& client) {
   client->GetResponse().entity_length_ =
       GetFileSize(client->GetConvertedURI().c_str());
@@ -39,7 +37,8 @@ void MethodGetReady(s_client_type*& client) {
     return;
   } else  // 일반파일인경우
   {
-    if (opendir(uri.c_str()) != NULL) { //auto index 꺼져있고 default file 없을때
+    if (opendir(uri.c_str()) !=
+        NULL) {  // auto index 꺼져있고 default file 없을때
       client->SetErrorCode(FORBID);
       client->SetStage(GET_FIN);
 
@@ -49,9 +48,9 @@ void MethodGetReady(s_client_type*& client) {
     if (file_fd == -1) {
       client->SetErrorString(errno,
                              "get_method.cpp / MethodGetReady()안의 open()");
+      client->SetMimeType(uri);
       client->SetErrorCode(SYS_ERR);
       client->SetStage(GET_FIN);
-
       return;
     }
     MethodGetSetEntity(client);

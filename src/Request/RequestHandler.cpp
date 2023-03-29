@@ -245,15 +245,30 @@ t_error EntityParser(t_http* http) {
  * @return int 에러가 있으면 1 return, 없으면 0 return
  */
 inline int RefineEntity(s_client_type* client_type, t_http* http) {
-  char* double_crlf_temp_entity =
-      strnstr(http->temp_entity_.begin().base(), DOUBLE_CRLF,
-              http->temp_entity_.size());
+  char* double_crlf_temp_entity = NULL;
+  size_t j = 0;
+  size_t k = 0;
 
+  for (size_t i = 0; i < http->temp_entity_.size(); ++i) {
+    if (http->temp_entity_[i] == '\r' && http->temp_entity_[i + 1] == '\n' &&
+        http->temp_entity_[i + 2] == '\r' &&
+        http->temp_entity_[i + 3] == '\n') {
+      double_crlf_temp_entity = new char[http->temp_entity_.size() - (i + 3)];
+      j = i + 4;
+      while (j < http->temp_entity_.size()) {
+        double_crlf_temp_entity[k] = http->temp_entity_[j];
+        j++;
+        k++;
+      }
+      break;
+    }
+  }
   if (double_crlf_temp_entity == NULL) {
     return (0);
   }
-  // temp_entity에서 double_crlf 이후를 entity에 대입
-  http->entity_ = double_crlf_temp_entity += DOUBLE_CRLF_LEN;
+
+  http->entity_ = double_crlf_temp_entity;
+  http->entity_length_ = k;
 
   // 크롬/사파리의 기준 key값
   // TODO : 크롬/사파리 외에도 테스트 필요
@@ -343,7 +358,10 @@ int RequestHandler(struct kevent* curr_event) {
                   (read_byte - (double_crlf + DOUBLE_CRLF_LEN - buf)));
 
           // entity_에 temp_entity_의 시작 주소 대입
-          http->entity_ = http->temp_entity_.begin().base();
+          http->entity_ = new char[http->temp_entity_.size()];
+          for (size_t i = 0; i < http->temp_entity_.size(); i++) {
+            http->entity_[i] = http->temp_entity_[i];
+          }
 
           // content_length_와 temp_entity_의 크기가 같으면
           // ENTITY를 가공할 필요 없으니 바로 POST_READY
@@ -368,7 +386,8 @@ int RequestHandler(struct kevent* curr_event) {
       // 벡터 뒤에 buf를 붙임
       http->temp_entity_.insert(http->temp_entity_.end(), buf, buf + read_byte);
 
-      // 다 읽었으면 'boundary=----WebKitFormBoundary' 떼어주고 POST_READY로
+      // 다 읽었으면 'boundary=----WebKitFormBoundary' 떼어주고
+      // POST_READY로
       if (http->content_len_ <= 0) {
         if (RefineEntity(client_type, http)) {
           return (RequestError(client_type, BAD_REQ,
