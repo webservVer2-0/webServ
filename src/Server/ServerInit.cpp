@@ -153,15 +153,13 @@ void ServerRun(ServerConfig& config) {
                   break;
                 }
                 case POST_READY: {
-                  // if (static_cast<s_work_type*>(ft_filter)->GetWorkType()
-                  // ==
-                  //     file)
-                  //     {
-                  //       ClientFilePost(curr_event);
-                  //     }
-                  // else
-                  //   ClientCGIPost(curr_event);
-                  ClientFilePost(curr_event);
+                  s_client_type* client =
+                      static_cast<s_client_type*>(ft_filter);
+                  std::string req_uri = client->GetConvertedURI();
+                  if (req_uri.find("cgi") == std::string::npos)
+                    ClientFilePost(curr_event);
+                  else
+                    ClientCGIPost(curr_event);
                   break;
                 }
                 case DELETE_READY: {
