@@ -33,7 +33,6 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
   if (dir != NULL) {
     ent = readdir(dir);
     while (ent != NULL) {
-      // std::cout << "ent->d_name : " << ent->d_name << std::endl;
       if (IsDirectory(ent)) {
         std::string location(client->GetLocationConfig().location_);
         std::string dot(".");
