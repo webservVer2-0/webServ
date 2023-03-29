@@ -62,4 +62,9 @@ void WorkCGIPost(struct kevent* event);
  */
 void ClientDelete(struct kevent* event);
 
+void ClientCGIPost(struct kevent* event);
+
+void ProcCGIPost(struct kevent* event);
+
+void WorkCGIPost(struct kevent* event);
 #endif
