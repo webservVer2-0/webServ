@@ -116,8 +116,8 @@ void DeleteUdata(s_base_type* data) {
   temp->GetRequest().entity_length_ = 0;
   temp->GetRequest().header_.clear();
   temp->GetRequest().init_line_.clear();
-  //   if (temp->GetRequest().temp_entity_.size() != 0)
-  //     temp->GetRequest().temp_entity_.clear();
+  if (temp->GetRequest().temp_entity_.size() != 0)
+    temp->GetRequest().temp_entity_.clear();
   if (temp->GetResponse().entity_length_ != 0)
     delete[] temp->GetResponse().entity_;
   temp->GetResponse().entity_length_ = 0;
@@ -182,5 +182,5 @@ void ResetConnection(s_client_type* udata) {
   udata->SetStage(DEF);
   udata->SetErrorCode(NO_ERROR);
   udata->SetErrorString(0, std::string());
-  //   udata->DeleteDataPtr();
+  udata->DeleteDataPtr();
 }

@@ -65,9 +65,6 @@ void MakeFooter(t_http& response) {
       "alt=\"홈버튼\"id=\"home\"></img></a>\n");
   entity.append("</body>\n</html>");
 
-  // "<a href=\"/\"><img src=\"/asset/.png\" "
-  //       "alt=\"홈버튼\" width=\"32\" "
-  //       "height=\"32\">");
   response.entity_ = new char[entity.size() + 1];
   response.entity_length_ = entity.size();
 
