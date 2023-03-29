@@ -179,11 +179,8 @@ void ClientCGIPost(struct kevent* event) {
   }
   close(cgi_pipe[1]);
   waitpid(-1, 0, 0);
+  delete[] args[2];
   client->GetResponse().entity_length_ = cgi_pipe[0];
-  //   ServerConfig::ChangeEvents(
-  //       child_pid, EVFILT_PROC, EV_ADD,
-  //       static_cast<uint16_t>(NOTE_EXIT) |
-  //       static_cast<uint16_t>(NOTE_EXITSTATUS), 0, client);
   ServerConfig::ChangeEvents(child_pid, EVFILT_PROC, EV_ADD,
                              static_cast<uint16_t>(NOTE_EXIT), 0, client);
   ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
