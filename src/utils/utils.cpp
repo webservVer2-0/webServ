@@ -101,7 +101,7 @@ pos_t FindValueLength(std::string& str, pos_t& pos) {
   pos_t i = pos;
   while (str[i] != ';') {
     if (str[i] == '\n') {
-      PrintError(2, WEBSERV, "Line shoud be end with ';'");
+      PrintError(2, WEBSERV, "Line should be end with ';'");
     }
     i++;
     ret++;
