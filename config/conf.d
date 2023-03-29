@@ -12,9 +12,7 @@ server  {
 
 	# 서버명과 같은 것들은 모두 영어 + 숫자 + '_' 만 지원한다.
 	server_name RyujeansToday;
-	timeout 30;
-
-	auto_index off;
+	timeout 1;
 
 
 	# 메서드는 구현하기로 한 GET, POST, DELETE 왜에는 에러처리
@@ -119,8 +117,7 @@ server  {
 
 	# 서버명과 같은 것들은 모두 영어 + 숫자 + '_' 만 지원한다.
 	server_name SiegeTesting;
-	timeout 10;
-	auto_index off;
+	timeout 1;
 
 	error 400 storage/loc/400.html 403 storage/loc/403.html  404 storage/loc/404.html 501 storage/loc/501.html 505 storage/loc/505.html;
 
@@ -129,6 +126,7 @@ server  {
 		root storage/static2;
 		method GET;
 		default_file index.html;
+		auto_index off;
 	}
 }
 

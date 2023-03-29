@@ -15,8 +15,8 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   ParssingServer(config_data);
   delete[] config_data;
 
+  // Valid Checker for Config Validation
   CheckMultiPort();
-  // TODO : SamePortMultiServer Checking Function
 
   // Valid Checker for Config Validation
   ValidCheckMain();
@@ -491,32 +491,32 @@ bool ServerConfig::ValidConfigHTML(conf_iterator& target) {
   return (true);
 }
 
-bool ServerConfig::ValidConfigAutoindex(conf_iterator& target,
-                                        int server_number) {
-  std::string temp = target.operator->()->second;
-  server_list_.at(server_number)->index_mode_ = autodef;
-  if (temp.size() == 2) {
-    if (temp == "on") {
-      server_list_.at(server_number)->index_mode_ = on;
-    }
-  } else if (temp.size() == 3) {
-    if (temp == "off") {
-      server_list_.at(server_number)->index_mode_ = off;
-    }
-  } else {
-    PrintError(4, WEBSERV, "Location Config Error11",
-               target.operator->()->first.c_str(),
-               target.operator->()->second.c_str());
-    return (false);
-  }
-  if (server_list_.at(server_number)->index_mode_ == autodef) {
-    PrintError(4, WEBSERV, "Location Config Error12",
-               target.operator->()->first.c_str(),
-               target.operator->()->second.c_str());
-    return (false);
-  }
-  return (true);
-}
+// bool ServerConfig::ValidConfigAutoindex(conf_iterator& target,
+//                                         int server_number) {
+//   std::string temp = target.operator->()->second;
+//   server_list_.at(server_number)->index_mode_ = autodef;
+//   if (temp.size() == 2) {
+//     if (temp == "on") {
+//       server_list_.at(server_number)->index_mode_ = on;
+//     }
+//   } else if (temp.size() == 3) {
+//     if (temp == "off") {
+//       server_list_.at(server_number)->index_mode_ = off;
+//     }
+//   } else {
+//     PrintError(4, WEBSERV, "Location Config Error11",
+//                target.operator->()->first.c_str(),
+//                target.operator->()->second.c_str());
+//     return (false);
+//   }
+//   if (server_list_.at(server_number)->index_mode_ == autodef) {
+//     PrintError(4, WEBSERV, "Location Config Error12",
+//                target.operator->()->first.c_str(),
+//                target.operator->()->second.c_str());
+//     return (false);
+//   }
+//   return (true);
+// }
 
 bool ServerConfig::ValidConfigAutoindexLocation(conf_iterator& target,
                                                 conf_iterator& error_log,
@@ -662,10 +662,6 @@ bool ServerConfig::ValidCheckServer(int server_number) {
       if (!ValidConfigNumber(target, TIMEOUT)) {
         return (false);
       }
-    } else if (temp.compare(AUTOINDEX) == 0) {
-      if (!ValidConfigAutoindex(target, server_number)) {
-        return (false);
-      }
     } else if (temp.compare(METHOD) == 0) {
       if (!ValidConfigStr(target)) {
         return (false);
@@ -784,14 +780,14 @@ void ServerConfig::ServerAddressInit() {
   int port_number = this->GetServerNumber();
   this->server_addr_ = new sockaddr_in[port_number];
   if (!this->server_addr_) {
-    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(sockaddr_in init)");
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT : ", "sockaddr_in init");
   }
 }
 
 void ServerConfig::ServerSocketInit() {
   this->server_socket_ = new int[server_number_];
   if (!this->server_socket_) {
-    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(socket array init)");
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT : ", "socket array init");
   }
 }
 

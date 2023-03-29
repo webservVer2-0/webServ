@@ -1,4 +1,5 @@
 #include "../../include/webserv.hpp"
+#include "dirent.h"
 
 void MethodGetSetEntity(s_client_type*& client) {
   client->GetResponse().entity_length_ =
@@ -36,7 +37,8 @@ void MethodGetReady(s_client_type*& client) {
     return;
   } else  // 일반파일인경우
   {
-    if (opendir(converted_uri.c_str()) != NULL) { //auto index 꺼져있고 default file 없을때
+    if (opendir(converted_uri.c_str()) !=
+        NULL) {  // auto index 꺼져있고 default file 없을때
       client->SetErrorCode(FORBID);
       client->SetStage(GET_FIN);
 
@@ -46,6 +48,7 @@ void MethodGetReady(s_client_type*& client) {
     if (file_fd == -1) {
       client->SetErrorString(errno,
                              "get_method.cpp / MethodGetReady()안의 open()");
+      client->SetMimeType(converted_uri);
       client->SetErrorCode(SYS_ERR);
       client->SetStage(ERR_READY);
 
@@ -54,8 +57,8 @@ void MethodGetReady(s_client_type*& client) {
     MethodGetSetEntity(client);
     client->SetErrorCode(OK);
     client->SetStage(GET_START);
-    s_work_type* work =
-        static_cast<s_work_type*>(client->CreateWork(&converted_uri, file_fd, file));
+    s_work_type* work = static_cast<s_work_type*>(
+        client->CreateWork(&converted_uri, file_fd, file));
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
                                client);
     ServerConfig::ChangeEvents(file_fd, EVFILT_READ, EV_ADD, 0, 0, work);
@@ -70,8 +73,7 @@ void ClientGet(struct kevent* event) {
   t_server server_config = client->GetConfig();
   t_loc loc_config = client->GetLocationConfig();
   if (loc_config.index_mode_ == on) {
-    if (opendir(converted_uri.c_str()) != NULL)
-    {
+    if (opendir(converted_uri.c_str()) != NULL) {
       MakeAutoindexPage(client, client->GetResponse(), converted_uri);
 
       client->SetMimeType(converted_uri);

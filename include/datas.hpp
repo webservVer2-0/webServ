@@ -137,7 +137,7 @@ class s_work_type : public s_base_type {
   s_base_type* client_ptr_;
   s_chore work_type_;
   t_http& response_msg_;
-  std::vector<char> vec_;  // read()시 buffer에 담기는 내용 계속 담는 용
+  //   std::vector<char> vec_;  // read()시 buffer에 담기는 내용 계속 담는 용
 
   s_work_type(const s_work_type& target);
   s_work_type& operator=(const s_work_type& target);
@@ -249,7 +249,7 @@ class s_client_type : public s_base_type {
                        // response에서는 headers를 char*화 했을때 길이
   s_stage chunk_stage_;  // chunk_stage들 처리할때 temp stage 역할
   size_t sent_length;    // send 실패시 일부만 보내진 길이
-  std::vector<char> vec_;  // read()시 buffer에 담기는 내용 계속 담는 용
+  //   std::vector<char> vec_;  // read()시 buffer에 담기는 내용 계속 담는 용
 
   s_client_type(const s_client_type& target, const t_server& master_config);
   s_client_type& operator=(const s_client_type& target);

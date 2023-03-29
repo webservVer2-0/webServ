@@ -50,12 +50,12 @@ char* GetFile(const char* file_path) {
   char* storage;
   storage = new char[size + 1];
   if (storage == NULL) {
-    PrintError(3, WEBSERV, CRITICAL, "HEAP ASSIGNMENT");
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT : ", "GetFile()");
   }
   fd = open(file_path, O_RDONLY);
   int ret = read(fd, storage, size + 1);
   if (ret == -1) {
-    PrintError(3, WEBSERV, CRITICAL, "IO READING FAIL");
+    PrintError(4, WEBSERV, CRITICAL, "IO READING FAIL : ", file_path);
   }
   close(fd);
   storage[size] = '\0';
@@ -111,10 +111,13 @@ pos_t FindValueLength(std::string& str, pos_t& pos) {
 
 void DeleteUdata(s_base_type* data) {
   s_client_type* temp = static_cast<s_client_type*>(data);
-  //   std::cout << "DELETE Client : " << temp->GetFD() << std::endl;
+  if (temp->GetRequest().entity_length_ != 0)
+    delete[] temp->GetRequest().entity_;
   temp->GetRequest().entity_length_ = 0;
   temp->GetRequest().header_.clear();
   temp->GetRequest().init_line_.clear();
+  //   if (temp->GetRequest().temp_entity_.size() != 0)
+  //     temp->GetRequest().temp_entity_.clear();
   if (temp->GetResponse().entity_length_ != 0)
     delete[] temp->GetResponse().entity_;
   temp->GetResponse().entity_length_ = 0;
@@ -153,10 +156,15 @@ void ResetConnection(s_client_type* udata) {
   const_cast<std::string&>(udata->GetOriginURI()).clear();
 
   t_http* temp_http = &(udata->GetRequest());
+  if (temp_http->entity_length_ != 0) {
+    if (temp_http->entity_ != NULL) {
+      delete[] temp_http->entity_;
+    }
+  }
   temp_http->entity_length_ = 0;
   temp_http->header_.clear();
   temp_http->init_line_.clear();
-
+  temp_http->content_len_ = 0;
   temp_http = &((udata)->GetResponse());
   if (temp_http->entity_length_ != 0) {
     delete[] temp_http->entity_;
@@ -164,6 +172,10 @@ void ResetConnection(s_client_type* udata) {
   temp_http->entity_length_ = 0;
   temp_http->header_.clear();
   temp_http->init_line_.clear();
+  temp_http->content_len_ = 0;
+  if (temp_http->temp_entity_.size() != 0) {
+    temp_http->temp_entity_.clear();
+  }
 
   udata->GetMimeType().clear();
   udata->SetStage(DEF);

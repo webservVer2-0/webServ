@@ -41,66 +41,6 @@
 		<input type="submit" value="upload">
 		</fieldset>
 	</form>
-	<div>
-		<fieldset style="width:400px;">
-		<label for="file-input">대용량 파일 업로드 테스트</label>
-		<br>
-		<input type="file" id="file-input">
-    	<button id="send-button">Send</button>
-		</fieldset>
-	</div>
-    <script>
-        // 버튼 클릭 시 파일 전송 시작
-        document.getElementById('send-button').addEventListener('click', function() {
-            var fileInput = document.getElementById('file-input');
-            var file = fileInput.files[0];
-
-            // FileReader 객체 생성
-            var reader = new FileReader();
-
-            // 파일을 chunked encoding 방식으로 전송하기 위한 변수 초기화
-            var chunkSize = 1024; // 1KB
-            var offset = 0;
-            var totalSize = file.size;
-
-            // XMLHttpRequest 객체 생성
-            var xhr = new XMLHttpRequest();
-
-            // 파일 전송을 위한 POST 요청 전송
-            xhr.open('POST', '/post');
-
-            // Request를 chunked encoding 방식으로 전송하도록 설정
-            xhr.setRequestHeader('Transfer-Encoding', 'chunked');
-
-            // Request Body의 각 chunk를 보낼 때 호출될 함수 정의
-            function sendChunk() {
-                var chunk = file.slice(offset, offset + chunkSize);
-                offset += chunkSize;
-
-                if (chunk.size === 0) {
-                    // 파일 전송 완료
-                    xhr.send();
-                } else {
-                    // 현재 chunk 전송
-                    xhr.send(chunk);
-
-                    // 다음 chunk 전송
-                    setTimeout(sendChunk, 0);
-                }
-            }
-
-            // Request 완료 시 호출될 콜백 함수 설정
-            xhr.onload = function() {
-                console.log('Finished sending data');
-            };
-
-            // FileReader 객체에 파일을 읽어들인 후, sendChunk() 함수 호출
-            reader.onloadend = function() {
-                sendChunk();
-            };
-            reader.readAsArrayBuffer(file);
-        });
-    </script>
 	<a href="/"><img src="/asset/home.png" id="home"></img></a>
 </body>
 </html>
