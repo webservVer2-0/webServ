@@ -19,36 +19,9 @@
 		<span id="banner_under">우리는 생각한다. 고로 웹서브를 해낸다</span>
 		</a>
 	</div>
-	<h1>POST Method Test</h1>
-	<form method="POST" action="/post" name="person_info" accept-charset="ASCII" enctype="application/x-www-form-urlencoded">
-		<fieldset style="width:400px">
-			<label for="name">이름 :</label>
-			<input type="text" id="name" name="name"  style="margin-bottom: 10px;">
-			<br>
-			<label for="age">나이 :</label>
-			<input type="number" id="age" name="age" min="0" max="100"><br><br>
+	    <input type="file" id="file-input">
+    <button id="send-button">Send</button>
 
-			<label for="email">이메일 :</label>
-			<input type="email" id="email" name="email" style="width:300px"><br>
-
-			<button type="submit">제출</button>
-		</fieldset>
-	</form>
-	<form method="POST" action="/post" name="file_upload" enctype="multipart/form-data">
-		<fieldset style="width:400px;">
-		<label for="file" style="margin:10px 0px 10px 0px;">업로드할 사진을 선택하세요(png)</label>
-	  	<input type="file" name="file" style="margin:10px 0px 10px 0px;">
-		<input type="submit" value="upload">
-		</fieldset>
-	</form>
-	<div>
-		<fieldset style="width:400px;">
-		<label for="file-input">대용량 파일 업로드 테스트</label>
-		<br>
-		<input type="file" id="file-input">
-    	<button id="send-button">Send</button>
-		</fieldset>
-	</div>
     <script>
         // 버튼 클릭 시 파일 전송 시작
         document.getElementById('send-button').addEventListener('click', function() {
@@ -67,7 +40,7 @@
             var xhr = new XMLHttpRequest();
 
             // 파일 전송을 위한 POST 요청 전송
-            xhr.open('POST', '/post');
+            xhr.open('POST', '/upload');
 
             // Request를 chunked encoding 방식으로 전송하도록 설정
             xhr.setRequestHeader('Transfer-Encoding', 'chunked');
