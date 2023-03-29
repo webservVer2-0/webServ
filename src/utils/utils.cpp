@@ -50,12 +50,12 @@ char* GetFile(const char* file_path) {
   char* storage;
   storage = new char[size + 1];
   if (storage == NULL) {
-    PrintError(3, WEBSERV, CRITICAL, "HEAP ASSIGNMENT");
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT : ", "GetFile()");
   }
   fd = open(file_path, O_RDONLY);
   int ret = read(fd, storage, size + 1);
   if (ret == -1) {
-    PrintError(3, WEBSERV, CRITICAL, "IO READING FAIL");
+    PrintError(4, WEBSERV, CRITICAL, "IO READING FAIL : ", file_path);
   }
   close(fd);
   storage[size] = '\0';

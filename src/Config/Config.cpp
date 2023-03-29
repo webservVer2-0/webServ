@@ -15,8 +15,8 @@ ServerConfig::ServerConfig(const char* confpath) : server_number_(0) {
   ParssingServer(config_data);
   delete[] config_data;
 
+  // Valid Checker for Config Validation
   CheckMultiPort();
-  // TODO : SamePortMultiServer Checking Function
 
   // Valid Checker for Config Validation
   ValidCheckMain();
@@ -780,14 +780,14 @@ void ServerConfig::ServerAddressInit() {
   int port_number = this->GetServerNumber();
   this->server_addr_ = new sockaddr_in[port_number];
   if (!this->server_addr_) {
-    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(sockaddr_in init)");
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT : ", "sockaddr_in init");
   }
 }
 
 void ServerConfig::ServerSocketInit() {
   this->server_socket_ = new int[server_number_];
   if (!this->server_socket_) {
-    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT", "(socket array init)");
+    PrintError(4, WEBSERV, CRITICAL, "HEAP ASSIGNMENT : ", "socket array init");
   }
 }
 

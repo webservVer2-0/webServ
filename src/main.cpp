@@ -10,11 +10,7 @@ int main(int ac, char** av, char** en) {
 
   ServerConfig webserv(av[1]);
 
-#if DG
   webserv.PrintServerConfig();
-#else
-  ;
-#endif
 
   ServerInit(webserv);
   ServerBind(webserv);
