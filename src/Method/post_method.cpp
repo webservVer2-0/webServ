@@ -152,6 +152,8 @@ void ClientCGIPost(struct kevent* event) {
   args[2] = ExtractAsciiData(client->GetRequest().entity_,
                              client->GetRequest().entity_length_);
   args[3] = NULL;
+  std::cout << "CGI Post args: " << client->GetConvertedURI() << ", "
+            << client->GetCookieId() << ". " << args[2] << std::endl;
 
   int cgi_pipe[2];
   if (pipe(cgi_pipe)) {
@@ -175,8 +177,10 @@ void ClientCGIPost(struct kevent* event) {
   }
   close(cgi_pipe[1]);
   client->GetResponse().entity_length_ = cgi_pipe[0];
-  ServerConfig::ChangeEvents(child_pid, EVFILT_PROC, EV_ADD, NOTE_EXIT, 0,
-                             client);
+  ServerConfig::ChangeEvents(
+      child_pid, EVFILT_PROC, EV_ADD,
+      static_cast<uint16_t>(NOTE_EXIT) | static_cast<uint16_t>(NOTE_EXITSTATUS),
+      0, client);
   ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
                              client);
   client->SetErrorCode(OK);
@@ -185,6 +189,7 @@ void ClientCGIPost(struct kevent* event) {
 }
 
 void ProcCGIPost(struct kevent* event) {
+  std::cout << "ProcCGIPost start" << std::endl;
   s_client_type* client = static_cast<s_client_type*>(event->udata);
   int exit_status = event->data;
   int pipe_read = client->GetResponse().entity_length_;
@@ -192,8 +197,10 @@ void ProcCGIPost(struct kevent* event) {
 
   if (exit_status != 0) {
     // error
-    client->SetErrorCode(SYS_ERR);
     close(pipe_read);  // close pipe;
+    client->SetErrorString(errno, "post_method.cpp / CGI failed");
+    client->SetErrorCode(SYS_ERR);
+    client->SetStage(POST_FIN);
   } else {
     // ok
     client->CreateWork(&cgi_path, pipe_read, cgi);
@@ -204,6 +211,27 @@ void ProcCGIPost(struct kevent* event) {
 }
 
 void WorkCGIPost(struct kevent* event) {
-  (void)event;
+  std::cout << "WorkCGIPost start" << std::endl;
+  s_work_type* work = static_cast<s_work_type*>(event->udata);
+  s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
+
+  client->GetResponse().entity_length_ = event->data;
+  client->GetResponse().entity_ = new char[event->data];
+
+  ssize_t read_result = read(work->GetFD(), client->GetResponse().entity_,
+                             client->GetResponse().entity_length_);
+  if (read_result <
+      static_cast<ssize_t>(client->GetResponse().entity_length_)) {
+    delete[] client->GetResponse().entity_;
+    return;
+  } else {
+    work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
+    ServerConfig::ChangeEvents(work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0,
+                               NULL);
+    close(work->GetFD());
+    client->SetMimeType("/ascii_result.txt");
+    client->SetStage(POST_FIN);
+    client->SetErrorCode(OK);
+  }
   return;
 }
