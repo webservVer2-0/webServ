@@ -122,6 +122,7 @@ void ServerRun(ServerConfig& config) {
             WorkCGIPost(curr_event);
         } break;
         case CLIENT: {
+          CheckError(curr_event);
           if (curr_event->filter == EVFILT_READ) {
             {
               if (curr_event->data == 0) {
@@ -233,7 +234,6 @@ void ServerRun(ServerConfig& config) {
           }
         };
       }
-      CheckError(curr_event);
     }
   }
   return;

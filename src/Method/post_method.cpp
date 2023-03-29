@@ -131,6 +131,7 @@ void WorkFilePost(struct kevent* event) {
     client->SetErrorCode(OK);
     client->SetStage(POST_FIN);
     client->SetMessageLength(0);
+    delete work;
   }
   return;
 }
@@ -236,6 +237,7 @@ void WorkCGIPost(struct kevent* event) {
     client->SetMimeType("/ascii_result.txt");
     client->SetStage(POST_CGI);
     client->SetErrorCode(OK);
+    delete work;
   }
   return;
 }

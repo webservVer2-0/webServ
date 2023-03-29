@@ -161,6 +161,6 @@ void WorkGet(struct kevent* event) {
     work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
   }
   close(file_fd);
-
+  delete work;
   return;
 }
