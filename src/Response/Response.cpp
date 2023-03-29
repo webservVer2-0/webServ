@@ -119,9 +119,11 @@ inline t_http MakeResInitHeader(s_client_type* client, t_http msg,
   msg.header_.insert(std::make_pair(
       std::string("Server: "),
       client->GetConfig().main_config_.find("server_name")->second));
-  if (client->GetMimeType() == "html") {
+  if (client->GetMimeType() == "text/html") {
+    std::cout << "html" << std::endl;
     std::string cookie_id = client->GetCookieId();
     std::snprintf(buf, 1024, "id=%s; HttpOnly;", cookie_id.c_str());
+    std::cout << cookie_id.c_str() << std::endl;
     std::string set_cookie = std::string(buf);
     msg.header_.insert(std::make_pair(std::string("Set-Cookie: "), set_cookie));
   }
