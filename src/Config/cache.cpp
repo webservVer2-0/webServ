@@ -13,7 +13,7 @@ typedef t_cache::iterator cache_iterator;
 void SetCache(t_server& target, t_cache& static_pages, t_cache& error_pages) {
   SetStatic(target.location_configs_, static_pages);
   SetError(target.main_config_.at("error"), error_pages);
-} // map.at()
+}
 
 void SetStatic(location_list& location_configs, t_cache& static_pages) {
   std::string file_path;
@@ -23,7 +23,7 @@ void SetStatic(location_list& location_configs, t_cache& static_pages) {
     if (it.operator->()->second->loc_type_[0] == T_ROOT) {
       config_map* temp = &(it.operator->()->second->main_config_);
       file_path += "./";
-      file_path += temp->at(ROOT); //map
+      file_path += temp->at(ROOT);
       file_path += "/";
       file_path += temp->at(DEFFILE);
 
