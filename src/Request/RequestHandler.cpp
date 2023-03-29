@@ -45,12 +45,12 @@ t_error ConvertUri(std::string rq_uri,
 
   if ((query_index = rq_uri.find('?')) != std::string::npos) {
     t_http& http = client.GetRequest();
-    const std::string& query = rq_uri.substr(query_index + 1);
-    http.entity_length_ = query.length();
-    http.temp_entity_.reserve(http.entity_length_);
-    http.temp_entity_.insert(http.temp_entity_.end(), query.begin(),
-                             query.end());
-    http.entity_ = http.temp_entity_.begin().base();
+    char* target = new char[rq_uri.length() - query_index + 2];
+    std::memcpy(target, rq_uri.c_str() + query_index + 1,
+                rq_uri.length() - query_index + 1);
+    target[rq_uri.length() - query_index + 1] = '\0';
+    http.entity_ = target;
+    http.entity_length_ = rq_uri.length() - query_index + 1;
     rq_uri = rq_uri.substr(0, query_index);
   }
   std::string token = rq_uri;
@@ -226,6 +226,7 @@ t_error EntityParser(t_http* http) {
   if (entity_len <= 0) return (BAD_REQ);
 
   try {
+    http->temp_entity_.clear();
     http->temp_entity_.reserve(entity_len);
 
     http->entity_length_ = entity_len;
