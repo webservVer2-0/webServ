@@ -48,7 +48,8 @@ t_error ConvertUri(std::string rq_uri,
     const std::string& query = rq_uri.substr(query_index + 1);
     http.entity_length_ = query.length();
     http.temp_entity_.reserve(http.entity_length_);
-    http.temp_entity_.insert(http.temp_entity_.end(), query.begin(), query.end());
+    http.temp_entity_.insert(http.temp_entity_.end(), query.begin(),
+                             query.end());
     http.entity_ = http.temp_entity_.begin().base();
     rq_uri = rq_uri.substr(0, query_index);
   }
@@ -85,9 +86,9 @@ inline void SetPrevCookie(s_client_type* client_type, t_http* http) {
 
   /* 발급 받은 Cookie가 없을 경우. (예: Cookie: id=) */
   if (equal_pos + 1 == cookie_line.size()) return;
-
+  size_t semicolon_pos = cookie_line.find(";");
   std::string prev_id =
-      cookie_line.substr(equal_pos + 1, cookie_line.size() - equal_pos + 1);
+      cookie_line.substr(equal_pos + 1, semicolon_pos - equal_pos - 1);
   int timer = atoi(client_type->GetConfig().main_config_.at(TIMEOUT).c_str());
   if (timer != 0) {
     ServerConfig::ChangeEvents(client_type->GetFD(), EVFILT_TIMER, EV_CLEAR,

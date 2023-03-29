@@ -80,12 +80,6 @@ void ServerKinit(ServerConfig& config) {
     s_server_type* udata = new s_server_type(config, i, server_socket[i]);
     ServerConfig::ChangeEvents(server_socket[i], EVFILT_READ,
                                EV_ADD | EV_ENABLE, 0, 0, udata);
-    // std::cout << "[ Server(" << GREEN << std::setw(10) << std::right
-    //           << config.GetServerList(i).main_config_.at("server_name") <<
-    //           RESET
-    //           << ") : " << std::setw(30) << std::right << "Port is activated
-    //           ]"
-    //           << std::endl;
   }
   return;
 }
@@ -119,8 +113,6 @@ void ServerRun(ServerConfig& config) {
         case WORK: {
           s_work_type* work_type = static_cast<s_work_type*>(ft_filter);
           if (work_type->GetWorkType() == file) {
-            // std::cout << "FILE steps"
-            //           << " / Task FD : " << ft_filter->GetFD() << std::endl;
             if (work_type->GetClientStage() == GET_START)
               WorkGet(curr_event);
             else if (work_type->GetClientStage() == POST_START) {
@@ -128,16 +120,11 @@ void ServerRun(ServerConfig& config) {
             }
           } else if (work_type->GetWorkType() == cgi)
             WorkCGIPost(curr_event);
-          // std::cout << "cgi steps" << std::endl;
         } break;
         case CLIENT: {
           if (curr_event->filter == EVFILT_READ) {
             {
-              //   std::cout << "READ steps"
-              //             << " / Task FD : " << ft_filter->GetFD() <<
-              //             std::endl;
               if (curr_event->data == 0) {
-                //     std::cout << "no data" << std::endl;
                 continue;
               } else {
                 static_cast<s_client_type*>(ft_filter)->GetTimeData()[0] =
@@ -176,9 +163,6 @@ void ServerRun(ServerConfig& config) {
             }
           } else if (curr_event->filter == EVFILT_WRITE) {
             s_client_type* client = static_cast<s_client_type*>(ft_filter);
-            // std::cout << "WRITE steps"
-            //           << " / Task FD : " << ft_filter->GetFD() <<
-            // std::endl;
             t_send* send = &client->GetSend();
             switch (send->flags) {
               case 0:  // Make header(header + body)
@@ -195,45 +179,28 @@ void ServerRun(ServerConfig& config) {
               default:
                 SendFin(curr_event, client);
             }
-            /*if (client->GetStage() == RES_SEND) {
-              SendProcess(curr_event, client);
-            } else {
-              char* msg_top = strdup("");
-              char* send_msg = strdup("");
-              if (client->IsChunked()) {
-                send_msg = MakeSendMessage(client, msg_top);
-              } else {
-                client->SetResponse();
-                msg_top = MaketopMessage(client);
-                send_msg = MakeSendMessage(client, msg_top);
-              }
-              delete msg_top;
-              client->SetBuf(send_msg);
-              SendMessageLength(client);
-              SendProcess(curr_event, client);
-              if (client->GetStage() == RES_SEND) continue;
-              SendFin(curr_event, client);
-            }*/
           } else if (curr_event->filter == EVFILT_TIMER ||
                      curr_event->flags & EV_EOF) {
-            DeleteUdata(ft_filter);
+            s_client_type* client =
+                static_cast<s_client_type*>(curr_event->udata);
+            if (client->GetStage() != DEF || client->GetStage() != END) {
+              int timer = atoi(client->GetConfig()
+                                   .main_config_.find("timeout")
+                                   ->second.c_str());
+              ServerConfig::ChangeEvents(client->GetFD(), EVFILT_TIMER, EV_ADD,
+                                         NOTE_SECONDS, timer, client);
+            } else {
+              DeleteUdata(ft_filter);
+            }
           }
         } break;
         case LOGGER: {
           if (curr_event->filter == EVFILT_WRITE) {
-            // std::cout << "Logger steps"
-            //           << " / Task FD : "
-            //           <<
-            //           static_cast<s_logger_type*>(curr_event->udata)->GetFD()
-            //           << std::endl;
             static_cast<s_logger_type*>(ft_filter)->PushData();
           }
         } break;
         default: {  // Server case
           sockaddr_in* addr_info = config.GetServerAddress();
-          //   std::cout << "SERVER steps"
-          //             << " / Task FD : " << ft_filter->GetFD() <<
-          //             std::endl;
           socklen_t addrlen = sizeof(addr_info);
           int client_fd(accept(curr_event->ident,
                                reinterpret_cast<sockaddr*>(addr_info),
