@@ -88,7 +88,7 @@ input::placeholder{
 			const asciiData = form.elements['ascii-data'].value;
 			
 			// 서버로 요청 보내기
-			const response = await fetch('/cgi_1/cgi.py', {
+			const response = await fetch('/cgi_2/cgi.py', {
 				method: 'POST',
 				body: new URLSearchParams({ 'ascii-data': asciiData })
 			});

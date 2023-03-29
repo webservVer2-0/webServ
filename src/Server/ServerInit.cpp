@@ -140,7 +140,13 @@ void ServerRun(ServerConfig& config) {
                   break;
                 }
                 case POST_READY: {
-                  ClientFilePost(curr_event);
+                  s_client_type* client =
+                      static_cast<s_client_type*>(ft_filter);
+                  std::string req_uri = client->GetConvertedURI();
+                  if (req_uri.find("cgi") == std::string::npos)
+                    ClientFilePost(curr_event);
+                  else
+                    ClientCGIPost(curr_event);
                   break;
                 }
                 case DELETE_READY: {
@@ -155,6 +161,9 @@ void ServerRun(ServerConfig& config) {
                 }
               }
             }
+          } else if (curr_event->filter == EVFILT_PROC) {
+            std::cout << "Enter Proc" << std::endl;
+            ProcCGIPost(curr_event);
           } else if (curr_event->filter == EVFILT_WRITE) {
             s_client_type* client = static_cast<s_client_type*>(ft_filter);
             t_send* send = &client->GetSend();
