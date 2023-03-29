@@ -133,6 +133,7 @@ void WorkGet(struct kevent* event) {
     }
   }
   if (work->GetVec().size() != response->entity_length_) {
+    work->GetVec().clear();
     client->SetErrorString(errno, "get_method.cpp / WorkGet()안의 read()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(ERR_READY);
@@ -149,6 +150,7 @@ void WorkGet(struct kevent* event) {
       response->entity_[idx + 1] = *(it++);
     }
   }
+  work->GetVec().clear();
 
   size_t chunk_size =
       atoi(client->GetConfig().main_config_.find(BODY)->second.c_str());
