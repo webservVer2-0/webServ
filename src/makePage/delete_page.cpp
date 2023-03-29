@@ -1,6 +1,5 @@
 #include "../../include/utils.hpp"
 #include "../../include/webserv.hpp"
-#include "dirent.h"
 
 void MakeDeletePage(s_client_type* client, t_http& response,
                     std::string directory_path) {

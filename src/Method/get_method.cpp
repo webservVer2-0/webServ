@@ -1,7 +1,4 @@
 #include "../../include/webserv.hpp"
-#include "dirent.h"
-
-// TODO : seterrorcode, setstage 묶는 함수 / error 처리 과정 묶 함수 만들까 고민
 
 void MethodGetSetEntity(s_client_type*& client) {
   client->GetResponse().entity_length_ =
