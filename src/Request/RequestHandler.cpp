@@ -226,6 +226,7 @@ t_error EntityParser(t_http* http) {
   if (entity_len <= 0) return (BAD_REQ);
 
   try {
+    http->temp_entity_.clear();
     http->temp_entity_.reserve(entity_len);
 
     http->entity_length_ = entity_len;
