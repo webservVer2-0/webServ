@@ -193,6 +193,7 @@ void ServerRun(ServerConfig& config) {
                                          NOTE_SECONDS, timer, client);
             } else {
               DeleteUdata(ft_filter);
+              continue;
             }
           }
         } break;

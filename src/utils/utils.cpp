@@ -127,6 +127,7 @@ void DeleteUdata(s_base_type* data) {
   ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_READ, EV_DELETE, 0, 0, 0);
   ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_TIMER, EV_DELETE, 0, 0, 0);
   close(temp->GetFD());
+  delete temp;
 }
 
 void SetSockoptReuseaddr(int* socket_fd, int socket_length) {

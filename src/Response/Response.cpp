@@ -292,7 +292,7 @@ void SendProcess(struct kevent* event, s_client_type* client) {
       send(event->ident, send_->send_msg + sent_len, len - sent_len, 0);
   if (temp_len < 0) {
     send_->flags = 2;
-  } else if (temp_len < len) {
+  } else if (temp_len < len && temp_len != 0) {
     send_->flags = 2;
     temp_len += sent_len;
     client->SetSentLength(temp_len);
