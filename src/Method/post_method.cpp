@@ -154,8 +154,6 @@ void ClientCGIPost(struct kevent* event) {
   args[2] = ExtractAsciiData(client->GetRequest().entity_,
                              client->GetRequest().entity_length_);
   args[3] = NULL;
-  std::cout << "CGI Post args: " << client->GetConvertedURI() << ", "
-            << client->GetCookieId() << ". " << args[2] << std::endl;
 
   int cgi_pipe[2];
   if (pipe(cgi_pipe)) {
@@ -172,7 +170,6 @@ void ClientCGIPost(struct kevent* event) {
     client->SetStage(POST_FIN);
     return;
   } else if (child_pid == 0) {  // child process
-    std::cout << ">>>> child" << std::endl;
     close(cgi_pipe[0]);
     dup2(cgi_pipe[1], STDOUT_FILENO);
     close(cgi_pipe[1]);
@@ -180,7 +177,6 @@ void ClientCGIPost(struct kevent* event) {
       exit(EXIT_FAILURE);
     }
   }
-  std::cout << ">>>> parent" << std::endl;
   close(cgi_pipe[1]);
   waitpid(-1, 0, 0);
   client->GetResponse().entity_length_ = cgi_pipe[0];
@@ -194,25 +190,22 @@ void ClientCGIPost(struct kevent* event) {
                              client);
   client->SetErrorCode(OK);
   client->SetStage(POST_START);
-  std::cout << "end of client cgi" << std::endl;
   return;
 }
 
 void ProcCGIPost(struct kevent* event) {
-  std::cout << "ProcCGIPost start" << std::endl;
   s_client_type* client = static_cast<s_client_type*>(event->udata);
   int exit_status = event->data;
   int pipe_read = client->GetResponse().entity_length_;
   std::string cgi_path = client->GetConvertedURI();
 
-  if (exit_status != 0) {
+  if (exit_status == EXIT_FAILURE) {
     // error
     close(pipe_read);  // close pipe;
     client->SetErrorString(errno, "post_method.cpp / CGI failed");
-    std::cout << "EXIT: " << exit_status << std::endl;
     client->GetResponse().entity_length_ = 0;
     client->SetErrorCode(SYS_ERR);
-    client->SetStage(POST_FIN);
+    client->SetStage(POST_READY);
   } else {
     // ok
     s_base_type* new_work = client->CreateWork(&cgi_path, pipe_read, cgi);
@@ -226,7 +219,6 @@ void ProcCGIPost(struct kevent* event) {
 }
 
 void WorkCGIPost(struct kevent* event) {
-  std::cout << "WorkCGIPost start" << std::endl;
   s_work_type* work = static_cast<s_work_type*>(event->udata);
   s_client_type* client = static_cast<s_client_type*>(work->GetClientPtr());
 
@@ -245,7 +237,7 @@ void WorkCGIPost(struct kevent* event) {
                                NULL);
     close(work->GetFD());
     client->SetMimeType("/ascii_result.txt");
-    client->SetStage(POST_FIN);
+    client->SetStage(POST_CGI);
     client->SetErrorCode(OK);
   }
   return;
