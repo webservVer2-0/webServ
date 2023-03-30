@@ -43,7 +43,7 @@ inline long StringToHexLong(std::string str) {
     return (-1);
 }
 
-static t_error RefineChunk(t_http* http, size_t entity_len) {
+static t_error RefineChunk(t_http* http, size_t entity_len, int max_body_size) {
   char* entity = http->entity_;
   std::vector<char> temp_entity;
   std::string chunk_size;
@@ -72,7 +72,7 @@ static t_error RefineChunk(t_http* http, size_t entity_len) {
       else if (entity[i] == '\r' && entity[i + 1] == '\n') {
         // string을 long으로 변환
         size = StringToHexLong(chunk_size);
-        if (size == -1) {
+        if (size == -1 || size > max_body_size) {
           return (BAD_REQ);
         }
         is_chunk_size = false;
@@ -103,10 +103,11 @@ static t_error RefineChunk(t_http* http, size_t entity_len) {
     }
     i++;
   }
-  show_vec(temp_entity);
+  // show_vec(temp_entity);
   delete[] http->entity_;
   http->entity_ = NULL;
-  http->entity_ = new char[temp_entity.size()];
+  http->entity_ = new char[i - total_chunk - CRLF_LEN];
+  http->entity_length_ = i - total_chunk - CRLF_LEN;
   for (size_t i = 0; i < temp_entity.size(); i++) {
     entity[i] = temp_entity[i];
   }
@@ -417,8 +418,8 @@ int RequestHandler(struct kevent* curr_event) {
   t_http* http = &(client_type->GetRequest());
   long max_header_size = StringToLong(
       client_type->GetParentServer().GetServerConfig().main_config_[MAXH]);
-  // int max_body_size = StringToLong(
-  //     client_type->GetParentServer().GetServerConfig().main_config_[BODY]);
+  int max_body_size = StringToLong(
+      client_type->GetParentServer().GetServerConfig().main_config_[BODY]);
   char buf[max_header_size + 1];
   std::memset(buf, -1, max_header_size + 1);
 
@@ -490,11 +491,9 @@ int RequestHandler(struct kevent* curr_event) {
 
           if (http->header_["Transfer-Encoding"].find("chunked") !=
               std::string::npos) {
-            http->entity_length_ =
-                read_byte - (double_crlf + DOUBLE_CRLF_LEN - buf);
-
             err_code = RefineChunk(
-                http, read_byte - (double_crlf + DOUBLE_CRLF_LEN - buf));
+                http, read_byte - (double_crlf + DOUBLE_CRLF_LEN - buf),
+                max_body_size);
             if (err_code) {
               return (RequestError(client_type, err_code,
                                    "RequestHandler.cpp/RefineChunk()"));
