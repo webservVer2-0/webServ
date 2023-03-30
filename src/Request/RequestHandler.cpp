@@ -5,13 +5,21 @@
 #define DOUBLE_CRLF "\r\n\r\n"
 #define CRLF_LEN 2
 #define DOUBLE_CRLF_LEN 4
-#define MAX_HEADER_SIZE 4000
 
 inline void show_map(std::map<std::string, std::string> myMap) {
   for (std::map<std::string, std::string>::iterator it = myMap.begin();
        it != myMap.end(); ++it) {
     std::cout << it->first << " : " << it->second << std::endl;
   }
+}
+
+inline void show_vec(std::vector<char> vec) {
+  int i = 0;
+  for (std::vector<char>::iterator it = vec.begin(); it != vec.end(); ++it) {
+    std::cout << i << ": " << *it << std::endl;
+    i++;
+  }
+  std::cout << std::endl;
 }
 
 inline long StringToLong(std::string str) {
@@ -22,6 +30,88 @@ inline long StringToLong(std::string str) {
     return (num);
   else
     return (0);
+}
+
+inline long StringToHexLong(std::string str) {
+  char* end;
+  const int hex = 16;
+  long num = std::strtol(str.c_str(), &end, hex);
+  if (num < 0) return (-1);
+  if (end == str.c_str() + str.length())
+    return (num);
+  else
+    return (-1);
+}
+
+static t_error RefineChunk(t_http* http, size_t entity_len) {
+  char* entity = http->entity_;
+  std::vector<char> temp_entity;
+  std::string chunk_size;
+
+  if (strnstr(entity, "0\r\n\r\n", entity_len) == NULL) {
+    return (BAD_REQ);
+  }
+  int i = 0;
+  int total_chunk = 0;
+  // curl이 total chunk size를 넣어서 보내줌, 그 부분을 건너뛰기
+  while (entity[i] != '\r' && entity[i + 1] != '\n') {
+    i++;
+    total_chunk++;
+  }
+  i += CRLF_LEN;
+  int size = 0;
+  bool is_chunk_size = true;  // chunk size를 보내는 라인 여부
+  while (!(entity[i] == '0' && entity[i + 1] == '\r' && entity[i + 2] == '\n' &&
+           entity[i + 3] == '\r' && entity[i + 4] == '\n')) {
+    if (is_chunk_size) {
+      // 16 진수인지 확인(0~9, a~f, A~F)
+      if (isxdigit(entity[i])) {
+        chunk_size.push_back(entity[i]);
+      }
+      // chunk size 끝
+      else if (entity[i] == '\r' && entity[i + 1] == '\n') {
+        // string을 long으로 변환
+        size = StringToHexLong(chunk_size);
+        if (size == -1) {
+          return (BAD_REQ);
+        }
+        is_chunk_size = false;
+        chunk_size.clear();
+      }
+      // 16진수가 아니면
+      else {
+        return (BAD_REQ);
+      }
+    } else {
+      // CRLF가 아닌 경우
+      if (entity[i] == '\r' && entity[i + 1] == '\n') {
+        if (size != -1) {
+          return (BAD_REQ);
+        }
+        i += 1;  // CRLF 스킵
+      } else {
+        if (entity[i] != '\n' || (entity[i] == '\n' && entity[i - 1] == '\n'))
+          temp_entity.push_back(entity[i]);
+        else if (entity[i] == '\n' && entity[i + 1] == '\r')
+          temp_entity.push_back(entity[i]);
+        size--;
+        if (size == -1) {
+          is_chunk_size = true;
+          i += CRLF_LEN;
+        }
+      }
+    }
+    i++;
+  }
+  show_vec(temp_entity);
+  delete[] http->entity_;
+  http->entity_ = NULL;
+  http->entity_ = new char[temp_entity.size()];
+  for (size_t i = 0; i < temp_entity.size(); i++) {
+    entity[i] = temp_entity[i];
+  }
+  http->entity_length_ = temp_entity.size();
+  return (NO_ERROR);
 }
 
 std::string MakeUriPath(std::vector<std::string>& vec) {
@@ -229,12 +319,16 @@ t_error EntityParser(t_http* http, s_client_type* client) {
   std::map<std::string, std::string>::iterator content_it =
       http->header_.find("Content-Length");
   std::map<std::string, std::string>::iterator chunked_it =
-      http->header_.find("Transfer-encoding");
+      http->header_.find("Transfer-Encoding");
 
   if (content_it == http->header_.end() && chunked_it == http->header_.end())
     return (BAD_REQ);
-  if ((*chunked_it).second == "chunked") return (NO_ERROR);
-
+  if ((*chunked_it).second == "chunked") {
+    if (http->header_["User-Agent"].find("curl/") == std::string::npos) {
+      return (NOT_IMPLE);
+    }
+    return (NO_ERROR);
+  }
   if (content_it != http->header_.end()) {
     if (content_it == http->header_.end()) return (BAD_REQ);
     int entity_len = atoi(content_it.operator->()->second.c_str());
@@ -321,13 +415,17 @@ inline int RefineEntity(s_client_type* client_type, t_http* http) {
 int RequestHandler(struct kevent* curr_event) {
   s_client_type* client_type = static_cast<s_client_type*>(curr_event->udata);
   t_http* http = &(client_type->GetRequest());
-  char buf[MAX_HEADER_SIZE + 1];
-  std::memset(buf, -1, MAX_HEADER_SIZE + 1);
+  long max_header_size = StringToLong(
+      client_type->GetParentServer().GetServerConfig().main_config_[MAXH]);
+  // int max_body_size = StringToLong(
+  //     client_type->GetParentServer().GetServerConfig().main_config_[BODY]);
+  char buf[max_header_size + 1];
+  std::memset(buf, -1, max_header_size + 1);
 
   switch (client_type->GetStage()) {
     case DEF: {
       // -1 = 다 보냈을 때, 아직 읽을 준비가 안 됐을때, 읽을 것이 없을 때
-      int read_byte = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
+      int read_byte = recv(curr_event->ident, buf, max_header_size, 0);
       if (read_byte == -1) return (-1);
       // 4000만큼 읽었는데 헤더가 끝나지 않는 경우 -> BAD_REQ
       char* double_crlf = strnstr(buf, DOUBLE_CRLF, read_byte);
@@ -390,6 +488,21 @@ int RequestHandler(struct kevent* curr_event) {
             http->entity_[i] = http->temp_entity_[i];
           }
 
+          if (http->header_["Transfer-Encoding"].find("chunked") !=
+              std::string::npos) {
+            http->entity_length_ =
+                read_byte - (double_crlf + DOUBLE_CRLF_LEN - buf);
+
+            err_code = RefineChunk(
+                http, read_byte - (double_crlf + DOUBLE_CRLF_LEN - buf));
+            if (err_code) {
+              return (RequestError(client_type, err_code,
+                                   "RequestHandler.cpp/RefineChunk()"));
+            }
+            client_type->SetStage(POST_READY);
+            return (0);
+          }
+
           // content_length_와 temp_entity_의 크기가 같으면
           // ENTITY를 가공할 필요 없으니 바로 POST_READY
           if (http->temp_entity_.size() == http->entity_length_) {
@@ -404,7 +517,7 @@ int RequestHandler(struct kevent* curr_event) {
       SetClientStage(client_type, http);
     } break;
     case REQ_ING: {
-      int read_byte = recv(curr_event->ident, buf, MAX_HEADER_SIZE, 0);
+      int read_byte = recv(curr_event->ident, buf, max_header_size, 0);
       if (read_byte == -1) return (-1);
 
       // 읽은만큼 content_len_에서 빼줌
@@ -427,6 +540,5 @@ int RequestHandler(struct kevent* curr_event) {
     default:
       break;
   }
-
   return (0);
 }
