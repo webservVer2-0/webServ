@@ -269,7 +269,7 @@ class s_client_type : public s_base_type {
    */
   s_base_type* CreateWork(std::string* path, int file_fd, s_chore work_type);
 
-  std::string GetCookieId(void);
+  std::string& GetCookieId(void);
   void SetCookieId(std::string prev_id);
   t_http& GetRequest(void);
   t_http& GetResponse(void);

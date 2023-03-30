@@ -95,6 +95,9 @@ inline void SetPrevCookie(s_client_type* client_type, t_http* http) {
     ServerConfig::ChangeEvents(client_type->GetFD(), EVFILT_TIMER, EV_CLEAR,
                                NOTE_SECONDS, timer, client_type);
   }
+  for (size_t i = 0; i < prev_id.size(); i++) {
+    if (!isnumber(prev_id[i])) return;
+  }
   client_type->SetCookieId(prev_id);
   return;
 }
@@ -201,7 +204,9 @@ t_error HeaderLineParser(s_client_type* client_type, t_http* http,
       key = line.substr(0, colon_pos);
       value = line.substr(colon_pos + CRLF_LEN);
       http->header_[key] = value;
-      if (key == "Cookie") SetPrevCookie(client_type, http);
+      if (key.find("Cookie") == 0) {
+        SetPrevCookie(client_type, http);
+      }
     } else if (pos == end_pos) {
       break;
     } else {

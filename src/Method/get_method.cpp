@@ -27,7 +27,7 @@ void MethodGetReady(s_client_type*& client) {
 
   if (client->GetCachePage(converted_uri, response))  // 캐시파일인경우
   {
-    client->SetMimeType(converted_uri);
+    client->SetMimeType("default.html");
     client->SetErrorCode(OK);
     client->SetStage(GET_FIN);
     ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,

@@ -93,7 +93,7 @@ s_base_type* s_client_type::CreateWork(std::string* path, int file_fd,
   return (work);
 }
 
-std::string s_client_type::GetCookieId(void) { return this->cookie_id_; }
+std::string& s_client_type::GetCookieId(void) { return this->cookie_id_; }
 void s_client_type::SetCookieId(std::string prev_id) {
   this->cookie_id_ = prev_id;
 }

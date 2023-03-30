@@ -1,0 +1,1 @@
+ERR : 127.0.0.1 [Thu Mar 30 13:22:32 2023] [/favicon.ico 500 SYS_ERR HTTP/1.1 ] [ERR_TIME Thu Mar 30 13:22:33 2023] [500 Interneal Server Error] [2 : No such file or directory] [msg : get_method.cpp / MethodGetReady()안의 open()]
