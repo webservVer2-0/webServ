@@ -314,7 +314,7 @@ void SendFin(struct kevent* event, s_client_type* client) {
   if (client->GetStage() == END || ConnectionClose(client)) {
     ServerConfig::ChangeEvents(event->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
     close(event->ident);
-    ResetConnection(static_cast<s_client_type*>(event->udata));
+    DeleteUdata(client);
   } else {
     ServerConfig::ChangeEvents(event->ident, EVFILT_WRITE, EV_DISABLE, 0, 0, 0);
     ServerConfig::ChangeEvents(event->ident, EVFILT_READ, EV_ENABLE, 0, 0,
