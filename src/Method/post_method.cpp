@@ -138,7 +138,6 @@ void WorkFilePost(struct kevent* event) {
 
 char* ExtractAsciiData(char* raw_entity, size_t entity_len) {
   char* data_start = strchr(raw_entity, '=') + 1;
-  // TODO: = 뒤에 결과가 없을 경우 고려
   size_t data_len = (raw_entity + entity_len) - data_start;
   char* ascii_data = new char[data_len + 1];
   memmove(ascii_data, data_start, data_len);
@@ -157,8 +156,9 @@ void ClientCGIPost(struct kevent* event) {
   args[3] = NULL;
 
   int cgi_pipe[2];
-  if (pipe(cgi_pipe)) {
-    // TODO: event disable?
+  if (pipe(cgi_pipe) == -1) {
+    ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
+                               client);
     client->SetErrorString(errno, "post_method.cpp / pipe()");
     client->SetErrorCode(SYS_ERR);
     client->SetStage(POST_FIN);
@@ -188,6 +188,7 @@ void ClientCGIPost(struct kevent* event) {
   client->SetErrorCode(OK);
   client->SetStage(POST_START);
   delete[] args[2];
+  delete[] args;
   return;
 }
 
@@ -198,14 +199,12 @@ void ProcCGIPost(struct kevent* event) {
   std::string cgi_path = client->GetConvertedURI();
 
   if (exit_status == EXIT_FAILURE) {
-    // error
     close(pipe_read);  // close pipe;
     client->SetErrorString(errno, "post_method.cpp / CGI failed");
     client->GetResponse().entity_length_ = 0;
     client->SetErrorCode(SYS_ERR);
     client->SetStage(POST_READY);
   } else {
-    // ok
     s_base_type* new_work = client->CreateWork(&cgi_path, pipe_read, cgi);
     ServerConfig::ChangeEvents(pipe_read, EVFILT_READ, EV_ADD, 0, 0, new_work);
     ServerConfig::ChangeEvents(event->ident, EVFILT_PROC, EV_DELETE, 0, 0,
@@ -225,19 +224,16 @@ void WorkCGIPost(struct kevent* event) {
 
   ssize_t read_result = read(work->GetFD(), client->GetResponse().entity_,
                              client->GetResponse().entity_length_);
-  if (read_result <
-      static_cast<ssize_t>(client->GetResponse().entity_length_)) {
-    delete[] client->GetResponse().entity_;
-    return;
-  } else {
-    work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
-    ServerConfig::ChangeEvents(work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0,
-                               NULL);
-    close(work->GetFD());
-    client->SetMimeType("/ascii_result.txt");
-    client->SetStage(POST_CGI);
-    client->SetErrorCode(OK);
-    delete work;
-  }
+
+  (void)read_result;
+  work->ChangeClientEvent(EVFILT_WRITE, EV_ENABLE, 0, 0, client);
+  ServerConfig::ChangeEvents(work->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0,
+                             NULL);
+  close(work->GetFD());
+  client->SetMimeType("/ascii_result.txt");
+  client->SetStage(POST_CGI);
+  client->SetErrorCode(OK);
+  delete work;
+
   return;
 }
