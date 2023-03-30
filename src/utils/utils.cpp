@@ -158,6 +158,7 @@ void ResetConnection(s_client_type* udata) {
   if (temp_http->entity_length_ != 0) {
     if (temp_http->entity_ != NULL) {
       delete[] temp_http->entity_;
+      temp_http->entity_ = NULL;
     }
   }
   temp_http->entity_length_ = 0;
@@ -167,6 +168,7 @@ void ResetConnection(s_client_type* udata) {
   temp_http = &((udata)->GetResponse());
   if (temp_http->entity_length_ != 0) {
     delete[] temp_http->entity_;
+    temp_http->entity_ = NULL;
   }
   temp_http->entity_length_ = 0;
   temp_http->header_.clear();

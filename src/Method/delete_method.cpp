@@ -12,7 +12,10 @@ std::string MakeDeleteTargetPath(s_client_type* client) {
   char* raw_entity = client->GetRequest().entity_;
   size_t entity_len = client->GetRequest().entity_length_;
 
-  char* target_start = strchr(raw_entity, '=') + 1;
+  //   char* target_start = strchr(raw_entity, '=') + 1;
+  char* target_start = strnstr(raw_entity, "=", entity_len);
+  if (target_start == NULL) return ("");
+  ++target_start;
   size_t target_len = (raw_entity + entity_len) - target_start;
   char* delete_target = new char[target_len + 1];
 

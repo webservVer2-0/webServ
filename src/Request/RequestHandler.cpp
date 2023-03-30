@@ -51,7 +51,10 @@ t_error ConvertUri(std::string rq_uri,
     http.temp_entity_.reserve(http.entity_length_);
     http.temp_entity_.insert(http.temp_entity_.end(), query.begin(),
                              query.end());
-    http.entity_ = http.temp_entity_.begin().base();
+    http.entity_ = new char[http.temp_entity_.size()];
+    for (size_t i = 0; i < http.temp_entity_.size(); i++) {
+      http.entity_[i] = http.temp_entity_[i];
+    }
     rq_uri = rq_uri.substr(0, query_index);
   }
   std::string token = rq_uri;
