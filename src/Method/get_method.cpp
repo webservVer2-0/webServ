@@ -37,11 +37,11 @@ void MethodGetReady(s_client_type*& client) {
     return;
   } else  // 일반파일인경우
   {
-    if (opendir(converted_uri.c_str()) !=
-        NULL) {  // auto index 꺼져있고 default file 없을때
+    DIR* dir = opendir(converted_uri.c_str());
+    if (dir != NULL) {  // auto index 꺼져있고 default file 없을때
       client->SetErrorCode(FORBID);
       client->SetStage(GET_FIN);
-
+      closedir(dir);
       return;
     }
     int file_fd = open(converted_uri.c_str(), O_RDONLY | O_NONBLOCK);
@@ -73,7 +73,8 @@ void ClientGet(struct kevent* event) {
   t_server server_config = client->GetConfig();
   t_loc loc_config = client->GetLocationConfig();
   if (loc_config.index_mode_ == on) {
-    if (opendir(converted_uri.c_str()) != NULL) {
+    DIR* dir = opendir(converted_uri.c_str());
+    if (dir != NULL) {
       MakeAutoindexPage(client, client->GetResponse(), converted_uri);
 
       client->SetMimeType(converted_uri);
@@ -83,7 +84,7 @@ void ClientGet(struct kevent* event) {
                                  client);
       ServerConfig::ChangeEvents(client->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
                                  client);
-
+      closedir(dir);
       return;
     }
   }
