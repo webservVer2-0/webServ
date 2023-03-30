@@ -93,7 +93,11 @@ inline void SetPrevCookie(s_client_type* client_type, t_http* http) {
   size_t semicolon_pos = cookie_line.find(";");
   std::string prev_id =
       cookie_line.substr(equal_pos + 1, semicolon_pos - equal_pos - 1);
-  int timer = atoi(client_type->GetConfig().main_config_.at(TIMEOUT).c_str());
+  int timer = atoi(client_type->GetConfig()
+                       .main_config_.find(TIMEOUT)
+                       .
+                       operator->()
+                       ->second.c_str());
   if (timer != 0) {
     ServerConfig::ChangeEvents(client_type->GetFD(), EVFILT_TIMER, EV_CLEAR,
                                NOTE_SECONDS, timer, client_type);
@@ -168,7 +172,8 @@ t_error InitLineParser(t_http* http, std::string line) {
   if (second_space == std::string::npos) return (BAD_REQ);
   /*
     1. t_http의 init_line_["URI"] 초기화
-    2. URI에 /delete?가 있으면, init_line_["METHOD"]와 e->_method를 DELETE로
+    2. URI에 /delete?가 있으면, init_line_["METHOD"]와 e->_method를
+    DELETE로
   */
   try {
     http->init_line_["URI"] =
@@ -220,7 +225,7 @@ t_error HeaderLineParser(s_client_type* client_type, t_http* http,
   return (NO_ERROR);
 }
 
-t_error EntityParser(t_http* http) {
+t_error EntityParser(t_http* http, s_client_type* client) {
   std::map<std::string, std::string>::iterator content_it =
       http->header_.find("Content-Length");
   std::map<std::string, std::string>::iterator chunked_it =
@@ -229,6 +234,18 @@ t_error EntityParser(t_http* http) {
   if (content_it == http->header_.end() && chunked_it == http->header_.end())
     return (BAD_REQ);
   if ((*chunked_it).second == "chunked") return (NO_ERROR);
+
+  if (content_it != http->header_.end()) {
+    if (content_it == http->header_.end()) return (BAD_REQ);
+    int entity_len = atoi(content_it.operator->()->second.c_str());
+    if (entity_len <= 0) return (BAD_REQ);
+    int max_len = atoi(client->GetConfig()
+                           .main_config_.find(BODY)
+                           .
+                           operator->()
+                           ->second.c_str());
+    if (entity_len > max_len) return (BAD_REQ);
+  }
 
   std::string len = (*content_it).second;
   const long entity_len = StringToLong(len);
@@ -339,7 +356,8 @@ int RequestHandler(struct kevent* curr_event) {
         return (RequestError(client_type, err_code,
                              "RequestHandler.cpp/HeaderLineParser()"));
 
-      client_type->SetOriginURI(http->init_line_.at("URI"));
+      client_type->SetOriginURI(
+          http->init_line_.find("URI").operator->()->second);
 
       err_code = ConvertUri(
           http->init_line_["URI"],
@@ -350,7 +368,7 @@ int RequestHandler(struct kevent* curr_event) {
                              "RequestHandler.cpp/ConvertUri()"));
 
       if (http->init_line_["METHOD"] == "POST") {
-        err_code = EntityParser(http);
+        err_code = EntityParser(http, client_type);
         if (err_code)
           return (RequestError(client_type, err_code,
                                "RequestHandler.cpp/EntityParser()"));

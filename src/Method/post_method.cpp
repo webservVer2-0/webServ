@@ -22,14 +22,23 @@ bool IsTextFile(s_client_type* client) {
   }
 }
 
+bool IsChunked(s_client_type* client) {
+  t_http& request = client->GetRequest();
+  if (request.header_.find("Transfer-Encoding") == request.header_.end()) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
 /**
  * @brief 업로드를 위한 파일 경로를 생성하는 함수입니다.
  *
  * @param client 클라이언트 데이터가 들어있는 s_client_type 구조체
  * @return std::string 업로드 파일 경로
  * @note 업로드 파일 경로는 '{Cookie ID}_' 뒤에 텍스트 파일인 경우,
- * 'userdata.dat'이, 이미지 파일의 경우 'image.png'로 설정됩니다. 업로드 파일
- * 경로는 앞에 "./"가 붙습니다.
+ * 'userdata.dat'이, 이미지 파일의 경우 'image.png'로 설정됩니다. 업로드
+ * 파일 경로는 앞에 "./"가 붙습니다.
  */
 std::string MakeFilePath(s_client_type* client) {
   std::string upload_path =
@@ -41,6 +50,8 @@ std::string MakeFilePath(s_client_type* client) {
   ret.push_back('_');
   if (IsTextFile(client)) {
     ret.append("userdata.dat");
+  } else if (IsChunked(client)) {
+    ret.append("chunked.txt");
   } else {
     ret.append("image.png");
   }

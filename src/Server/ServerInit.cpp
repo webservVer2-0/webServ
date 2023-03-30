@@ -102,7 +102,7 @@ void ServerRun(ServerConfig& config) {
 
     for (int i = 0; i < new_event_number; i++) {
       curr_event = &config.event_list_[i];
-      if (curr_event->udata == NULL) {
+      if (curr_event->udata == NULL || curr_event->flags & EV_ERROR) {
         continue;
       }
       s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
@@ -132,7 +132,10 @@ void ServerRun(ServerConfig& config) {
                     std::time(NULL);
                 int result = 0;
                 result = RequestHandler(curr_event);
-                if (result == -1) continue;
+                if (result == 1) {
+                  CheckError(curr_event);
+                  continue;
+                }
               }
 
               switch (static_cast<s_client_type*>(ft_filter)->GetStage()) {

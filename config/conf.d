@@ -96,6 +96,12 @@ server  {
 		auto_index off;
 	}
 
+	location /download {
+		root storage/temp/var1;
+		method GET;
+		auto_index off;
+	}
+
 #location /chunked {
 #		root storage/static;
 #		default_file chunked.html;

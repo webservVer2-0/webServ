@@ -121,9 +121,11 @@ void DeleteUdata(s_base_type* data) {
   temp->GetResponse().entity_length_ = 0;
   temp->GetResponse().header_.clear();
   temp->GetResponse().init_line_.clear();
-  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0, 0);
-  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_READ, EV_DELETE, 0, 0, 0);
-  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_TIMER, EV_DELETE, 0, 0, 0);
+  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_WRITE, EV_DELETE, 0, 0,
+                             NULL);
+  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
+  ServerConfig::ChangeEvents(temp->GetFD(), EVFILT_TIMER, EV_DELETE, 0, 0,
+                             NULL);
   close(temp->GetFD());
   delete temp;
 }

@@ -42,12 +42,15 @@ void MakeDeleteBody(s_client_type* client, std::string directory_path,
         entity.append(
             "<img src = \"./asset/file.png\" alt = \"아이콘\" width=\"32\" "
             "height=\"32\">");
-        entity.append("    <span style=\"margin-left:10px;\">");
+        entity.append("    <a href=\"");
+        entity.append("/download/");
+        entity.append(std::string(ent->d_name));
+        entity.append("\" style=\"margin-left:10px;\" download>");
 
         std::string temp =
             MakeNameWithoutID(client->GetCookieId(), std::string(ent->d_name));
         entity.append(temp);
-        entity.append("</span>");
+        entity.append("</a>");
         entity.append(
             "<form method=\"DELETE\" action=\"/delete\" "
             "accept-charset=\"ASCII\"><input type =\"hidden\" "

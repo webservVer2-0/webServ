@@ -29,10 +29,14 @@ s_server_type::s_server_type(ServerConfig& config_list, int server_number,
   int l_fd;
   int e_fd;
 
-  l_fd = open(self_config_->main_config_.at("access_log").c_str(),
+  l_fd = open(self_config_->main_config_.find("access_log")
+                  .
+                  operator->()
+                  ->second.c_str(),
               O_WRONLY | O_APPEND | O_NONBLOCK);
-  e_fd = open(self_config_->main_config_.at("error_log").c_str(),
-              O_WRONLY | O_APPEND | O_NONBLOCK);
+  e_fd = open(
+      self_config_->main_config_.find("error_log").operator->()->second.c_str(),
+      O_WRONLY | O_APPEND | O_NONBLOCK);
 
   this->logger_.SetFD(l_fd);
   this->e_logger_.SetFD(e_fd);
@@ -217,7 +221,7 @@ const std::string& s_client_type::GetOriginURI(void) {
 }
 
 const std::string& s_client_type::GetConvertedURI(void) {
-  return this->request_msg_.init_line_.at("URI");
+  return (this->request_msg_.init_line_.find("URI").operator->()->second);
 }
 
 void s_client_type::SetWorkFinishTime(void) {
@@ -234,8 +238,11 @@ void s_client_type::PrintClientStatus(void) {
   std::cout << "==================================" << std::endl;
   std::cout << "Client Information" << std::endl;
   std::cout << "Accessed Host : ["
-            << this->config_ptr_->main_config_.at("server_name") << "("
-            << this->config_ptr_->port_ << ")]" << std::endl;
+            << this->config_ptr_->main_config_.find("server_name")
+                   .
+                   operator->()
+                   ->second
+            << "(" << this->config_ptr_->port_ << ")]" << std::endl;
   std::cout << "ID : " << this->GetCookieId() << std::endl;
   std::cout << "Client IP : " << this->GetIP() << std::endl;
   std::cout << "FD : " << this->GetFD() << std::endl;
@@ -269,7 +276,8 @@ void s_client_type::SendLogs(void) {
     logging_data.append(" ");
     logging_data.append(this->origin_uri_);
     logging_data.append(" ");
-    logging_data.append(this->request_msg_.init_line_.at("METHOD"));
+    logging_data.append(
+        this->request_msg_.init_line_.find("METHOD").operator->()->second);
     logging_data.append("] ");
     t_error temp = this->GetErrorCode();
     switch (temp) {
@@ -287,7 +295,8 @@ void s_client_type::SendLogs(void) {
     }
 
     logging_data.append(" [Path : ");
-    logging_data.append(this->request_msg_.init_line_.at("URI"));
+    logging_data.append(
+        this->request_msg_.init_line_.find("URI").operator->()->second);
     logging_data.append("]");
   } else {
     logging_data.append("ERR : ");
@@ -298,9 +307,11 @@ void s_client_type::SendLogs(void) {
 
     logging_data.append(this->GetOriginURI());
     logging_data.append(" ");
-    logging_data.append(this->response_msg_.init_line_.at("code"));
+    logging_data.append(
+        this->response_msg_.init_line_.find("code").operator->()->second);
     logging_data.append(" ");
-    logging_data.append(this->response_msg_.init_line_.at("version"));
+    logging_data.append(
+        this->response_msg_.init_line_.find("version").operator->()->second);
     logging_data.append("] [ERR_TIME ");
     logging_data.append(msg2);
     logging_data.append("] [");
