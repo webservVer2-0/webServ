@@ -167,6 +167,8 @@ void ServerRun(ServerConfig& config) {
           } else if (curr_event->filter == EVFILT_WRITE) {
             s_client_type* client = static_cast<s_client_type*>(ft_filter);
             t_send* send = &client->GetSend();
+            // printf("send : %p\nheader: %p\nmsg: %p", send, send->header,
+            //        send->send_msg);
             switch (send->flags) {
               case 0:  // Make header(header + body)
                 client->SetResponse();

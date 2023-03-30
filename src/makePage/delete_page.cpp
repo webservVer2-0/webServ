@@ -73,7 +73,7 @@ void MakeDeleteBody(s_client_type* client, std::string directory_path,
     it++;
   }
   entity.append("</div>");
-
+  closedir(dir);
   response.entity_ = new char[entity.size()];
   response.entity_length_ = entity.size();
   for (size_t i = 0; i < response.entity_length_; i += 2) {

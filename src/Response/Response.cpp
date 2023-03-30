@@ -222,6 +222,7 @@ char* MakeTopMessage(s_client_type* client) {
   }
   joined_str += "\r\n";
   client->SetMessageLength(joined_str.length());
+  // TODO: erase
   char* result = new char[joined_str.length()];
   std::memcpy(result, joined_str.c_str(), joined_str.length());
   return result;

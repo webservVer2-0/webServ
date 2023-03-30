@@ -117,5 +117,6 @@ void MakeAutoindexBody(s_client_type* client, t_http& response,
       response.entity_[i + 1] = entity[i + 1];
     }
   }
+  closedir(dir);
   entity.clear();
 }
