@@ -137,6 +137,8 @@ t_error ConvertUri(std::string rq_uri,
   if ((query_index = rq_uri.find('?')) != std::string::npos) {
     t_http& http = client.GetRequest();
     const std::string& query = rq_uri.substr(query_index + 1);
+    if (query.size() == 0)
+      return BAD_REQ;
     http.entity_length_ = query.length();
     http.temp_entity_.clear();
     http.temp_entity_.reserve(http.entity_length_);

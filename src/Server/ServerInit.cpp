@@ -111,7 +111,7 @@ void ServerRun(ServerConfig& config) {
         continue;
       }
       struct stat buf;
-      if(fstat(curr_event->ident, &buf) == -1)
+      if(fstat(curr_event->ident, &buf) == -1 && curr_event->filter != EVFILT_PROC)
         continue;
       s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
       if (ft_filter == NULL) {
