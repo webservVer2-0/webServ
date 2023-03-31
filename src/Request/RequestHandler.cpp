@@ -420,7 +420,8 @@ int RequestHandler(struct kevent* curr_event) {
       client_type->GetParentServer().GetServerConfig().main_config_[MAXH]);
   int max_body_size = StringToLong(
       client_type->GetParentServer().GetServerConfig().main_config_[BODY]);
-  char buf[max_header_size + 1];
+  // char buf[max_header_size + 1];
+  static char* buf = new char[max_header_size + 1];
   std::memset(buf, -1, max_header_size + 1);
 
   switch (client_type->GetStage()) {

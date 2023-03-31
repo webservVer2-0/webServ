@@ -115,6 +115,7 @@ server  {
 	body_size 10000000;
 	max_header 4000;
 	max_connect 100;
+	max_header 4000;
 	root storage/static2/;
 	default_file index.html;
 	upload_path storage/temp/var2;

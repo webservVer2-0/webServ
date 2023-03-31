@@ -7,7 +7,7 @@ int main(int ac, char** av, char** en) {
     SOUT << "Usage : ./webserv {config path}" << SEND;
     return (-1);
   }
-
+  signal(SIGPIPE, SIG_IGN);
   ServerConfig webserv(av[1]);
 
   webserv.PrintServerConfig();
