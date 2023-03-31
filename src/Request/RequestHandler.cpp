@@ -488,10 +488,12 @@ int RequestHandler(struct kevent* curr_event) {
           for (size_t i = 0; i < http->temp_entity_.size(); i++) {
             http->entity_[i] = http->temp_entity_[i];
           }
-
-          if (http->header_["Transfer-Encoding"].find("chunked") !=
+          http->entity_length_ = http->temp_entity_.size();
+          
+          if (http->header_.find("Transfer-Encoding") != http->header_.end()) {
+           if (http->header_["Transfer-Encoding"].find("chunked") !=
               std::string::npos) {
-            err_code = RefineChunk(
+             err_code = RefineChunk(
                 http, read_byte - (double_crlf + DOUBLE_CRLF_LEN - buf),
                 max_body_size);
             if (err_code) {
@@ -500,7 +502,7 @@ int RequestHandler(struct kevent* curr_event) {
             }
             client_type->SetStage(POST_READY);
             return (0);
-          }
+          }}
 
           // content_length_와 temp_entity_의 크기가 같으면
           // ENTITY를 가공할 필요 없으니 바로 POST_READY

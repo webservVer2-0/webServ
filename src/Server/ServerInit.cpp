@@ -2,6 +2,9 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "../../include/RequestHandler.hpp"
 #include "../../include/config.hpp"
@@ -91,6 +94,8 @@ void ServerRun(ServerConfig& config) {
   int kque = config.GetServerKque();
   g_kq = kque;
 
+  signal(SIGPIPE, SIG_IGN);
+
   while (true) {
     new_event_number =
         kevent(kque, &config.change_list_[0], config.change_list_.size(),
@@ -105,6 +110,9 @@ void ServerRun(ServerConfig& config) {
       if (curr_event->udata == NULL) {
         continue;
       }
+      struct stat buf;
+      if(fstat(curr_event->ident, &buf) == -1)
+        continue;
       s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
       if (ft_filter == NULL) {
         continue;
@@ -187,8 +195,9 @@ void ServerRun(ServerConfig& config) {
               case 2:  // send failed(char * &sendmsg)
                 SendProcess(curr_event, client);
                 break;
-              default:
+              default: {
                 SendFin(curr_event, client);
+                  }
             }
           } else if (curr_event->filter == EVFILT_TIMER ||
                      curr_event->flags & EV_EOF) {

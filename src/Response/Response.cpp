@@ -167,7 +167,7 @@ inline t_http MakeFin(s_client_type* client, t_http msg) {
         std::make_pair(std::string("Location: "), std::string("delete")));
   }
   msg.header_.insert(
-      std::make_pair(std::string("Cache-Control: "), std::string("no-cache")));
+      std::make_pair(std::string("Cache-Control: "), std::string("no-cache; no-store;")));
   return (msg);
 }
 
@@ -311,8 +311,10 @@ static bool ConnectionClose(s_client_type* client) {
 
 void SendFin(struct kevent* event, s_client_type* client) {
   client->SendLogs();
-  if (client->GetStage() == END || ConnectionClose(client)) {
-    ServerConfig::ChangeEvents(event->ident, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+  if (client->GetStage() == END || ConnectionClose(client) || (client->GetErrorCode() != OK && client->GetErrorCode() != MOV_PERMAN && client->GetErrorCode() != NO_ERROR) ) {
+    ServerConfig::ChangeEvents(event->ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+    ServerConfig::ChangeEvents(event->ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+    ServerConfig::ChangeEvents(event->ident, EVFILT_TIMER, EV_DELETE, 0, 0, NULL);
     close(event->ident);
     DeleteUdata(client);
   } else {

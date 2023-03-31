@@ -8,6 +8,7 @@ void CheckError(struct kevent* curr_event) {
     return;
   }
   PutErrorPage(target);
+  target->SetStage(ERR_FIN);
   ServerConfig::ChangeEvents(target->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
                              NULL);
   ServerConfig::ChangeEvents(target->GetFD(), EVFILT_WRITE, EV_ENABLE, 0, 0,
