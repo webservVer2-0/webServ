@@ -166,8 +166,8 @@ inline t_http MakeFin(s_client_type* client, t_http msg) {
     msg.header_.insert(
         std::make_pair(std::string("Location: "), std::string("delete")));
   }
-  msg.header_.insert(
-      std::make_pair(std::string("Cache-Control: "), std::string("no-cache; no-store;")));
+  msg.header_.insert(std::make_pair(std::string("Cache-Control: "),
+                                    std::string("no-cache; no-store;")));
   return (msg);
 }
 
@@ -303,23 +303,26 @@ void SendProcess(struct kevent* event, s_client_type* client) {
 }
 
 static bool ConnectionClose(s_client_type* client) {
-  if(client->GetErrorCode() == OK || client->GetErrorCode() == MOV_PERMAN || client->GetErrorCode() == NO_ERROR)
-    return(false)
-  else{
-  t_http* request = &(client->GetRequest());
-  std::string keep_alive = request->header_["Connection"];
-  if (keep_alive == "close") return true;
-  return false;
+  if (client->GetErrorCode() != OK && client->GetErrorCode() != MOV_PERMAN &&
+      client->GetErrorCode() != NO_ERROR)
+    return (true);
+  else {
+    t_http* request = &(client->GetRequest());
+    std::string keep_alive = request->header_["Connection"];
+    if (keep_alive == "close") return true;
+    return false;
   }
 }
-
 
 void SendFin(struct kevent* event, s_client_type* client) {
   client->SendLogs();
   if (client->GetStage() == END || ConnectionClose(client)) {
-    ServerConfig::ChangeEvents(event->ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-    ServerConfig::ChangeEvents(event->ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-    ServerConfig::ChangeEvents(event->ident, EVFILT_TIMER, EV_DELETE, 0, 0, NULL);
+    ServerConfig::ChangeEvents(event->ident, EVFILT_WRITE, EV_DELETE, 0, 0,
+                               NULL);
+    ServerConfig::ChangeEvents(event->ident, EVFILT_READ, EV_DELETE, 0, 0,
+                               NULL);
+    ServerConfig::ChangeEvents(event->ident, EVFILT_TIMER, EV_DELETE, 0, 0,
+                               NULL);
     close(event->ident);
     DeleteUdata(client);
   } else {
