@@ -48,10 +48,10 @@ std::string MakeFilePath(s_client_type* client) {
   ret.append(upload_path.append("/"));
   ret.append(client->GetCookieId());
   ret.push_back('_');
-  if (IsTextFile(client)) {
-    ret.append("userdata.dat");
-  } else if (IsChunked(client)) {
+  if (IsChunked(client)) {
     ret.append("chunked.txt");
+  } else if (IsTextFile(client)) {
+    ret.append("userdata.dat");
   } else {
     ret.append("image.png");
   }
@@ -189,6 +189,7 @@ void ClientCGIPost(struct kevent* event) {
       exit(EXIT_FAILURE);
     }
   }
+
   close(cgi_pipe[1]);
   waitpid(-1, 0, 0);
   client->GetResponse().entity_length_ = cgi_pipe[0];
@@ -196,6 +197,8 @@ void ClientCGIPost(struct kevent* event) {
                              static_cast<uint16_t>(NOTE_EXIT), 0, client);
   ServerConfig::ChangeEvents(client->GetFD(), EVFILT_READ, EV_DISABLE, 0, 0,
                              client);
+  ServerConfig::ChangeEvents(client->GetFD(), EVFILT_TIMER, EV_ADD,
+                             NOTE_SECONDS, 5, client);
   client->SetErrorCode(OK);
   client->SetStage(POST_START);
   delete[] args[2];

@@ -102,7 +102,7 @@ void ServerRun(ServerConfig& config) {
 
     for (int i = 0; i < new_event_number; i++) {
       curr_event = &config.event_list_[i];
-      if (curr_event->udata == NULL || curr_event->flags & EV_ERROR) {
+      if (curr_event->udata == NULL) {
         continue;
       }
       s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
@@ -118,8 +118,9 @@ void ServerRun(ServerConfig& config) {
             else if (work_type->GetClientStage() == POST_START) {
               WorkFilePost(curr_event);
             }
-          } else if (work_type->GetWorkType() == cgi)
+          } else if (work_type->GetWorkType() == cgi) {
             WorkCGIPost(curr_event);
+          }
         } break;
         case CLIENT: {
           CheckError(curr_event);
@@ -149,8 +150,9 @@ void ServerRun(ServerConfig& config) {
                   std::string req_uri = client->GetConvertedURI();
                   if (req_uri.find("cgi") == std::string::npos)
                     ClientFilePost(curr_event);
-                  else
+                  else {
                     ClientCGIPost(curr_event);
+                  }
                   break;
                 }
                 case DELETE_READY: {
@@ -167,6 +169,7 @@ void ServerRun(ServerConfig& config) {
             }
           } else if (curr_event->filter == EVFILT_PROC) {
             ProcCGIPost(curr_event);
+
           } else if (curr_event->filter == EVFILT_WRITE) {
             s_client_type* client = static_cast<s_client_type*>(ft_filter);
             t_send* send = &client->GetSend();
