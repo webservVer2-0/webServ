@@ -56,6 +56,7 @@ typedef enum s_error {
   BAD_REQ = 400,
   FORBID = 403,
   NOT_FOUND = 404,
+  NO_METHOD = 405,
   NOT_IMPLE = 501,
   OLD_HTTP = 505,
   SYS_ERR = 999

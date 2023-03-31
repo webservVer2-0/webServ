@@ -167,7 +167,7 @@ t_error ConvertUri(std::string rq_uri,
 
   if ((*loc_it).second->main_config_[METHOD].find(
           client.GetRequest().init_line_["METHOD"]) == std::string().npos) {
-    return FORBID;
+    return NO_METHOD;
   }
   client.SetConfigPtr((*loc_it).second);
   client.GetRequest().init_line_["URI"] = MakeUriPath(rq_path);
@@ -420,7 +420,7 @@ int RequestHandler(struct kevent* curr_event) {
       client_type->GetParentServer().GetServerConfig().main_config_[MAXH]);
   int max_body_size = StringToLong(
       client_type->GetParentServer().GetServerConfig().main_config_[BODY]);
-  char buf[max_header_size + 1];
+  static char* buf = new char[max_header_size + 1];
   std::memset(buf, -1, max_header_size + 1);
 
   switch (client_type->GetStage()) {
