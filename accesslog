@@ -1,0 +1,47 @@
+9.34.68 - - [20/Feb/2021:07:29:54 + 0000] "GET <PATH> HTTP/1.1" 200 222 "http://?????"
+
+
+ACCESS LOG FORMMAT 
+	IP, 접속날짜, Init Line, 처리날짜, HTTP status, 치환된 uri
+
+ERROR LOG FORMMAT
+	ERR : IP, 접속날짜, Init Line, Error발생 시각, HTTP Status, Error Num, Error Cunstom Msg
+	ERR : 127.0.0.1 [20/Feb/2021:07:29:54 + 0900] "GET <PATH> HTTP/ 1.1" [ERR_TIME 20/Feb/2021:07:29:54 + 0900] [404 Page Not Found] [3 : servname not supported for ai_socktype] [CUSTOM : ~~~]
+
+2021/02/20 22:43:22 [crit] 32709#32709 *1379 SSL_do_handshake() failed (SSL: error: 어쩌고 저쩌고)
+
+$remote_user HTTP Authorization 접속시 접속한 유저
+$remote_addr 방문자 IP
+$time_local 요청을 처리한 서버 시간
+$status HTTP 응답코드
+$request 클라이언트 요청
+$http_user_agent 클라이언트가 사용한 브라우저
+$http_referer 해당 페이지 이전에 거쳐온 URL
+$body_bytes_sent 보낸 데이터 크기 (byte)
+$http_x_forwarded_for 프록시 서버를 거치기 전의 접속 IP
+$request_time 요청을 처리하는데 걸린시간
+$connection 로그를 남길 당시의 커넥션 수
+
+$remote_addr - Server에 접근한 IP주소
+$time_local - 다음 포맷을 갖는 시간을 출력한다. 16/Dec/2021:00:54:44 +0000
+$request - request_method + http 버전
+$request_method - "GET", "POST"
+$status - 요청에 대한 응답 HTTP Code
+$request_body - 요청의 body를 출력한다. POST 요청에 대한 값 확인
+$http_user_agent - 클라이언트 정보 출력 ( Chrome, Postman 등 )
+
+에러 로그 레벨
+; info - 정보
+notice - 정상
+warn - 경고
+error - 프로세스 처리 에러 (cgi 터짐);
+debug 디버그 정보
+
+
+//crit - 프로새스에 영향을 주는 오류
+//alert - 프로새스에 심각한 영향을 주는 오류
+//emerg 서비스 불가 수준 오류 - 설정, syntax등이 잘못된 경우
+
+2023/03/07 12:34:56 [error] 1234#0: *5678 connect() failed (111: Connection refused) while connecting to upstream, client: 192.0.2.1, server: example.com, request: "GET /foo HTTP/1.1", upstream: "http://127.0.0.1:8080/bar", host: "example.com"
+
+

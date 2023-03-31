@@ -1,0 +1,23 @@
+#include "../include/webserv.hpp"
+
+int g_kq = 0;
+
+int main(int ac, char** av, char** en) {
+  if (ac != 2) {
+    SOUT << "Usage : ./webserv {config path}" << SEND;
+    return (-1);
+  }
+
+  ServerConfig webserv(av[1]);
+
+  webserv.PrintServerConfig();
+
+  ServerInit(webserv);
+  ServerBind(webserv);
+  ServerListen(webserv);
+  ServerKinit(webserv);
+  ServerRun(webserv);
+
+  (void)en;
+  return (0);
+}

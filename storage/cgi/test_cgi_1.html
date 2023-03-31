@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" type="text/css" href="/asset/style.css">
+	<title>류진스의 길었던 하류</title>
+	<link rel="icon" type="image/png" sizes="32x32" href="/asset/favicon_io/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/asset/favicon_io/favicon-16x16.png">
+	<link rel="manifest" href="/asset/favicon_io/site.webmanifest">
+</head>
+<body>
+	<style>
+		input{
+    font-family: 'Noto Sans KR','Noto Sans Korean', "Nanum Gothic", sans-serif !important;
+    -webkit-appearance: none;
+    -webkit-border-radius: 0;
+    border: 0;
+    outline: none;
+    font-size: 10px;
+}
+input::placeholder{
+  color: #d9d9d9
+}
+.dust-class{
+  width: 50%; 
+  box-sizing: border-box;
+  margin: 20px auto;
+  position: relative;
+}
+.dust-class label{
+  display: inline-block;
+  position: absolute;
+  top: -5px;
+  left: 14px;
+  padding: 10px;
+  background: white;
+  font-size: 14px;
+  color: #888;
+  font-weight: bold;
+}
+.dust-class.ver2 label{
+  top: initial;
+  bottom: -20px;
+}
+.dust-class label span{
+  color: #da4841;
+  vertical-align: -1px;
+}
+.dust-class input{
+    width: 100%;
+    border: 1px solid #dddddd !important;
+    font-size: 1rem;
+    line-height: 1.45;
+    letter-spacing: -0.04rem;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
+}
+	</style>
+	<div id="background"><img src="/asset/wallpaper.jpeg" id="back_img"></img></div>
+	<div class="box" >
+	<a href="/">
+		<h1 id="banner" ">류진스의 길었던 하류</h1>
+		<h2 id="banner_mid" >Webserv Project</h2>
+		<span id="banner_under">우리는 생각한다. 고로 웹서브를 해낸다</span>
+		</a>
+	</div>
+	<h1>CGI Method Test 1 : ASCII Hashing CGI </h1>
+		<form action="/cgi_1/cgi.py" method="POST">
+	<div class="dust-class">
+			<label for="ascii-data"> <span>*</span>ASCII 데이터</label>
+			<input type="text" class ="text-input" name="ascii-data" id="ascii-data" placeholder="원하는 내용을 입력해주세요.">
+			<br>
+			<input  type="submit" value="전송">
+	</div>
+		</form>
+	<div id="result"></div>
+	<script>
+		const form = document.querySelector('form');
+		const resultDiv = document.querySelector('#result');
+		
+		form.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			
+			// 입력한 데이터 가져오기
+			const asciiData = form.elements['ascii-data'].value;
+			
+			// 서버로 요청 보내기
+			const response = await fetch('/cgi_1/cgi.py', {
+				method: 'POST',
+				body: new URLSearchParams({ 'ascii-data': asciiData })
+			});
+			
+			// 받은 데이터 출력하기
+			const responseText = await response.text();
+			resultDiv.innerText = responseText;
+		});
+	</script>
+	<a href="/"><img src="/asset/home.png" id="home"></img></a>
+</body>
+</html>

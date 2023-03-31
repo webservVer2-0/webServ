@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>류진스의 길었던 하류</title>
+	<link rel="stylesheet" type="text/css" href="./asset/style.css">
+</head>
+<body>
+	<h1>METHOD TEST PAGE</h1>
+​
+	<form method="get" action="result.html">
+		<label for="name">Name:</label>
+		<input type="text" id="name" name="name"><br>
+​
+		<label for="email">Email:</label>
+		<input type="email" id="email" name="email"><br>
+​
+		<input type="submit" value="Submit">
+	</form>
+​
+	<hr>
+​
+	<form method="get" action="/cgi1/cgi.py" target = "page-frame"> <!-- 요청 헤더에 정보가 포함되어 있을 수 있는 get 대신에 post를 사용해야함 -->
+		<label for="search">Search:</label>
+		<input type="text" id="search" name="search"><br>
+​
+		<input type="submit" value="search">
+	</form>
+	<iframe name="page-frame" width="400" height="300"></iframe><br><br>
+​
+	<hr>
+​
+	<form method="delete" action="">
+		<input type="text" name="id" value="1234">
+		<input type="submit" value="Delete">
+	</form>
+​
+</body>
+</html>
