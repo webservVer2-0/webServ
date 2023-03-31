@@ -138,7 +138,7 @@ t_error ConvertUri(std::string rq_uri,
     t_http& http = client.GetRequest();
     const std::string& query = rq_uri.substr(query_index + 1);
     http.entity_length_ = query.length();
-    // http.temp_entity_.clear();
+    http.temp_entity_.clear();
     http.temp_entity_.reserve(http.entity_length_);
     http.temp_entity_.insert(http.temp_entity_.end(), query.begin(),
                              query.end());
@@ -489,7 +489,7 @@ int RequestHandler(struct kevent* curr_event) {
             http->entity_[i] = http->temp_entity_[i];
           }
           http->entity_length_ = http->temp_entity_.size();
-          
+
           if (http->header_.find("Transfer-Encoding") != http->header_.end()) {
            if (http->header_["Transfer-Encoding"].find("chunked") !=
               std::string::npos) {

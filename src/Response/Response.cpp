@@ -141,7 +141,7 @@ inline t_http MakePermanHeader(s_client_type* client, t_http msg) {
       std::string("Location: "),
       client->GetLocationConfig().main_config_.find("redirection")->second));
   msg.header_.insert(
-      std::make_pair(std::string("Connection: "), std::string("Closed")));
+      std::make_pair(std::string("Connection: "), std::string("Close")));
   return (msg);
 }
 
@@ -201,7 +201,7 @@ t_http MakeResponseMessages(s_client_type* client) {
 
   if (client->GetStage() == END) {
     msg.header_.insert(
-        std::make_pair(std::string("Connection: "), std::string("Closed")));
+        std::make_pair(std::string("Connection: "), std::string("Close")));
   } else {
     msg.header_.insert(
         std::make_pair(std::string("Connection: "), std::string("Keep-Alive")));
