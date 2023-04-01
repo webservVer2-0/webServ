@@ -242,14 +242,12 @@ static int MethodParser(std::string s) {
   const std::string requisite[3] = {"GET", "POST", "DELETE"};
 
   for (int i = 0; i < 3; ++i) {
-    if (s.find(requisite[i]) != std::string::npos) return (0);
+    if (s == requisite[i]) return (0);
   }
   return (1);
 }
 
 t_error InitLineParser(t_http* http, std::string line) {
-  if (MethodParser(line)) return (NOT_IMPLE);
-
   size_t first_space = line.find(" ");
   if (first_space == std::string::npos) return (BAD_REQ);
 
@@ -258,7 +256,7 @@ t_error InitLineParser(t_http* http, std::string line) {
   } catch (std::exception) {
     return (SYS_ERR);
   }
-
+  if (MethodParser(http->init_line_["METHOD"])) return (NOT_IMPLE);
   size_t second_space = line.find(" ", first_space + 1);
   if (second_space == std::string::npos) return (BAD_REQ);
   /*
@@ -269,7 +267,6 @@ t_error InitLineParser(t_http* http, std::string line) {
   try {
     http->init_line_["URI"] =
         line.substr(first_space + 1, second_space - first_space - 1);
-    /* TODO: delete일때 작동 확인 */
     if (http->init_line_["METHOD"] == "GET" &&
         http->init_line_["URI"].find("/delete?") != std::string::npos) {
       http->init_line_["METHOD"] = "DELETE";
@@ -491,18 +488,19 @@ int RequestHandler(struct kevent* curr_event) {
           http->entity_length_ = http->temp_entity_.size();
 
           if (http->header_.find("Transfer-Encoding") != http->header_.end()) {
-           if (http->header_["Transfer-Encoding"].find("chunked") !=
-              std::string::npos) {
-             err_code = RefineChunk(
-                http, read_byte - (double_crlf + DOUBLE_CRLF_LEN - buf),
-                max_body_size);
-            if (err_code) {
-              return (RequestError(client_type, err_code,
-                                   "RequestHandler.cpp/RefineChunk()"));
+            if (http->header_["Transfer-Encoding"].find("chunked") !=
+                std::string::npos) {
+              err_code = RefineChunk(
+                  http, read_byte - (double_crlf + DOUBLE_CRLF_LEN - buf),
+                  max_body_size);
+              if (err_code) {
+                return (RequestError(client_type, err_code,
+                                     "RequestHandler.cpp/RefineChunk()"));
+              }
+              client_type->SetStage(POST_READY);
+              return (0);
             }
-            client_type->SetStage(POST_READY);
-            return (0);
-          }}
+          }
 
           // content_length_와 temp_entity_의 크기가 같으면
           // ENTITY를 가공할 필요 없으니 바로 POST_READY
