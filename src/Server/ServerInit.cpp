@@ -99,7 +99,7 @@ void ServerRun(ServerConfig& config) {
   while (true) {
     new_event_number =
         kevent(kque, &config.change_list_[0], config.change_list_.size(),
-               config.event_list_, max_event, nullptr);
+               config.event_list_, max_event, 0);
     if (new_event_number == -1) {
       PrintError(2, WEBSERV, "kevent has error");
     }
@@ -111,7 +111,8 @@ void ServerRun(ServerConfig& config) {
         continue;
       }
       struct stat buf;
-      if(fstat(curr_event->ident, &buf) == -1 && curr_event->filter != EVFILT_PROC)
+      if (fstat(curr_event->ident, &buf) == -1 &&
+          curr_event->filter != EVFILT_PROC)
         continue;
       s_base_type* ft_filter = static_cast<s_base_type*>(curr_event->udata);
       if (ft_filter == NULL) {
@@ -197,7 +198,7 @@ void ServerRun(ServerConfig& config) {
                 break;
               default: {
                 SendFin(curr_event, client);
-                  }
+              }
             }
           } else if (curr_event->filter == EVFILT_TIMER ||
                      curr_event->flags & EV_EOF) {
